@@ -1,11 +1,10 @@
 -include definitions.mk
 
-$(OBJS) :
-	g++ $(SRC) -o $@
 
-DebugTest: $(OBJS)
+
+$(OBJS): 
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ $(SRC) -o "DebugTest" bin/$^
+	g++ $(SRC) -o bin/"FoodWebModel" $^
 	@echo 'Finished building target: $@'
-	@echo ' '
+	

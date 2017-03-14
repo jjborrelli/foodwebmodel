@@ -6,11 +6,12 @@
  *      Author: manu_
  */
 
-using FoodWebModel::FoodWebModel;
-
 #include "../headers/FoodWebModel.hpp"
 
-int FoodWebModel::simulate(int cycles){
+
+
+
+int FoodWebModel::FoodWebModel::simulate(int cycles){
 	return 0;
 }
 
@@ -18,14 +19,14 @@ int FoodWebModel::simulate(int cycles){
  * Differential of biomass for photoplankton and periphyton at each time step
  */
 
-double FoodWebModel::biomassDifferential(int depthIndex, int column, bool periPhyton){
+biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int column, bool periPhyton){
 	localBiomass=periPhyton?periBiomass:phytoBiomass;
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
-	double localPointBiomass=localBiomass[depthIndex][column];
-	double localeLightLimitation = lightLimitation(depthIndex, column);
-	double localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightLimitation, periPhyton);
-	double localeTemperature =temperature[depthIndex][column];
+	biomassType localPointBiomass=localBiomass[depthIndex][column];
+	physicalType localeLightLimitation = lightLimitation(depthIndex, column);
+	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightLimitation, periPhyton);
+	physicalType localeTemperature =temperature[depthIndex][column];
 
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
 	return localePhotoSynthesis-respiration(localPointBiomass, localeTemperature)
@@ -37,11 +38,11 @@ double FoodWebModel::biomassDifferential(int depthIndex, int column, bool periPh
 /*
  * Light intensity is calculated using the simple model from Ryabov, 2012, Phytoplankton competition in deep biomass maximum, Theoretical Ecology, equation 3
  */
-double FoodWebModel::lightLimitation(int depthIndex, int column){
+physicalType FoodWebModel::FoodWebModel::lightLimitation(int depthIndex, int column){
 	/*
 	 * Transform depth from an integer index to a real value in ms
 	 */
-	double depthInMeters= depthVector[depthIndex];
+	physicalType depthInMeters= depthVector[depthIndex];
 	return incidentIntensity*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
 }
 
@@ -49,8 +50,8 @@ double FoodWebModel::lightLimitation(int depthIndex, int column){
 /*
  * Summing of phytoplankton biomass up to the given depth
  */
-double FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, int column){
-	double sumPhytoBiomass=0.0l;
+biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, int column){
+	biomassType sumPhytoBiomass=0.0l;
 	for(int i=0; i<depthIndex; i++){
 		sumPhytoBiomass+=phytoBiomass[i][column];
 	}
@@ -61,32 +62,32 @@ double FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, int column){
 /*
  * Photosynthesis to calculate biomass differential
  */
-double FoodWebModel::photoSynthesis(double localPointBiomass, double localeLightLimitation, bool periPhyton){
+biomassType FoodWebModel::FoodWebModel::photoSynthesis(biomassType localPointBiomass, physicalType localeLightLimitation, bool periPhyton){
 
 	return productionLimit(localeLightLimitation, periPhyton)*localPointBiomass;
 }
 
-double FoodWebModel::productionLimit(double localeLightLimitation, bool periPhyton){
+physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLightLimitation, bool periPhyton){
 	/*The main limiting effects are temperature, nutrient concentration, toxicant and light. Since we will not have data
 	 * on nutrient concentration and the temperature model is complex, we will use only light intensity as a limiting effect*/
 	/*
 	 * We will also use the fraction of littoral zone for periphyton
 	 */
-	double productionLimit= localeLightLimitation;
+	physicalType productionLimit= localeLightLimitation;
 	if(periPhyton){
 		productionLimit*=fractionInEuphoticZone;
 	}
 	return productionLimit;
 }
 
-FoodWebModel::FoodWebModel(){
+FoodWebModel::FoodWebModel::FoodWebModel(){
 	setBathymetricParameters();
 }
 
 /*
  * Calculate system-specific bathymetric parameters
  */
-void FoodWebModel::setBathymetricParameters(){
+void FoodWebModel::FoodWebModel::setBathymetricParameters(){
 	/*
 	 *  (AquaTox Documentation, page 45, equation 8)
 	 */
@@ -101,14 +102,14 @@ void FoodWebModel::setBathymetricParameters(){
 /*
  * Biomass lost to respiration
  */
-double FoodWebModel::respiration(double localPointBiomass, double localTemperature){
+biomassType FoodWebModel::FoodWebModel::respiration(biomassType localPointBiomass, physicalType localTemperature){
 	return RESP20*pow(EXPONENTIAL_TEMPREATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
 }
 
 /*
  * Biomass lost to excretion (AquaTox Documentation, page 85, equation 64)
  */
-double FoodWebModel::excretion(double localePhotoSynthesis, double localeLightLimitation){
+biomassType FoodWebModel::FoodWebModel::excretion(biomassType localePhotoSynthesis, physicalType localeLightLimitation){
 	return PROPORTION_EXCRETION_PHOTOSYNTHESIS*(1-localeLightLimitation)*localePhotoSynthesis;
 }
 
@@ -116,14 +117,14 @@ double FoodWebModel::excretion(double localePhotoSynthesis, double localeLightLi
 /*
  * Biomass lost to natural mortality (AquaTox Documentation, page 86, equation 66)
  */
-double FoodWebModel::naturalMortality(double localeTemperature, double localeLightLimitation, double localPointBiomass){
+biomassType FoodWebModel::FoodWebModel::naturalMortality(physicalType localeTemperature, physicalType localeLightLimitation, biomassType localPointBiomass){
 	return (INTRINSIC_MORTALITY_RATE+highTemperatureMortality(localeTemperature))*localPointBiomass;
 }
 
 /*
  * Biomass lost to high temperature (AquaTox Documentation, page 86, equation 67)
  */
-double FoodWebModel::highTemperatureMortality(double localeTemperature){
+biomassType FoodWebModel::FoodWebModel::highTemperatureMortality(physicalType localeTemperature){
 
 	return exp(localeTemperature-MAXIMUM_TOLERABLE_TEMPERATURE)/2.0f;
 
@@ -132,7 +133,7 @@ double FoodWebModel::highTemperatureMortality(double localeTemperature){
 /*
  * Biomass lost to stress related to resource limitation (AquaTox Documentation, page 86, equation 68)
  */
-double FoodWebModel::resourceLimitationStress(double localeLightLimitation){
+biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLightLimitation){
 	return 1.0f-exp(-MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLightLimitation));
 
 }

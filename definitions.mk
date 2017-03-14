@@ -1,2 +1,2 @@
-OBJS := loop
-SRC := src/main.cpp
+OBJS := FoodWebModel
+SRC := src/*

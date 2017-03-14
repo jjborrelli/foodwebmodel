@@ -30,7 +30,7 @@
 /*
  * The respiration rate at 20 degrees is to be defined
  */
-#define RESP20
+#define RESP20 1.0f
 
 /*
  * The exponential temperature coefficient (AquaTox Documentation, page 84, equation 63)
@@ -40,12 +40,12 @@
 /*
  * The coefficient of proportionality between excretion and photosynthesis is to be defined
  */
-#define PROPORTION_EXCRETION_PHOTOSYNTHESIS
+#define PROPORTION_EXCRETION_PHOTOSYNTHESIS 1.0f
 
 /*
  * The intrinsic phytoplankton mortality rate and maximum tolerable temperature values are yet to be defined
  */
-#define INTRINSIC_MORTALITY_RATE
+#define INTRINSIC_MORTALITY_RATE 1.0f
 #define MAXIMUM_TOLERABLE_TEMPERATURE 1.0f
 
 /*
@@ -53,42 +53,42 @@
  */
 #define MAXIMUM_RESOURCE_LIMITATION_LOSS 1.0f
 
+typedef double biomassType;
+typedef double physicalType;
 
 namespace FoodWebModel {
 
 
 	class FoodWebModel {
-		FoodWebModel();
 
 
 		/*Class attributes*/
 	protected:
-		double* depthVector;
+		physicalType* depthVector, **temperature;
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
-		double **phytoBiomass, **periBiomass, **temperature;
+		biomassType **phytoBiomass, **periBiomass, **localBiomass;
 
 		/*A vector to reference the calculated biomass*/
-		double **localBiomass;
 
-		double incidentIntensity;
+		physicalType incidentIntensity;
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
 		/*Class methods*/
 	public:
 		int simulate(int cycles);
 		FoodWebModel();
 	protected:
-		double biomassDifferential(int depthIndex, int column, bool periPhyton);
-		double lightLimitation(int depthIndex, int column);
-		double sumPhytoBiomassToDepth(int depthIndex, int column);
-		double photoSynthesis(double localPointBiomass, double localeLightLimitation, bool periPhyton);
-		double productionLimit(double localeLightLimitation, bool periPhyton);
+		biomassType biomassDifferential(int depthIndex, int column, bool periPhyton);
+		physicalType lightLimitation(int depthIndex, int column);
+		biomassType sumPhytoBiomassToDepth(int depthIndex, int column);
+		biomassType photoSynthesis(biomassType localPointBiomass, physicalType localeLightLimitation, bool periPhyton);
+		physicalType productionLimit(physicalType localeLightLimitation, bool periPhyton);
 		void setBathymetricParameters();
-		double respiration(double localPointBiomass, double localTemperature);
-		double excretion(double localePhotoSynthesis, double localeLightLimitation);
-		double naturalMortality(double localTemperature, double localeLightLimitation, double localPointBiomass);
-		double highTemperatureMortality(double localeTemperature);
-		double resourceLimitationStress(double localeLightLimitation);
+		biomassType respiration(biomassType localPointBiomass, physicalType localTemperature);
+		biomassType excretion(biomassType localePhotoSynthesis, physicalType localeLightLimitation);
+		biomassType naturalMortality(physicalType localTemperature, physicalType localeLightLimitation, biomassType localPointBiomass);
+		biomassType highTemperatureMortality(physicalType localeTemperature);
+		biomassType resourceLimitationStress(physicalType localeLightLimitation);
 	};
 }
 

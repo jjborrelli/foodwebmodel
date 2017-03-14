@@ -27,6 +27,32 @@
  */
 #define TURBIDITY 1.2/EXTINCTION
 
+/*
+ * The respiration rate at 20 degrees is to be defined
+ */
+#define RESP20
+
+/*
+ * The exponential temperature coefficient (AquaTox Documentation, page 84, equation 63)
+ */
+#define EXPONENTIAL_TEMPREATURE_COEFFICIENT 1.045
+
+/*
+ * The coefficient of proportionality between excretion and photosynthesis is to be defined
+ */
+#define PROPORTION_EXCRETION_PHOTOSYNTHESIS
+
+/*
+ * The intrinsic phytoplankton mortality rate and maximum tolerable temperature values are yet to be defined
+ */
+#define INTRINSIC_MORTALITY_RATE
+#define MAXIMUM_TOLERABLE_TEMPERATURE 1.0f
+
+/*
+ * Maximum biomass loss due to resource limitation is yet to be defined
+ */
+#define MAXIMUM_RESOURCE_LIMITATION_LOSS 1.0f
+
 
 namespace FoodWebModel {
 
@@ -38,7 +64,13 @@ namespace FoodWebModel {
 		/*Class attributes*/
 	protected:
 		double* depthVector;
-		double** phytoBiomass;
+
+		/*Phytoplankton biomass, periphyton biomass and temperature*/
+		double **phytoBiomass, **periBiomass, **temperature;
+
+		/*A vector to reference the calculated biomass*/
+		double **localBiomass;
+
 		double incidentIntensity;
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
 		/*Class methods*/
@@ -47,12 +79,16 @@ namespace FoodWebModel {
 		FoodWebModel();
 	protected:
 		double biomassDifferential(int depthIndex, int column, bool periPhyton);
-		double lightIntensity(int depthIndex, int column);
+		double lightLimitation(int depthIndex, int column);
 		double sumPhytoBiomassToDepth(int depthIndex, int column);
-		double photoSynthesis(int depthIndex, int column, bool periPhyton);
-		double productionLimit(int depthIndex, int column, bool periPhyton);
+		double photoSynthesis(double localPointBiomass, double localeLightLimitation, bool periPhyton);
+		double productionLimit(double localeLightLimitation, bool periPhyton);
 		void setBathymetricParameters();
-
+		double respiration(double localPointBiomass, double localTemperature);
+		double excretion(double localePhotoSynthesis, double localeLightLimitation);
+		double naturalMortality(double localTemperature, double localeLightLimitation, double localPointBiomass);
+		double highTemperatureMortality(double localeTemperature);
+		double resourceLimitationStress(double localeLightLimitation);
 	};
 }
 

@@ -28,25 +28,30 @@
 #define TURBIDITY 1.2/EXTINCTION
 
 /*
- * The respiration rate at 20 degrees is to be defined
+ * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
  */
-#define RESP20 1.0f
+#define RESP20 0.3f
 
 /*
  * The exponential temperature coefficient (AquaTox Documentation, page 84, equation 63)
  */
-#define EXPONENTIAL_TEMPREATURE_COEFFICIENT 1.045
+#define EXPONENTIAL_TEMPERATURE_COEFFICIENT 1.045
 
 /*
- * The coefficient of proportionality between excretion and photosynthesis is to be defined
+ * The coefficient of proportionality between excretion and photosynthesis (AquaTox Documentation, page 86, figure 62)
  */
-#define PROPORTION_EXCRETION_PHOTOSYNTHESIS 1.0f
+#define PROPORTION_EXCRETION_PHOTOSYNTHESIS 0.04f
 
 /*
- * The intrinsic phytoplankton mortality rate and maximum tolerable temperature values are yet to be defined
+ * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
-#define INTRINSIC_MORTALITY_RATE 1.0f
-#define MAXIMUM_TOLERABLE_TEMPERATURE 1.0f
+
+#define INTRINSIC_MORTALITY_RATE 0.028f
+/*
+ * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
+ */
+
+#define MAXIMUM_TOLERABLE_TEMPERATURE 38f
 
 /*
  * Maximum biomass loss due to resource limitation is yet to be defined
@@ -57,7 +62,6 @@ typedef double biomassType;
 typedef double physicalType;
 
 namespace FoodWebModel {
-
 
 	class FoodWebModel {
 
@@ -75,8 +79,10 @@ namespace FoodWebModel {
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
 		/*Class methods*/
 	public:
-		int simulate(int cycles);
 		FoodWebModel();
+		int simulate(int cycles);
+
+
 	protected:
 		biomassType biomassDifferential(int depthIndex, int column, bool periPhyton);
 		physicalType lightLimitation(int depthIndex, int column);

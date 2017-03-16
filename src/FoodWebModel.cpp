@@ -103,7 +103,7 @@ void FoodWebModel::FoodWebModel::setBathymetricParameters(){
  * Biomass lost to respiration
  */
 biomassType FoodWebModel::FoodWebModel::respiration(biomassType localPointBiomass, physicalType localTemperature){
-	return RESP20*pow(EXPONENTIAL_TEMPREATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
+	return RESP20*pow(EXPONENTIAL_TEMPERATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
 }
 
 /*

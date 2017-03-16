@@ -26,12 +26,22 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	biomassType localPointBiomass=localBiomass[depthIndex][column];
 	physicalType localeLightLimitation = lightLimitation(depthIndex, column);
 	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightLimitation, periPhyton);
+	biomassType localSedimentation = sinking(depthIndex, localPointBiomass);
+    biomassType localSlough = slough(depthIndex, column);
 	physicalType localeTemperature =temperature[depthIndex][column];
 
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
-	return localePhotoSynthesis-respiration(localPointBiomass, localeTemperature)
+	biomassType commonProductivity =  localePhotoSynthesis-respiration(localPointBiomass, localeTemperature)
 			-excretion(localePhotoSynthesis, localeLightLimitation)
 			-naturalMortality(localeTemperature, localeLightLimitation, localPointBiomass);
+
+	/* Hydrodynamics rules still need to be encoded */
+	if(periPhyton){
+		commonProductivity+=localSedimentation-localSlough;
+	} else {
+		commonProductivity+=-localSedimentation+localSlough/3;
+	}
+	return commonProductivity;
 }
 
 
@@ -100,7 +110,7 @@ void FoodWebModel::FoodWebModel::setBathymetricParameters(){
 }
 
 /*
- * Biomass lost to respiration
+ * Biomass lost to respiration (AquaTox Documentation, page 84, equation 63)
  */
 biomassType FoodWebModel::FoodWebModel::respiration(biomassType localPointBiomass, physicalType localTemperature){
 	return RESP20*pow(EXPONENTIAL_TEMPERATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
@@ -137,3 +147,31 @@ biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType lo
 	return 1.0f-exp(-MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLightLimitation));
 
 }
+
+/*
+ * Biomass moved from phytoplankton to periphyton by sinking (AquaTox Documentation, page 87, equation 69)
+ */
+biomassType FoodWebModel::FoodWebModel::sinking(int depthIndex, int columnIndex){
+	/*  Can the ration mean discharge/discharge be omitted? Does this mean the amount of biomass that accumulates due to sinking?*/
+	return INTRINSIC_SETTLING_RATE/depthVector[depthIndex]*phytoBiomass[depthIndex][columnIndex];
+}
+
+/*
+ * Biomass washed from periphyton to phytoplankton by slough (AquaTox Documentation, page 92, equation 75)
+ */
+biomassType FoodWebModel::FoodWebModel::slough(int depthIndex, int columnIndex){
+	return periBiomass[depthIndex][columnIndex]*FRACTION_SLOUGHED;
+}
+/*Can floating be omitted from the model? I could not find the equation modeling it.*/
+
+/*Are we going to introduce hydrodynamics in the model? If so, we need to model the equivalent to the following equations (AquaTox Documentation, page 67, equation 33)
+* 1. Washout
+* 2. Washin
+* 3. TurbDiff
+* 4. Diffusion
+*/
+
+/*
+ * Since our model will be spatially-explicit, can we replace these hydrodynamics equations with local neighborhood rules?
+ * For instance, a fraction of phytoplankton biomass is drawn out and drawn in from the neighboring cells.
+ * */

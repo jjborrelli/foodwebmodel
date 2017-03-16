@@ -46,7 +46,7 @@
  * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
 
-#define INTRINSIC_MORTALITY_RATE 0.028f
+#define INTRINSIC_MORTALITY_RATE 0.019f
 /*
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
  */
@@ -57,6 +57,16 @@
  * Maximum biomass loss due to resource limitation is yet to be defined
  */
 #define MAXIMUM_RESOURCE_LIMITATION_LOSS 1.0f
+
+/*
+ * Intrinsinc settling rate (AquaTox Documentation, page 88, figure 65)
+ */
+#define INTRINSIC_SETTLING_RATE 0.101f
+
+/*
+ * Fraction of periphyton sloughed (AquaTox Documentation, page 92, figure 75), yet to be defined
+ */
+#define FRACTION_SLOUGHED 0.5f
 
 typedef double biomassType;
 typedef double physicalType;
@@ -95,6 +105,8 @@ namespace FoodWebModel {
 		biomassType naturalMortality(physicalType localTemperature, physicalType localeLightLimitation, biomassType localPointBiomass);
 		biomassType highTemperatureMortality(physicalType localeTemperature);
 		biomassType resourceLimitationStress(physicalType localeLightLimitation);
+		biomassType sinking(int depthIndex, int columnIndex);
+		biomassType slough(int depthIndex, int columnIndex);
 	};
 }
 

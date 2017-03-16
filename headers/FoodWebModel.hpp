@@ -51,7 +51,7 @@
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
  */
 
-#define MAXIMUM_TOLERABLE_TEMPERATURE 38f
+#define MAXIMUM_TOLERABLE_TEMPERATURE 38.0f
 
 /*
  * Maximum biomass loss due to resource limitation is yet to be defined

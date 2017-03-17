@@ -7,12 +7,43 @@
  */
 
 #include "../headers/FoodWebModel.hpp"
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+string operator+(string arg1, int arg2){
+	ostringstream  bufferString;
+	bufferString<<arg2;
+	return arg1+bufferString.str();
+}
 
 
-
-
-int FoodWebModel::FoodWebModel::simulate(int cycles){
+int FoodWebModel::FoodWebModel::simulate(int cycles,  const char* outputFileName){
+	/*CSV file to write the output. Useful for calibration*/
+	ofstream outputFile;
+	outputFile.open(outputFileName);
+	outputFile<<"Productivity,PhotoSynthesys,Respiration,Excretion,NaturalMortality,Sedimentation,Slough,Type\n";
+	for(int cycle=0; cycle<cycles; cycle++){
+		step();
+		outputFile<<lineBuffer<<"\n";
+	}
+	outputFile.close();
 	return 0;
+}
+
+void FoodWebModel::FoodWebModel::step(){
+	for(int depthIndex=0; depthIndex<maxDepthIndex; depthIndex++){
+		for(int columnIndex=0; columnIndex<maxColumn; columnIndex++){
+			priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
+			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
+			phytoBiomass[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, false);
+			periBiomass[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, true);
+
+		}
+	}
+
 }
 
 /*
@@ -20,7 +51,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles){
  */
 
 biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int column, bool periPhyton){
-	localBiomass=periPhyton?periBiomass:phytoBiomass;
+	localBiomass=periPhyton?priorPeriBiomass:priorPhytoBiomass;
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
 	biomassType localPointBiomass=localBiomass[depthIndex][column];
@@ -29,11 +60,12 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	biomassType localSedimentation = sinking(depthIndex, localPointBiomass);
     biomassType localSlough = slough(depthIndex, column);
 	physicalType localeTemperature =temperature[depthIndex][column];
-
+	biomassType localeRespiraton = respiration(localPointBiomass, localeTemperature);
+	biomassType localeExcretion =excretion(localePhotoSynthesis, localeLightLimitation);
+	biomassType localeNaturalMortality = naturalMortality(localeTemperature, localeLightLimitation, localPointBiomass);
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
-	biomassType commonProductivity =  localePhotoSynthesis-respiration(localPointBiomass, localeTemperature)
-			-excretion(localePhotoSynthesis, localeLightLimitation)
-			-naturalMortality(localeTemperature, localeLightLimitation, localPointBiomass);
+	biomassType commonProductivity =  localePhotoSynthesis-localeRespiraton-localeExcretion
+			-localeNaturalMortality;
 
 	/* Hydrodynamics rules still need to be encoded */
 	if(periPhyton){
@@ -41,6 +73,17 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	} else {
 		commonProductivity+=-localSedimentation+localSlough/3;
 	}
+	string commaString = string(",");
+	/* Create line buffer to write results*/
+	lineBuffer="";
+	lineBuffer+=commonProductivity;
+	lineBuffer+=commaString+localePhotoSynthesis;
+	lineBuffer+=commaString+localeRespiraton;
+	lineBuffer+=commaString+localeExcretion;
+	lineBuffer+=commaString+localeNaturalMortality;
+	lineBuffer+=commaString+localSedimentation;
+	lineBuffer+=commaString+localSlough;
+	lineBuffer+=commaString+string(periPhyton?"peri":"phyto");
 	return commonProductivity;
 }
 
@@ -53,7 +96,7 @@ physicalType FoodWebModel::FoodWebModel::lightLimitation(int depthIndex, int col
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	physicalType depthInMeters= depthVector[depthIndex];
-	return incidentIntensity*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
+	return incidentLightIntensity*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
 }
 
 
@@ -63,7 +106,7 @@ physicalType FoodWebModel::FoodWebModel::lightLimitation(int depthIndex, int col
 biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, int column){
 	biomassType sumPhytoBiomass=0.0l;
 	for(int i=0; i<depthIndex; i++){
-		sumPhytoBiomass+=phytoBiomass[i][column];
+		sumPhytoBiomass+=priorPhytoBiomass[i][column];
 	}
 	return sumPhytoBiomass;
 }

@@ -6,6 +6,7 @@
  */
 
 #include <math.h>
+#include <string>
 #ifndef FOODWEBMODEL_HPP_
 #define FOODWEBMODEL_HPP_
 
@@ -81,19 +82,26 @@ namespace FoodWebModel {
 		physicalType* depthVector, **temperature;
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
-		biomassType **phytoBiomass, **periBiomass, **localBiomass;
+		biomassType **phytoBiomass, **periBiomass, **priorPhytoBiomass, **priorPeriBiomass, **localBiomass;
 
 		/*A vector to reference the calculated biomass*/
 
-		physicalType incidentIntensity;
+		physicalType incidentLightIntensity;
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
+
+		/*Max possible index*/
+		int maxDepthIndex, maxColumn;
+
+		/*Buffer line to write simulation results*/
+		std::string lineBuffer;
 		/*Class methods*/
 	public:
 		FoodWebModel();
-		int simulate(int cycles);
+		int simulate(int cycles,  const char* outputFileName);
 
 
 	protected:
+		void step();
 		biomassType biomassDifferential(int depthIndex, int column, bool periPhyton);
 		physicalType lightLimitation(int depthIndex, int column);
 		biomassType sumPhytoBiomassToDepth(int depthIndex, int column);

@@ -6,12 +6,17 @@
  */
 
 #include "../headers/FoodWebModel.hpp"
+#include <string>
+#include <cstdlib>
+using namespace std;
 
 using namespace FoodWebModel;
 
 int main(int argc, char **argv) {
 	FoodWebModel::FoodWebModel foodWebModel;
-	foodWebModel.simulate(0);
+	string outputFileName = argv[1];
+	int simulationCycles=atoi(argv[2]);
+	foodWebModel.simulate(simulationCycles, outputFileName.c_str());
 }
 
 

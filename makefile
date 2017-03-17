@@ -8,3 +8,8 @@ $(OBJS):
 	g++ $(SRC) -o bin/$(OBJS) $^
 	@echo 'Finished building target: $@'
 	
+.PHONY: debug
+debug:
+	@echo Debugging target: $@'
+	g++ -g -c $(SRC) -o bin/$(OBJS) $^
+	@echo 'Finished building target: $@ for debugging'

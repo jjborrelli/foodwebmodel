@@ -10,7 +10,6 @@
 #include <cstdlib>
 using namespace std;
 
-using namespace FoodWebModel;
 
 int main(int argc, char **argv) {
 	FoodWebModel::FoodWebModel foodWebModel;

@@ -59,7 +59,7 @@
 #define MAXIMUM_RESOURCE_LIMITATION_LOSS 1.0f
 
 /*
- * Intrinsinc settling rate (AquaTox Documentation, page 88, figure 65)
+ * Intrinsic settling rate (AquaTox Documentation, page 88, figure 65)
  */
 #define INTRINSIC_SETTLING_RATE 0.101f
 

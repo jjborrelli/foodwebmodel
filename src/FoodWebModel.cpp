@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const char* outputFileName
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName);
-	outputFile<<"Productivity,PhotoSynthesys,Respiration,Excretion,NaturalMortality,Sedimentation,Slough,Type\n";
+	outputFile<<"Depth, Column, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type\n";
 	for(int cycle=0; cycle<cycles; cycle++){
 		step();
 		outputFile<<lineBuffer<<"\n";
@@ -73,10 +73,12 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	} else {
 		commonProductivity+=-localSedimentation+localSlough/3;
 	}
-	string commaString = string(",");
+	string commaString = string(", ");
 	/* Create line buffer to write results*/
 	lineBuffer="";
-	lineBuffer+=commonProductivity;
+	lineBuffer+=depthIndex;
+	lineBuffer+=commaString+column;
+	lineBuffer+=commaString+commonProductivity;
 	lineBuffer+=commaString+localePhotoSynthesis;
 	lineBuffer+=commaString+localeRespiraton;
 	lineBuffer+=commaString+localeExcretion;

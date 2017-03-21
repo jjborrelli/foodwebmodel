@@ -7,6 +7,12 @@
 
 #include <math.h>
 #include <string>
+#ifdef _WIN32
+	#include "C:/OSGeo4W64/include/gdal_priv.h"
+#else
+	#include <gdal_priv.h>
+#endif
+
 #ifndef FOODWEBMODEL_HPP_
 #define FOODWEBMODEL_HPP_
 
@@ -73,6 +79,13 @@ typedef double biomassType;
 typedef double physicalType;
 
 namespace FoodWebModel {
+
+	class ReadGDALFile{
+	protected:
+		GDALDataset  *poDataset;
+	public:
+		void readGDALFile(std::string filename);
+	};
 
 	class FoodWebModel {
 

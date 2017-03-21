@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	FoodWebModel::FoodWebModel foodWebModel;
 	string outputFileName = argv[1];
 	int simulationCycles=atoi(argv[2]);
-	foodWebModel.simulate(simulationCycles, outputFileName.c_str());
+	//foodWebModel.simulate(simulationCycles, outputFileName.c_str());
 }
 
 

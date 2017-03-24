@@ -1,8 +1,9 @@
-#include "../headers/FoodWebModel.hpp"
+#include "../headers/ReadGDALFile.hpp"
 #include <iostream>
+
 using namespace std;
 
-void FoodWebModel::ReadGDALFile::readGDALFile(string filename){
+void FoodWebModel::ReadGDALFile::readFile(string filename){
 	GDALAllRegister();
 
 	/*Read raster data*/
@@ -23,13 +24,18 @@ void FoodWebModel::ReadGDALFile::readGDALFile(string filename){
 	    	int nXBlocks = (poBand->GetXSize() + nXBlockSize - 1) / nXBlockSize;
 	    	int nYBlocks = (poBand->GetYSize() + nYBlockSize - 1) / nYBlockSize;
 
-	    	 GByte *pabyData = (GByte *) CPLMalloc(nXBlockSize * nYBlockSize);
+	    	GByte *pabyData = (GByte *) CPLMalloc(nXBlockSize * nYBlockSize);
 	    	     for( int iYBlock = 0; iYBlock < nYBlocks; iYBlock++ )
 	    	     {
 	    	         for( int iXBlock = 0; iXBlock < nXBlocks; iXBlock++ )
 	    	         {
-	    	             int        nXValid, nYValid;
+	    	             int nXValid, nYValid;
+	    	             float* pafScanline = (float *) CPLMalloc(sizeof(float)*nXBlockSize);
+	    	             poBand->RasterIO( GF_Read, 0, raster_y_size/2, nXBlockSize, 1,
+	    	                               pafScanline, nXBlockSize, 1, GDT_Float32,
+	    	                               0, 0 );
 	    	             CPLErr error_block_signal = poBand->ReadBlock( iXBlock, iYBlock, pabyData );
+
 	    	             // Compute the portion of the block that is valid
 	    	             // for partial edge blocks.
 

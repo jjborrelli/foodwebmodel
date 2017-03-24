@@ -6,6 +6,7 @@
  */
 
 #include "../headers/FoodWebModel.hpp"
+#include "../headers/ReadNetCDFFile.hpp"
 #include <string>
 #include <cstdlib>
 using namespace std;
@@ -17,8 +18,8 @@ int main(int argc, char **argv) {
 	string bathymetryFile = argv[1];
 	string outputFileName = argv[2];
 	int simulationCycles=atoi(argv[3]);
-	ReadGDALFile fileReader;
-	fileReader.readGDALFile(bathymetryFile);
+	ReadNetCDFFile fileReader;
+	fileReader.readFile(bathymetryFile);
 	//foodWebModel.simulate(simulationCycles, outputFileName.c_str());
 }
 

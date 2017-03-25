@@ -30,14 +30,24 @@ using namespace netCDF::exceptions;
 /* Handle errors by printing an error message and exiting with a
  * non-zero status. */
 
+static const int NC_ERR = 2;
 
-void FoodWebModel::ReadNetCDFFile::readFile(string filename){
+int FoodWebModel::ReadNetCDFFile::readFile(string filename){
 
 	int fileHandler, varHandler;
 	int returnedFileValue=0;
 
 		/*Open the NetCDF file*/
-	netCDF::NcFile dataFile;
+	NcFile dataFile(filename.c_str(), NcFile::read);
+
+	/*Get the variable*/
+	 NcVar data=dataFile.getVar("depth");
+	 if(data.isNull()){
+		 return NC_ERR;
+	 }
+	   data.getVar(readDepth);
+
+	   return 0;
 
 
 }

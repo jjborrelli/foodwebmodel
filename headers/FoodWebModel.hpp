@@ -15,60 +15,60 @@
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
  * Since we do not consider any feedback from the food water to the geophysical model, we assume that Light Extinction = Water Extinction
  */
-#define EXTINCTION 0.02
+static const double EXTINCTION=0.02;
 
 /*
  * We consider that virtually all phytoplankton has the light attenuation coefficient of diatom algae
  */
-#define DIATOM_ATTENUATION 0.14
-#define ATTENUATION_COEFFICIENT DIATOM_ATTENUATION
+static const double  DIATOM_ATTENUATION=0.14;
+static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
 
 
 /*
  * The Secchi disk is an indication of water turbidity (AquaTox Documentation, page 74).
  */
-#define TURBIDITY 1.2/EXTINCTION
+static const double TURBIDITY=1.2f/EXTINCTION;
 
 /*
  * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
  */
-#define RESP20 0.3f
+static const double RESP20=0.3f;
 
 /*
  * The exponential temperature coefficient (AquaTox Documentation, page 84, equation 63)
  */
-#define EXPONENTIAL_TEMPERATURE_COEFFICIENT 1.045
+static const double EXPONENTIAL_TEMPERATURE_COEFFICIENT=1.045;
 
 /*
  * The coefficient of proportionality between excretion and photosynthesis (AquaTox Documentation, page 86, figure 62)
  */
-#define PROPORTION_EXCRETION_PHOTOSYNTHESIS 0.04f
+static const double PROPORTION_EXCRETION_PHOTOSYNTHESIS=0.04f;
 
 /*
  * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
 
-#define INTRINSIC_MORTALITY_RATE 0.019f
+static const double INTRINSIC_MORTALITY_RATE=0.019f;
 /*
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
  */
 
-#define MAXIMUM_TOLERABLE_TEMPERATURE 38.0f
+static const double MAXIMUM_TOLERABLE_TEMPERATURE=38.0f;
 
 /*
  * Maximum biomass loss due to resource limitation is yet to be defined
  */
-#define MAXIMUM_RESOURCE_LIMITATION_LOSS 1.0f
+static const double MAXIMUM_RESOURCE_LIMITATION_LOSS=1.0f;
 
 /*
  * Intrinsic settling rate (AquaTox Documentation, page 88, figure 65)
  */
-#define INTRINSIC_SETTLING_RATE 0.101f
+static const double  INTRINSIC_SETTLING_RATE=0.101f;
 
 /*
  * Fraction of periphyton sloughed (AquaTox Documentation, page 92, figure 75), yet to be defined
  */
-#define FRACTION_SLOUGHED 0.5f
+static const double FRACTION_SLOUGHED=0.5f;
 
 typedef double biomassType;
 typedef double physicalType;

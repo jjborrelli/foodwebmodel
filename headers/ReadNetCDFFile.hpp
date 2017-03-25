@@ -16,7 +16,7 @@ namespace FoodWebModel{
 	protected:
 		double* readDepth;
 	public:
-		void readFile(std::string filename);
+		int readFile(std::string filename);
 	};
 }
 

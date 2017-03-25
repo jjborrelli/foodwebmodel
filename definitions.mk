@@ -1,6 +1,6 @@
 OBJS := FoodWebModel
 COMPS := FoodWebModel ReadNetCDFFile
-SRC := $(foreach d, $(COMPS), src/${d}.cpp)
+SRC := src/main.cpp $(foreach d, $(COMPS), src/${d}.cpp)
 HEADERS := SRC := $(foreach d, $(COMPS), headers/${d}.hpp)
 ifeq ($(OS),Windows_NT)
 GDAL_INCLUDE := -IC:/OSGeo4W64/include

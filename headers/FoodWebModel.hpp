@@ -5,11 +5,15 @@
  *      Author: manu_
  */
 
-#include <math.h>
-#include <string>
 
 #ifndef FOODWEBMODEL_HPP_
 #define FOODWEBMODEL_HPP_
+
+#include <math.h>
+#include <string>
+#include "TypeDefinitions.hpp"
+#include "ReadProcessedData.hpp"
+
 
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
@@ -70,8 +74,9 @@ static const double  INTRINSIC_SETTLING_RATE=0.101f;
  */
 static const double FRACTION_SLOUGHED=0.5f;
 
-typedef double biomassType;
-typedef double physicalType;
+/* Set an arbitrary index for max depth index. Depth will be normalized according to this max index*/
+
+static const int MAX_DEPTH_INDEX = 100;
 
 namespace FoodWebModel {
 
@@ -82,7 +87,8 @@ namespace FoodWebModel {
 
 		/*Class attributes*/
 	protected:
-		physicalType* depthVector, **temperature;
+		physicalType indexToDepth[MAX_DEPTH_INDEX];
+		physicalType *temperatureAtSurface, *initialTemperatureAtSurface, **temperature, *depthVector;
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
 		biomassType **phytoBiomass, **periBiomass, **priorPhytoBiomass, **priorPeriBiomass, **localBiomass;
@@ -92,14 +98,14 @@ namespace FoodWebModel {
 		physicalType incidentLightIntensity;
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
 
-		/*Max possible index*/
-		int maxDepthIndex, maxColumn;
+		/*Max possible column index (X axis)*/
+		int  maxColumn;
 
 		/*Buffer line to write simulation results*/
 		std::string lineBuffer;
 		/*Class methods*/
 	public:
-		FoodWebModel();
+		FoodWebModel(std::string depthRoute, std::string temperatureRoute);
 		int simulate(int cycles,  const char* outputFileName);
 
 
@@ -118,6 +124,8 @@ namespace FoodWebModel {
 		biomassType resourceLimitationStress(physicalType localeLightLimitation);
 		biomassType sinking(int depthIndex, int columnIndex);
 		biomassType slough(int depthIndex, int columnIndex);
+		void calculatePhysicalLakeDescriptors();
+		void initializePointers();
 	};
 }
 

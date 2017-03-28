@@ -34,7 +34,9 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const char* outputFileName
 }
 
 void FoodWebModel::FoodWebModel::step(){
-	for(int depthIndex=0; depthIndex<maxDepthIndex; depthIndex++){
+
+	/*Calculate phytoplankton and periphyton biomass on the current step*/
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 		for(int columnIndex=0; columnIndex<maxColumn; columnIndex++){
 			priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
@@ -135,8 +137,26 @@ physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLigh
 	return productionLimit;
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(){
+FoodWebModel::FoodWebModel::FoodWebModel(string depthRoute, string temperatureRoute){
+/* Read the geophysical parameters from the lake, including depth and temperature at water surface
+ *
+ * */
 	setBathymetricParameters();
+	ReadProcessedData readProcessedData;
+
+	/*
+	 * Read the data from the files
+	 */
+	readProcessedData.readGeophysicalData(depthRoute, temperatureRoute);
+
+	/* Copy the data to arrays inside the class */
+	this->depthVector=new physicalType[readProcessedData.lakeSize];
+	this->initialTemperatureAtSurface=new physicalType[readProcessedData.lakeSize];
+	for(int i=0; i<readProcessedData.lakeSize; i++){
+		depthVector[i]=readProcessedData.depth[i];
+		initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
+	}
+	maxColumn=readProcessedData.lakeSize;
 }
 
 /*
@@ -220,3 +240,30 @@ biomassType FoodWebModel::FoodWebModel::slough(int depthIndex, int columnIndex){
  * Since our model will be spatially-explicit, can we replace these hydrodynamics equations with local neighborhood rules?
  * For instance, a fraction of phytoplankton biomass is drawn out and drawn in from the neighboring cells.
  * */
+
+
+void FoodWebModel::FoodWebModel::initializePointers(){
+	this->localBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
+	this->periBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
+	this->phytoBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
+	this->priorPeriBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
+	this->priorPhytoBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
+	this->temperature = new physicalType[maxColumn][MAX_DEPTH_INDEX];
+	this->temperatureAtSurface = new physicalType[maxColumn][MAX_DEPTH_INDEX];
+
+	/* Initialize temperature at surface */
+	for(int i=0; i<this->maxColumn; i++)
+		this->temperatureAtSurface[i] = this->initialTemperatureAtSurface[i];
+}
+
+void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
+
+	/* Calculate maximum and mean depth*/
+	this->ZMax=this->ZMean=0;
+	for(int i=0; i<maxColumn; i++){
+		ZMax = max(ZMax, depthVector[i]);
+		this->ZMean+=depthVector[i]
+	}
+	this->ZMean/=(physicalType)maxColumn;
+
+}

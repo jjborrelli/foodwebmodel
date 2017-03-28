@@ -5,21 +5,25 @@
  *      Author: manu_
  */
 
-#include "../headers/FoodWebModel.hpp"
-#include "../headers/ReadNetCDFFile.hpp"
+//#include "../headers/FoodWebModel.hpp"
 #include <string>
 #include <cstdlib>
+#include <iostream>
 using namespace std;
-using namespace FoodWebModel;
+//using namespace FoodWebModel;
 
 
 int main(int argc, char **argv) {
-	FoodWebModel::FoodWebModel foodWebModel;
+	//FoodWebModel::FoodWebModel foodWebModel;
 	string bathymetryFile = argv[1];
 	string outputFileName = argv[2];
 	int simulationCycles=atoi(argv[3]);
-	ReadNetCDFFile fileReader;
-	fileReader.readFile(bathymetryFile);
+	int loops = 10;
+	for (int i = 0; i < loops; i++) {
+		std::cout << "loop number" << i << endl;
+	}
+	std::cout << "All done" << endl;
+	return 0;
 	//foodWebModel.simulate(simulationCycles, outputFileName.c_str());
 }
 

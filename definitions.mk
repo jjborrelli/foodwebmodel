@@ -1,7 +1,7 @@
 OBJS := FoodWebModel
-COMPS := FoodWebModel ReadNetCDFFile
-SRC := src/main.cpp $(foreach d, $(COMPS), src/${d}.cpp)
-HEADERS := SRC := $(foreach d, $(COMPS), headers/${d}.hpp)
+COMPS := FoodWebModel ReadProcessedData
+SRC := src/main.cpp # $(foreach d, $(COMPS), src/${d}.cpp)
+HEADERS := $(foreach d, $(COMPS), headers/${d}.hpp)
 ifeq ($(OS),Windows_NT)
 GDAL_INCLUDE := -IC:/OSGeo4W64/include
 GDAL_LIBRARIES := -LC:/OSGeo4W64/lib
@@ -13,3 +13,4 @@ GDAL_LIBRARIES := `gdal-config --libs`
 NETCDF_INCLUDE := -I"/usr/local/share/netcdf/include"
 NETCDF_LIBRARIES := -L"/usr/local/share/netcdf/lib" -L"/usr/local/share/netcdf-c/netcdf-4.4.1.1/liblib" -lnetcdf_c++4 -lnetcdf
 endif
+COMPILATION_OPTIONS = 

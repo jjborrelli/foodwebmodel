@@ -53,10 +53,9 @@ void FoodWebModel::FoodWebModel::step(){
  */
 
 biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int column, bool periPhyton){
-	localBiomass=periPhyton?priorPeriBiomass:priorPhytoBiomass;
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
-	biomassType localPointBiomass=localBiomass[depthIndex][column];
+	biomassType localPointBiomass=periPhyton?priorPeriBiomass[depthIndex][column]:priorPhytoBiomass[depthIndex][column];
 	physicalType localeLightLimitation = lightLimitation(depthIndex, column);
 	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightLimitation, periPhyton);
 	biomassType localSedimentation = sinking(depthIndex, localPointBiomass);
@@ -243,13 +242,15 @@ biomassType FoodWebModel::FoodWebModel::slough(int depthIndex, int columnIndex){
 
 
 void FoodWebModel::FoodWebModel::initializePointers(){
-	this->localBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
-	this->periBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
-	this->phytoBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
-	this->priorPeriBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
-	this->priorPhytoBiomass = new biomassType[maxColumn][MAX_DEPTH_INDEX];
-	this->temperature = new physicalType[maxColumn][MAX_DEPTH_INDEX];
-	this->temperatureAtSurface = new physicalType[maxColumn][MAX_DEPTH_INDEX];
+
+	for (int i = 0; i < maxColumn; ++i) {
+		this->localBiomass[i] = new biomassType[maxColumn];
+		this->periBiomass[i] = new biomassType[maxColumn];
+		this->phytoBiomass[i] = new biomassType[maxColumn];
+		this->priorPeriBiomass[i] = new biomassType[maxColumn];
+		this->priorPhytoBiomass[i] = new biomassType[maxColumn];
+		this->temperature[i] = new physicalType[maxColumn];
+	}
 
 	/* Initialize temperature at surface */
 	for(int i=0; i<this->maxColumn; i++)
@@ -262,7 +263,7 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 	this->ZMax=this->ZMean=0;
 	for(int i=0; i<maxColumn; i++){
 		ZMax = max(ZMax, depthVector[i]);
-		this->ZMean+=depthVector[i]
+		this->ZMean+=depthVector[i];
 	}
 	this->ZMean/=(physicalType)maxColumn;
 

@@ -13,7 +13,7 @@ $(OBJS):
 debug:
 	@echo 'Debugging target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ $(SRC) $(COMPILATION_OPTIONS) -o bin/$(OBJS) $^
+	g++ -g $(SRC) $(COMPILATION_OPTIONS) -o bin/$(OBJS) $^
 	@echo 'Finished building target: $@ for debugging'
 	
 all:

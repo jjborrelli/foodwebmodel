@@ -8,14 +8,16 @@
 #ifndef READPROCESSEDDATA_HPP_
 #define READPROCESSEDDATA_HPP_
 #include <string>
+#include <vector>
 #include "typeDefinitions.hpp"
 #include "FoodWebModel.hpp"
 
 using namespace std;
 
 namespace FoodWebModel{
-	friend class FoodWebModel;
+
 	class ReadProcessedData{
+		friend class FoodWebModel;
 	protected:
 		physicalType *depth, *temperaturAtSurface;
 		int lakeSize;

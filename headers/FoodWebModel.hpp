@@ -88,10 +88,10 @@ namespace FoodWebModel {
 		/*Class attributes*/
 	protected:
 		physicalType indexToDepth[MAX_DEPTH_INDEX];
-		physicalType *temperatureAtSurface, *initialTemperatureAtSurface, **temperature, *depthVector;
+		physicalType *temperatureAtSurface, *initialTemperatureAtSurface, *temperature[MAX_DEPTH_INDEX], *depthVector;
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
-		biomassType **phytoBiomass, **periBiomass, **priorPhytoBiomass, **priorPeriBiomass, **localBiomass;
+		biomassType *phytoBiomass[MAX_DEPTH_INDEX], *periBiomass[MAX_DEPTH_INDEX], *priorPhytoBiomass[MAX_DEPTH_INDEX], *priorPeriBiomass[MAX_DEPTH_INDEX], *localBiomass[MAX_DEPTH_INDEX];
 
 		/*A vector to reference the calculated biomass*/
 

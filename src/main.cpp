@@ -15,8 +15,8 @@ using namespace std;
 
 int main(int argc, char **argv) {
 	//FoodWebModel::FoodWebModel foodWebModel;
-	string bathymetryFile = argv[1];
-	string outputFileName = argv[2];
+	string bathymetryFile = string(argv[1]);
+	string outputFileName = string(argv[2]);
 	int simulationCycles=atoi(argv[3]);
 	int loops = 10;
 	for (int i = 0; i < loops; i++) {

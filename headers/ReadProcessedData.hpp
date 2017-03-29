@@ -9,7 +9,7 @@
 #define READPROCESSEDDATA_HPP_
 #include <string>
 #include <vector>
-#include "typeDefinitions.hpp"
+#include "TypeDefinitions.hpp"
 #include "FoodWebModel.hpp"
 
 using namespace std;

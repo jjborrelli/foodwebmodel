@@ -1,7 +1,7 @@
 OBJS := FoodWebModel
 COMPS := FoodWebModel ReadProcessedData
 SRC := src/main.cpp $(foreach d, $(COMPS), src/${d}.cpp)
-HEADERS := $(foreach d, $(COMPS), headers/${d}.hpp)
+HEADERS := headers/ModelConstants.hpp $(foreach d, $(COMPS), headers/${d}.hpp)
 ifeq ($(OS),Windows_NT)
 GDAL_INCLUDE := -IC:/OSGeo4W64/include
 GDAL_LIBRARIES := -LC:/OSGeo4W64/lib

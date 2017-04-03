@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "TypeDefinitions.hpp"
+#include "ModelConstants.hpp"
 #include "FoodWebModel.hpp"
 
 using namespace std;
@@ -19,14 +20,15 @@ namespace FoodWebModel{
 	class ReadProcessedData{
 		friend class FoodWebModel;
 	protected:
-		physicalType *depth, *temperaturAtSurface;
-		int lakeSize;
+		physicalType depth[MAX_COLUMN_INDEX], temperature_initial[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX];
 	public:
-		void readGeophysicalData(string depthFileRoute, string temperatureAtSurfaceRoute);
+		void readGeophysicalData(string &depthRoute, string &initialTemperatureRoute, string &temperatureRangeRoute);
 	protected:
 		vector<physicalType> readValues(string route);
 		int readDepth(string depthFileRoute);
-		int readTemperatureAtSurface(string temperatureAtSurfaceFileRoute);
+		void readInitialTemperature(string& initialTemperatureRoute);
+		void readTemperatureRange(string& temperatureRangeRoute);
+		//int readTemperatureAtSurface(string temperatureAtSurfaceFileRoute);
 
 	};
 }

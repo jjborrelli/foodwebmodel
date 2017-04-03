@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+
 using namespace std;
 
 string operator+(string arg1, int arg2){
@@ -25,7 +26,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const char* outputFileName
 	ofstream outputFile;
 	outputFile.open(outputFileName);
 	outputFile<<"Depth, Column, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type\n";
-	for(int cycle=0; cycle<cycles; cycle++){
+	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<lineBuffer<<"\n";
 	}
@@ -37,7 +38,7 @@ void FoodWebModel::FoodWebModel::step(){
 
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
-		for(int columnIndex=0; columnIndex<maxColumn; columnIndex++){
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 			priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
 			phytoBiomass[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, false);
@@ -56,7 +57,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
 	biomassType localPointBiomass=periPhyton?priorPeriBiomass[depthIndex][column]:priorPhytoBiomass[depthIndex][column];
-	physicalType localeLightLimitation = lightLimitation(depthIndex, column);
+	physicalType localeLightLimitation = lightAtDepth(depthIndex, column);
 	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightLimitation, periPhyton);
 	biomassType localSedimentation = sinking(depthIndex, localPointBiomass);
     biomassType localSlough = slough(depthIndex, column);
@@ -94,12 +95,12 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 /*
  * Light intensity is calculated using the simple model from Ryabov, 2012, Phytoplankton competition in deep biomass maximum, Theoretical Ecology, equation 3
  */
-physicalType FoodWebModel::FoodWebModel::lightLimitation(int depthIndex, int column){
+physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int column){
 	/*
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	physicalType depthInMeters= depthVector[depthIndex];
-	return incidentLightIntensity*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
+	return AVERAGE_INCIDENT_LIGHT_INTENSITY*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
 }
 
 
@@ -136,7 +137,7 @@ physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLigh
 	return productionLimit;
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(string depthRoute, string temperatureRoute){
+FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& initialTemperatureRoute, string& temperatureRangeRoute){
 /* Read the geophysical parameters from the lake, including depth and temperature at water surface
  *
  * */
@@ -146,16 +147,18 @@ FoodWebModel::FoodWebModel::FoodWebModel(string depthRoute, string temperatureRo
 	/*
 	 * Read the data from the files
 	 */
-	readProcessedData.readGeophysicalData(depthRoute, temperatureRoute);
+	readProcessedData.readGeophysicalData(depthRoute, initialTemperatureRoute, temperatureRangeRoute);
 
 	/* Copy the data to arrays inside the class */
-	this->depthVector=new physicalType[readProcessedData.lakeSize];
-	this->initialTemperatureAtSurface=new physicalType[readProcessedData.lakeSize];
-	for(int i=0; i<readProcessedData.lakeSize; i++){
-		depthVector[i]=readProcessedData.depth[i];
-		initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
+	for(int i=0; i<MAX_COLUMN_INDEX; i++){
+		this->depthVector[i]=readProcessedData.depth[i];
+		this->temperature_range[i]=readProcessedData.temperature_range[i];
+		for(int j=0; j<MAX_DEPTH_INDEX; j++){
+			this->temperature_initial[j][i] = readProcessedData.temperature_initial[j][i];
+
+		}
+		//initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
 	}
-	maxColumn=readProcessedData.lakeSize;
 }
 
 /*
@@ -226,6 +229,16 @@ biomassType FoodWebModel::FoodWebModel::sinking(int depthIndex, int columnIndex)
 biomassType FoodWebModel::FoodWebModel::slough(int depthIndex, int columnIndex){
 	return periBiomass[depthIndex][columnIndex]*FRACTION_SLOUGHED;
 }
+
+physicalType FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int columnIndex, int timeStep){
+	int dayOfYear = (timeStep/24)%365;
+	return temperature[depthIndex][columnIndex]+(-1.0*(temperature_range[depthIndex]))*sin(TEMPERATURE_AMPLITUDE*(TEMPERATURE_DAY_FACTOR*(dayOfYear+TEMPERATURE_PHASE_SHIFT)-TEMPERATURE_DELAY));
+}
+
+
+/*
+ *
+ */
 /*Can floating be omitted from the model? I could not find the equation modeling it.*/
 
 /*Are we going to introduce hydrodynamics in the model? If so, we need to model the equivalent to the following equations (AquaTox Documentation, page 67, equation 33)
@@ -243,28 +256,33 @@ biomassType FoodWebModel::FoodWebModel::slough(int depthIndex, int columnIndex){
 
 void FoodWebModel::FoodWebModel::initializePointers(){
 
-	for (int i = 0; i < maxColumn; ++i) {
-		this->localBiomass[i] = new biomassType[maxColumn];
-		this->periBiomass[i] = new biomassType[maxColumn];
-		this->phytoBiomass[i] = new biomassType[maxColumn];
-		this->priorPeriBiomass[i] = new biomassType[maxColumn];
-		this->priorPhytoBiomass[i] = new biomassType[maxColumn];
-		this->temperature[i] = new physicalType[maxColumn];
-	}
+//	for (int i = 0; i < MAX_COLUMN_INDEX; ++i) {
+//		this->localBiomass[i] = new biomassType[MAX_COLUMN_INDEX];
+//		this->periBiomass[i] = new biomassType[MAX_COLUMN_INDEX];
+//		this->phytoBiomass[i] = new biomassType[MAX_COLUMN_INDEX];
+//		this->priorPeriBiomass[i] = new biomassType[MAX_COLUMN_INDEX];
+//		this->priorPhytoBiomass[i] = new biomassType[MAX_COLUMN_INDEX];
+//		this->temperature[i] = new physicalType[MAX_COLUMN_INDEX];
+//	}
 
-	/* Initialize temperature at surface */
-	for(int i=0; i<this->maxColumn; i++)
-		this->temperatureAtSurface[i] = this->initialTemperatureAtSurface[i];
 }
 
 void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 
 	/* Calculate maximum and mean depth*/
 	this->ZMax=this->ZMean=0;
-	for(int i=0; i<maxColumn; i++){
-		ZMax = max(ZMax, depthVector[i]);
-		this->ZMean+=depthVector[i];
+	for(int i=0; i<MAX_COLUMN_INDEX; i++){
+		ZMax = max<double>(ZMax, this->depthVector[i]);
+		this->ZMean+=this->depthVector[i];
 	}
-	this->ZMean/=(physicalType)maxColumn;
+	this->ZMean/=(physicalType)MAX_COLUMN_INDEX;
 
+}
+
+physicalType FoodWebModel::FoodWebModel::lightLimit(int depthIndex, int columnIndex){
+	return photoPeriod()*(lightAtDepth(depthIndex, columnIndex));
+}
+
+physicalType FoodWebModel::FoodWebModel::photoPeriod(){
+	return max<double>(0, cos(2*M_PI*((double)currentHour)))*0.5f +0.5f;
 }

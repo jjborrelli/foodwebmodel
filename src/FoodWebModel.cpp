@@ -57,7 +57,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
 	biomassType localPointBiomass=periPhyton?priorPeriBiomass[depthIndex][column]:priorPhytoBiomass[depthIndex][column];
-	physicalType localeLightLimitation = lightAtDepth(depthIndex, column);
+	physicalType localeLightLimitation = lightLimit(depthIndex, column);
 	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightLimitation, periPhyton);
 	biomassType localSedimentation = sinking(depthIndex, localPointBiomass);
     biomassType localSlough = slough(depthIndex, column);
@@ -284,5 +284,6 @@ physicalType FoodWebModel::FoodWebModel::lightLimit(int depthIndex, int columnIn
 }
 
 physicalType FoodWebModel::FoodWebModel::photoPeriod(){
-	return max<double>(0, cos(2*Math_PI*((double)currentHour)))*0.5f +0.5f;
+	physicalType hour_fraction = (currentHour%(int)HOURS_PER_DAY)/HOURS_PER_DAY;
+	return max<double>(0, cos(2*Math_PI*hour_fraction))*0.5f +0.5f;
 }

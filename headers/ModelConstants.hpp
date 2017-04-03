@@ -92,5 +92,6 @@ static const double Math_PI = 3.141593;
 
 static const double AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653;
 
+static const double HOURS_PER_DAY = 24.0f;
 
 #endif /* MODELCONSTANTS_HPP_ */

@@ -66,6 +66,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(string& temperatureRa
 		  int depth_index=0;
 		  while ( getline (dataFile,readLine) )
 		     {
+			  /* The temperature range is the fourth column*/
 			  this->temperature_range[depth_index] = split(readLine)[3];
 
 		     }

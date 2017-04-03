@@ -279,10 +279,18 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 
 }
 
+/*
+ * Amount of light that is allowed into the biomass depth
+ * Adapted from (AquaTox Documentation, page 70, equation 39)
+ * */
 physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
 	return photoPeriod()*(lightAtDepth(depthIndex, columnIndex));
 }
 
+/*
+ * Daily photo-period modeling light limitation
+ * Adapted from (AquaTox Documentation, page 58, equation 26)
+ * */
 physicalType FoodWebModel::FoodWebModel::photoPeriod(){
 	physicalType hour_fraction = (currentHour%(int)HOURS_PER_DAY)/HOURS_PER_DAY;
 	return max<double>(0, cos(2*Math_PI*hour_fraction))*0.5f +0.5f;

@@ -21,10 +21,10 @@ string operator+(string arg1, int arg2){
 }
 
 
-int FoodWebModel::FoodWebModel::simulate(int cycles,  const char* outputFileName){
+int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileName){
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
-	outputFile.open(outputFileName);
+	outputFile.open(outputFileName.c_str());
 	outputFile<<"Depth, Column, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
@@ -99,7 +99,7 @@ physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int column
 	/*
 	 * Transform depth from an integer index to a real value in ms
 	 */
-	physicalType depthInMeters= depthVector[depthIndex];
+	physicalType depthInMeters= indexToDepth[depthIndex];
 	return AVERAGE_INCIDENT_LIGHT_INTENSITY*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
 }
 
@@ -137,34 +137,51 @@ physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLigh
 	return productionLimit;
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& initialTemperatureRoute, string& temperatureRangeRoute){
-/* Read the geophysical parameters from the lake, including depth and temperature at water surface
- *
- * */
-	setBathymetricParameters();
-	ReadProcessedData readProcessedData;
 
-	/*
-	 * Read the data from the files
-	 */
-	readProcessedData.readGeophysicalData(depthRoute, initialTemperatureRoute, temperatureRangeRoute);
-
+/* Initialize vectors of parameters based on read data*/
+void FoodWebModel::FoodWebModel::initializeParameters(){
 	/* Copy the data to arrays inside the class */
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
-		this->depthVector[i]=readProcessedData.depth[i];
-		this->temperature_range[i]=readProcessedData.temperature_range[i];
+
+		depthVector[i]=readProcessedData.depth[i];
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
 			this->temperature_initial[j][i] = readProcessedData.temperature_initial[j][i];
 
 		}
 		//initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
 	}
+
+	/*Copy arrays that depend on maximum depth*/
+	for(int i=0; i<MAX_DEPTH_INDEX; i++){
+		this->temperature_range[i]=readProcessedData.temperature_range[i];
+		this->indexToDepth[i]=readProcessedData.depth_scale[i];
+
+	}
+
+	setBathymetricParameters();
+}
+
+FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleRoute, string& initialTemperatureRoute, string& temperatureRangeRoute){
+/* Read the geophysical parameters from the lake, including depth and temperature at water surface
+ *
+ * */
+
+
+
+	/*
+	 * Read the data from the files
+	 */
+	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute);
+
+
+
 }
 
 /*
  * Calculate system-specific bathymetric parameters
  */
 void FoodWebModel::FoodWebModel::setBathymetricParameters(){
+	calculatePhysicalLakeDescriptors();
 	/*
 	 *  (AquaTox Documentation, page 45, equation 8)
 	 */
@@ -173,7 +190,7 @@ void FoodWebModel::FoodWebModel::setBathymetricParameters(){
 	/*
 	 *  (AquaTox Documentation, page 46, equation 9)
 	 */
-	this->fractionInEuphoticZone=(1-P)*ZEuphotic/ZMax + P*pow(ZEuphotic/ZMax, 2);
+	this->fractionInEuphoticZone=(1-P)*Z_EUPHOTIC/ZMax + P*pow(Z_EUPHOTIC/ZMax, 2);
 }
 
 /*
@@ -220,7 +237,7 @@ biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType lo
  */
 biomassType FoodWebModel::FoodWebModel::sinking(int depthIndex, int columnIndex){
 	/*  Can the ration mean discharge/discharge be omitted? Does this mean the amount of biomass that accumulates due to sinking?*/
-	return INTRINSIC_SETTLING_RATE/depthVector[depthIndex]*phytoBiomass[depthIndex][columnIndex];
+	return INTRINSIC_SETTLING_RATE/indexToDepth[depthIndex]*phytoBiomass[depthIndex][columnIndex];
 }
 
 /*
@@ -284,7 +301,9 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
  * Adapted from (AquaTox Documentation, page 70, equation 39)
  * */
 physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
-	return photoPeriod()*(lightAtDepth(depthIndex, columnIndex));
+	physicalType localePhotoPeriod = photoPeriod();
+	physicalType localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
+	return localePhotoPeriod*localeLightAtDepth;
 }
 
 /*
@@ -293,5 +312,5 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
  * */
 physicalType FoodWebModel::FoodWebModel::photoPeriod(){
 	physicalType hour_fraction = (currentHour%(int)HOURS_PER_DAY)/HOURS_PER_DAY;
-	return max<double>(0, cos(2*Math_PI*hour_fraction))*0.5f +0.5f;
+	return max<double>(0.0f, cos(2.0f*Math_PI*hour_fraction))*0.5f +0.5f;
 }

@@ -26,9 +26,10 @@ namespace FoodWebModel {
 
 		/*Class attributes*/
 	protected:
+		ReadProcessedData readProcessedData;
 		int currentHour;
-		physicalType indexToDepth[MAX_DEPTH_INDEX];
-		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], temperature_initial[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], temperature_initial[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX];
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorPeriBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -44,9 +45,9 @@ namespace FoodWebModel {
 		std::string lineBuffer;
 		/*Class methods*/
 	public:
-		FoodWebModel(std::string& depthRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute);
-		int simulate(int cycles,  const char* outputFileName);
-
+		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute);
+		int simulate(int cycles,  std::string& outputFileName);
+		void initializeParameters();
 
 	protected:
 		void step();
@@ -68,6 +69,7 @@ namespace FoodWebModel {
 		physicalType photoPeriod();
 		void calculatePhysicalLakeDescriptors();
 		void initializePointers();
+
 	};
 }
 

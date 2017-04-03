@@ -27,6 +27,11 @@ static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
  */
 static const double TURBIDITY=1.2f/EXTINCTION;
 
+/* An alternative for water turbidity based on the average from Vince's processed data*/
+
+//static const double TURBIDITY=14.54771f;
+
+
 /*
  * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
  */
@@ -75,6 +80,10 @@ static const int MAX_DEPTH_INDEX = 254;
 /* Set an arbitrary index for max columns. Depth will be normalized according to this max index*/
 
 static const int MAX_COLUMN_INDEX = 41;
+
+/* Set fraction of the euphotic zone*/
+
+static const double Z_EUPHOTIC = 1.0f/(MAX_COLUMN_INDEX*1.0f);
 
 /* Parameters for estimation of water temperature */
 

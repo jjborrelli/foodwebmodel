@@ -43,9 +43,10 @@ void FoodWebModel::ReadProcessedData::readInitialTemperature(string& initialTemp
 		     {
 			  /* For each line, split the string and fill in the initial temperature values*/
 			  vector<double> initial_temperature_at_depth = split(readLine);
-			  for(int colIndex=0; colIndex<initial_temperature_at_depth.size(); colIndex++){
-				  temperature_initial[depth_index++][colIndex]=initial_temperature_at_depth[colIndex];
+			  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
+				  temperature_initial[depth_index][colIndex]=initial_temperature_at_depth[colIndex];
 			  }
+			  depth_index++;
 		     }
 		  dataFile.close();
 	  } else{
@@ -67,7 +68,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(string& temperatureRa
 		  while ( getline (dataFile,readLine) )
 		     {
 			  /* The temperature range is the fourth column*/
-			  this->temperature_range[depth_index] = split(readLine)[3];
+			  this->temperature_range[depth_index++] = split(readLine)[3];
 
 		     }
 		  dataFile.close();
@@ -113,22 +114,30 @@ vector<physicalType> FoodWebModel::ReadProcessedData::readValues(string dataRout
 //}
 
 
-int FoodWebModel::ReadProcessedData::readDepth(string depthRoute){
+void FoodWebModel::ReadProcessedData::readDepth(string depthRoute){
 
 	/* Read depth as a vector*/
 	vector<physicalType> depthVector = readValues(depthRoute);
-	int vectorSize=depthVector.size();
 
 	/* Copy values to the depth array*/
-	for(int i=0; i<vectorSize; i++)
+	for(int i=0; i<MAX_COLUMN_INDEX; i++)
 		depth[i]=depthVector[i];
-	return vectorSize;
 }
 
-void FoodWebModel::ReadProcessedData::readGeophysicalData(string &depthRoute, string &initialTemperatureRoute, string &temperatureRangeRoute){
+void FoodWebModel::ReadProcessedData::readGeophysicalData(string &depthRoute, string &depthScaleRoute, string &initialTemperatureRoute, string &temperatureRangeRoute){
 	/*Read depth and temperature data*/
 	readDepth(depthRoute);
+	readDepthScale(depthScaleRoute);
 	readInitialTemperature(initialTemperatureRoute);
 	readTemperatureRange(temperatureRangeRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
+}
+void FoodWebModel::ReadProcessedData::readDepthScale(string& depthScaleRoute){
+	/* Read depth as a vector*/
+	vector<physicalType> depthVector = readValues(depthScaleRoute);
+
+	/* Copy values to the depth array*/
+	for(int i=0; i<MAX_DEPTH_INDEX; i++)
+		depth_scale[i]=depthVector[i];
+
 }

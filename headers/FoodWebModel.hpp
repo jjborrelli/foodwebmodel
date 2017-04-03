@@ -14,7 +14,6 @@
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 #include "ReadProcessedData.hpp"
-#include <cmath>
 
 
 

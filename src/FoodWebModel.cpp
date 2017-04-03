@@ -284,5 +284,5 @@ physicalType FoodWebModel::FoodWebModel::lightLimit(int depthIndex, int columnIn
 }
 
 physicalType FoodWebModel::FoodWebModel::photoPeriod(){
-	return max<double>(0, cos(2*M_PI*((double)currentHour)))*0.5f +0.5f;
+	return max<double>(0, cos(2*Math_PI*((double)currentHour)))*0.5f +0.5f;
 }

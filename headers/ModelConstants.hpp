@@ -86,9 +86,9 @@ static const double TEMPERATURE_PHASE_SHIFT = 90;
 
 static const double TEMPERATURE_DELAY = 30;
 
-static const double M_E = 2.718282;
+static const double Math_E = 2.718282;
 
-static const double M_PI = 3.141593;
+static const double Math_PI = 3.141593;
 
 static const double AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653;
 

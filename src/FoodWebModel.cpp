@@ -8,7 +8,6 @@
 
 #include "../headers/FoodWebModel.hpp"
 #include <string>
-#include <sstream>
 #include <iostream>
 #include <fstream>
 
@@ -25,24 +24,31 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type\n";
+	outputFile<<"Depth, Column, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type, Biomass\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
-		outputFile<<lineBuffer<<"\n";
+		outputFile<<stepBuffer.str();
 	}
 	outputFile.close();
 	return 0;
 }
 
 void FoodWebModel::FoodWebModel::step(){
-
+	stepBuffer.str("");
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 			priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
-			phytoBiomass[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, false);
-			periBiomass[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, true);
+			biomassType phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
+			phytoBiomass[depthIndex][columnIndex]+=phytoBiomassDifferential;
+			lineBuffer<<commaString<<phytoBiomass[depthIndex][columnIndex]<<"\n";
+			stepBuffer<<lineBuffer.str();
+			biomassType periBiomassDifferential = biomassDifferential(depthIndex, columnIndex, true);
+			periBiomass[depthIndex][columnIndex]+= periBiomassDifferential;
+			lineBuffer<<commaString<<periBiomass[depthIndex][columnIndex]<<"\n";
+			stepBuffer<<lineBuffer.str();
+
 
 		}
 	}
@@ -59,7 +65,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	biomassType localPointBiomass=periPhyton?priorPeriBiomass[depthIndex][column]:priorPhytoBiomass[depthIndex][column];
 	physicalType localeLightAllowance = lightAllowance(depthIndex, column);
 	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightAllowance, periPhyton);
-	biomassType localSedimentation = sinking(depthIndex, localPointBiomass);
+	biomassType localSedimentation = sinking(depthIndex, column);
     biomassType localSlough = slough(depthIndex, column);
 	physicalType localeTemperature =temperature[depthIndex][column];
 	biomassType localeRespiraton = respiration(localPointBiomass, localeTemperature);
@@ -75,19 +81,20 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	} else {
 		commonProductivity+=-localSedimentation+localSlough/3;
 	}
-	string commaString = string(", ");
+
 	/* Create line buffer to write results*/
-	lineBuffer="";
-	lineBuffer+=depthIndex;
-	lineBuffer+=commaString+column;
-	lineBuffer+=commaString+commonProductivity;
-	lineBuffer+=commaString+localePhotoSynthesis;
-	lineBuffer+=commaString+localeRespiraton;
-	lineBuffer+=commaString+localeExcretion;
-	lineBuffer+=commaString+localeNaturalMortality;
-	lineBuffer+=commaString+localSedimentation;
-	lineBuffer+=commaString+localSlough;
-	lineBuffer+=commaString+string(periPhyton?"peri":"phyto");
+	lineBuffer.str("");
+	lineBuffer.clear();
+	lineBuffer<<depthIndex;
+	lineBuffer<<commaString<<column;
+	lineBuffer<<commaString<<commonProductivity;
+	lineBuffer<<commaString<<localePhotoSynthesis;
+	lineBuffer<<commaString<<localeRespiraton;
+	lineBuffer<<commaString<<localeExcretion;
+	lineBuffer<<commaString<<localeNaturalMortality;
+	lineBuffer<<commaString<<localSedimentation;
+	lineBuffer<<commaString<<localSlough;
+	lineBuffer<<commaString<<periPhyton?1:0;
 	return commonProductivity;
 }
 
@@ -145,7 +152,8 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 
 		depthVector[i]=readProcessedData.depth[i];
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
-			this->temperature_initial[j][i] = readProcessedData.temperature_initial[j][i];
+			this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
+			this->priorPeriBiomass[j][i]=this->priorPhytoBiomass[j][i] = this->periBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_biomass[j][i];
 
 		}
 		//initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
@@ -161,7 +169,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	setBathymetricParameters();
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleRoute, string& initialTemperatureRoute, string& temperatureRangeRoute){
+FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleRoute, string& initialTemperatureRoute, string& temperatureRangeRoute, string& initialBiomassRoute){
 /* Read the geophysical parameters from the lake, including depth and temperature at water surface
  *
  * */
@@ -171,7 +179,7 @@ FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleR
 	/*
 	 * Read the data from the files
 	 */
-	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute);
+	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialBiomassRoute);
 
 
 

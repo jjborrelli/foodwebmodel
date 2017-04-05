@@ -31,32 +31,12 @@ vector<double> split(string &str){
 }
 
 
-void FoodWebModel::ReadProcessedData::readInitialTemperature(string& initialTemperatureRoute){
-	ifstream dataFile;
-	string readLine;
-	dataFile.open(initialTemperatureRoute.c_str());
-	/* Read until there are no more lines*/
-	  if (dataFile.is_open())
-	  {
-		  int depth_index=0;
-		  while ( getline (dataFile,readLine) )
-		     {
-			  /* For each line, split the string and fill in the initial temperature values*/
-			  vector<double> initial_temperature_at_depth = split(readLine);
-			  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
-				  temperature_initial[depth_index][colIndex]=initial_temperature_at_depth[colIndex];
-			  }
-			  depth_index++;
-		     }
-		  dataFile.close();
-	  } else{
-		  /* If the file could not be opened, report an error*/
-		  cerr << "File "<< initialTemperatureRoute<<" could not be opened";
-	  }
+void FoodWebModel::ReadProcessedData::readInitialTemperature(const string& initialTemperatureRoute){
+	readDataMatrix(initialTemperatureRoute, initial_temperature);
 
 }
 
-void FoodWebModel::ReadProcessedData::readTemperatureRange(string& temperatureRangeRoute){
+void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& temperatureRangeRoute){
 	ifstream dataFile;
 	string readLine;
 	/* Store the file content in a vector*/
@@ -79,7 +59,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(string& temperatureRa
 
 }
 
-vector<physicalType> FoodWebModel::ReadProcessedData::readValues(string dataRoute){
+vector<physicalType> FoodWebModel::ReadProcessedData::readValues(const string dataRoute){
 	ifstream dataFile;
 	string readLine;
 	/* Store the file content in a vector*/
@@ -114,7 +94,7 @@ vector<physicalType> FoodWebModel::ReadProcessedData::readValues(string dataRout
 //}
 
 
-void FoodWebModel::ReadProcessedData::readDepth(string depthRoute){
+void FoodWebModel::ReadProcessedData::readDepth(const string depthRoute){
 
 	/* Read depth as a vector*/
 	vector<physicalType> depthVector = readValues(depthRoute);
@@ -124,15 +104,16 @@ void FoodWebModel::ReadProcessedData::readDepth(string depthRoute){
 		depth[i]=depthVector[i];
 }
 
-void FoodWebModel::ReadProcessedData::readGeophysicalData(string &depthRoute, string &depthScaleRoute, string &initialTemperatureRoute, string &temperatureRangeRoute){
+void FoodWebModel::ReadProcessedData::readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialBiomassRoute){
 	/*Read depth and temperature data*/
 	readDepth(depthRoute);
 	readDepthScale(depthScaleRoute);
 	readInitialTemperature(initialTemperatureRoute);
 	readTemperatureRange(temperatureRangeRoute);
+	readInitialBiomass(initialBiomassRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
-void FoodWebModel::ReadProcessedData::readDepthScale(string& depthScaleRoute){
+void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){
 	/* Read depth as a vector*/
 	vector<physicalType> depthVector = readValues(depthScaleRoute);
 
@@ -140,4 +121,51 @@ void FoodWebModel::ReadProcessedData::readDepthScale(string& depthScaleRoute){
 	for(int i=0; i<MAX_DEPTH_INDEX; i++)
 		depth_scale[i]=depthVector[i];
 
+}
+
+void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, double** dataMatrix){
+	ifstream dataFile;
+		string readLine;
+		dataFile.open(fileRoute.c_str());
+		/* Read until there are no more lines*/
+		  if (dataFile.is_open())
+		  {
+			  int depth_index=0;
+			  while ( getline (dataFile,readLine) )
+			     {
+				  /* For each line, split the string and fill in the initial temperature values*/
+				  vector<double> initial_temperature_at_depth = split(readLine);
+				  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
+					  dataMatrix[depth_index][colIndex]=initial_temperature_at_depth[colIndex];
+				  }
+				  depth_index++;
+			     }
+			  dataFile.close();
+		  } else{
+			  /* If the file could not be opened, report an error*/
+			  cerr << "File "<< fileRoute<<" could not be opened";
+		  }
+}
+
+void FoodWebModel::ReadProcessedData::readInitialBiomass(const string& biomassRoute){
+	readDataMatrix(biomassRoute, initial_biomass);
+}
+
+
+/* Constructor and destructor to allocate biomass and temperature*/
+FoodWebModel::ReadProcessedData::ReadProcessedData(){
+	initial_biomass =new biomassType*[MAX_DEPTH_INDEX];
+	initial_temperature = new physicalType*[MAX_DEPTH_INDEX];
+	for(int i=0;i<MAX_DEPTH_INDEX; i++){
+		initial_biomass[i] = new biomassType[MAX_COLUMN_INDEX];
+		initial_temperature[i] = new physicalType[MAX_COLUMN_INDEX];
+	}
+}
+FoodWebModel::ReadProcessedData::~ReadProcessedData(){
+	for(int i=0;i<MAX_DEPTH_INDEX; i++){
+		delete initial_biomass[i];
+		delete initial_temperature[i];
+	}
+	delete initial_biomass;
+	delete initial_temperature;
 }

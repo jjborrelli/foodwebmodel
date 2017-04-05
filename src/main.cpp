@@ -20,8 +20,9 @@ int main(int argc, char **argv) {
 	string initialTemperatureRoute = string(argv[3]);
 	string temperatureRangeRoute=string(argv[4]);
 	string outputRoute=string(argv[5]);
-	int simulationCycles=atoi(argv[6]);
-	FoodWebModel::FoodWebModel foodWebModel(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute);
+	string initialBiomassRoute=string(argv[6]);
+	int simulationCycles=atoi(argv[7]);
+	FoodWebModel::FoodWebModel foodWebModel(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialBiomassRoute);
 	foodWebModel.initializeParameters();
 	foodWebModel.simulate(simulationCycles, outputRoute);
 	return 0;

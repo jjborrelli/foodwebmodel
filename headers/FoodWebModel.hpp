@@ -11,6 +11,7 @@
 
 #include <math.h>
 #include <string>
+#include <sstream>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 #include "ReadProcessedData.hpp"
@@ -28,7 +29,7 @@ namespace FoodWebModel {
 	protected:
 		ReadProcessedData readProcessedData;
 		int currentHour;
-		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], temperature_initial[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX];
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
@@ -42,10 +43,11 @@ namespace FoodWebModel {
 		//int  maxColumn;
 
 		/*Buffer line to write simulation results*/
-		std::string lineBuffer;
+		std::ostringstream lineBuffer, stepBuffer;
+		string commaString = string(", ");
 		/*Class methods*/
 	public:
-		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute);
+		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
 		int simulate(int cycles,  std::string& outputFileName);
 		void initializeParameters();
 

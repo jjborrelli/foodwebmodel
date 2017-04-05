@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type, Biomass\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, BiomassToDepth, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, Type, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<stepBuffer.str();
@@ -42,11 +42,11 @@ void FoodWebModel::FoodWebModel::step(){
 			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
 			biomassType phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
 			phytoBiomass[depthIndex][columnIndex]+=phytoBiomassDifferential;
-			lineBuffer<<commaString<<phytoBiomass[depthIndex][columnIndex]<<"\n";
+			lineBuffer<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
 			stepBuffer<<lineBuffer.str();
 			biomassType periBiomassDifferential = biomassDifferential(depthIndex, columnIndex, true);
 			periBiomass[depthIndex][columnIndex]+= periBiomassDifferential;
-			lineBuffer<<commaString<<periBiomass[depthIndex][columnIndex]<<"\n";
+			lineBuffer<<commaString<<periBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
 			stepBuffer<<lineBuffer.str();
 
 
@@ -67,27 +67,36 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLightAllowance, periPhyton);
 	biomassType localSedimentation = sinking(depthIndex, column);
     biomassType localSlough = slough(depthIndex, column);
-	physicalType localeTemperature =temperature[depthIndex][column];
-	biomassType localeRespiraton = respiration(localPointBiomass, localeTemperature);
-	biomassType localeExcretion =excretion(localePhotoSynthesis, localeLightAllowance);
-	biomassType localeNaturalMortality = naturalMortality(localeTemperature, localeLightAllowance, localPointBiomass);
+	physicalType localeTemperature =calculateTemperature(depthIndex, column);
+	biomassType localeRespiraton = -respiration(localPointBiomass, localeTemperature);
+	biomassType localeExcretion =-excretion(localePhotoSynthesis, localeLightAllowance);
+	biomassType localeNaturalMortality = -naturalMortality(localeTemperature, localeLightAllowance, localPointBiomass);
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
-	biomassType commonProductivity =  localePhotoSynthesis-localeRespiraton-localeExcretion
-			-localeNaturalMortality;
+	biomassType totalProductivity =  localePhotoSynthesis+localeRespiraton+localeExcretion
+			+localeNaturalMortality;
 
 	/* Hydrodynamics rules still need to be encoded */
 	if(periPhyton){
-		commonProductivity+=localSedimentation-localSlough;
-	} else {
-		commonProductivity+=-localSedimentation+localSlough/3;
-	}
+		localSlough=-localSlough;
 
+	} else {
+		localSlough=localSlough/3.0f;
+		localSedimentation=-localSedimentation;
+	}
+	totalProductivity+=localSlough+localSedimentation;
 	/* Create line buffer to write results*/
 	lineBuffer.str("");
 	lineBuffer.clear();
 	lineBuffer<<depthIndex;
 	lineBuffer<<commaString<<column;
-	lineBuffer<<commaString<<commonProductivity;
+	lineBuffer<<commaString<<localeLightAllowance;
+	lineBuffer<<commaString<<turbidity_at_depth;
+	lineBuffer<<commaString<<localePhotoPeriod;
+	lineBuffer<<commaString<<localeLightAtDepth;
+	lineBuffer<<commaString<<localeTemperature;
+	lineBuffer<<commaString<<depthInMeters;
+	lineBuffer<<commaString<<biomass_to_depth;
+	lineBuffer<<commaString<<totalProductivity;
 	lineBuffer<<commaString<<localePhotoSynthesis;
 	lineBuffer<<commaString<<localeRespiraton;
 	lineBuffer<<commaString<<localeExcretion;
@@ -95,7 +104,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<localSedimentation;
 	lineBuffer<<commaString<<localSlough;
 	lineBuffer<<commaString<<periPhyton?1:0;
-	return commonProductivity;
+	return totalProductivity;
 }
 
 
@@ -106,8 +115,10 @@ physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int column
 	/*
 	 * Transform depth from an integer index to a real value in ms
 	 */
-	physicalType depthInMeters= indexToDepth[depthIndex];
-	return AVERAGE_INCIDENT_LIGHT_INTENSITY*exp(-(TURBIDITY*depthInMeters+ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column)));
+	depthInMeters= indexToDepth[depthIndex];
+	biomass_to_depth = sumPhytoBiomassToDepth(depthIndex, column);
+	turbidity_at_depth=TURBIDITY*depthInMeters;
+	return AVERAGE_INCIDENT_LIGHT_INTENSITY*exp(-(turbidity_at_depth+ATTENUATION_COEFFICIENT*biomass_to_depth));
 }
 
 
@@ -255,8 +266,8 @@ biomassType FoodWebModel::FoodWebModel::slough(int depthIndex, int columnIndex){
 	return periBiomass[depthIndex][columnIndex]*FRACTION_SLOUGHED;
 }
 
-physicalType FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int columnIndex, int timeStep){
-	int dayOfYear = (timeStep/24)%365;
+physicalType FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int columnIndex){
+	int dayOfYear = (currentHour/24)%365;
 	return temperature[depthIndex][columnIndex]+(-1.0*(temperature_range[depthIndex]))*sin(TEMPERATURE_AMPLITUDE*(TEMPERATURE_DAY_FACTOR*(dayOfYear+TEMPERATURE_PHASE_SHIFT)-TEMPERATURE_DELAY));
 }
 
@@ -309,8 +320,8 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
  * Adapted from (AquaTox Documentation, page 70, equation 39)
  * */
 physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
-	physicalType localePhotoPeriod = photoPeriod();
-	physicalType localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
+	localePhotoPeriod = photoPeriod();
+	localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
 	return localePhotoPeriod*localeLightAtDepth;
 }
 
@@ -319,6 +330,6 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
  * Adapted from (AquaTox Documentation, page 58, equation 26)
  * */
 physicalType FoodWebModel::FoodWebModel::photoPeriod(){
-	physicalType hour_fraction = (currentHour%(int)HOURS_PER_DAY)/HOURS_PER_DAY;
+	physicalType hour_fraction = ((physicalType)(currentHour%(int)HOURS_PER_DAY))/HOURS_PER_DAY;
 	return max<double>(0.0f, cos(2.0f*Math_PI*hour_fraction))*0.5f +0.5f;
 }

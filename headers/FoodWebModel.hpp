@@ -46,6 +46,9 @@ namespace FoodWebModel {
 		std::ostringstream lineBuffer, stepBuffer;
 		string commaString = string(", ");
 		/*Class methods*/
+	private:
+		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth;
+		biomassType biomass_to_depth;
 	public:
 		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
 		int simulate(int cycles,  std::string& outputFileName);
@@ -66,7 +69,7 @@ namespace FoodWebModel {
 		biomassType resourceLimitationStress(physicalType localeLightAllowance);
 		biomassType sinking(int depthIndex, int columnIndex);
 		biomassType slough(int depthIndex, int columnIndex);
-		physicalType calculateTemperature(int depthIndex, int columnIndex, int timeStep);
+		physicalType calculateTemperature(int depthIndex, int columnIndex);
 		physicalType lightAllowance(int depthIndex, int columnIndex);
 		physicalType photoPeriod();
 		void calculatePhysicalLakeDescriptors();

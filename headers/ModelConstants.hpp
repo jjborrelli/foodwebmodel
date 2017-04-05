@@ -25,7 +25,16 @@ static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
 /*
  * The Secchi disk is an indication of water turbidity (AquaTox Documentation, page 74).
  */
-static const double TURBIDITY=1.2f/EXTINCTION;
+//static const double TURBIDITY=1.2f/EXTINCTION;
+/**
+ * Alternative value of turbidity based on lake data
+ */
+
+/* Outliers not removed*/
+static const double TURBIDITY=14.54771f;
+/* Outliers removed*/
+//static const double TURBIDITY=5.426461f;
+
 
 /* An alternative for water turbidity based on the average from Vince's processed data*/
 
@@ -71,7 +80,7 @@ static const double  INTRINSIC_SETTLING_RATE=0.101f;
 /*
  * Fraction of periphyton sloughed (AquaTox Documentation, page 92, figure 75), yet to be defined
  */
-static const double FRACTION_SLOUGHED=0.5f;
+static const double FRACTION_SLOUGHED=0.1f;
 
 /* Set an arbitrary index for max depth index. Depth will be normalized according to this max index*/
 

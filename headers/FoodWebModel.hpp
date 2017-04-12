@@ -48,7 +48,7 @@ namespace FoodWebModel {
 		/*Class methods*/
 	private:
 		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth;
-		biomassType biomass_to_depth;
+		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress;
 	public:
 		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
 		int simulate(int cycles,  std::string& outputFileName);
@@ -64,15 +64,16 @@ namespace FoodWebModel {
 		void setBathymetricParameters();
 		biomassType respiration(biomassType localPointBiomass, physicalType localTemperature);
 		biomassType excretion(biomassType localePhotoSynthesis, physicalType localeLightAllowance);
-		biomassType naturalMortality(physicalType localTemperature, physicalType localeLightAllowance, biomassType localPointBiomass);
+		biomassType naturalMortality(physicalType localTemperature, physicalType localeLightAllowance, physicalType localeNutrientLimitation, biomassType localPointBiomass);
 		biomassType highTemperatureMortality(physicalType localeTemperature);
-		biomassType resourceLimitationStress(physicalType localeLightAllowance);
+		biomassType resourceLimitationStress(physicalType localeLightAllowance, physicalType localeNutrientStress);
 		biomassType sinking(int depthIndex, int columnIndex);
 		biomassType slough(int depthIndex, int columnIndex);
 		physicalType calculateTemperature(int depthIndex, int columnIndex);
 		physicalType lightAllowance(int depthIndex, int columnIndex);
 		physicalType photoPeriod();
 		physicalType nutrientConcentrationAtDepth(int depthIndex, int columnIndex);
+		biomassType calculateNutrientLimitation(physicalType localeNutrientConcentration);
 		void calculatePhysicalLakeDescriptors();
 		void initializePointers();
 

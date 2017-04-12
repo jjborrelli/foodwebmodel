@@ -333,3 +333,11 @@ physicalType FoodWebModel::FoodWebModel::photoPeriod(){
 	physicalType hour_fraction = ((physicalType)(currentHour%(int)HOURS_PER_DAY))/HOURS_PER_DAY;
 	return max<double>(0.0f, cos(2.0f*Math_PI*hour_fraction))*0.5f +0.5f;
 }
+
+/*Nutrient concentration at a given depth*/
+
+physicalType FoodWebModel::FoodWebModel::nutrientConcentrationAtDepth(int depthIndex, int columnIndex){
+	physicalType localeNutrientAtBottom = NUTRIENT_CONCENTRATION_AT_BOTTOM;
+	physicalType nutrientAtDepth=localeNutrientAtBottom*exp((double)(NUTRIENT_DERIVATIVE*(this->depthInMeters[depthIndex]-depthVector[columnIndex])));
+	return nutrientAtDepth;
+}

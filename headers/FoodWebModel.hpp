@@ -72,6 +72,7 @@ namespace FoodWebModel {
 		physicalType calculateTemperature(int depthIndex, int columnIndex);
 		physicalType lightAllowance(int depthIndex, int columnIndex);
 		physicalType photoPeriod();
+		physicalType nutrientConcentrationAtDepth(int depthIndex, int columnIndex);
 		void calculatePhysicalLakeDescriptors();
 		void initializePointers();
 

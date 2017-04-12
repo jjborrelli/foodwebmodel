@@ -112,4 +112,10 @@ static const double AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653;
 
 static const double HOURS_PER_DAY = 24.0f;
 
+/* Nutrient derivative taken as the average difference between consecutive points*/
+static const double NUTRIENT_DERIVATIVE = 0.5f;
+
+/* Nutrient concentration at bottom taken from lake data*/
+static const double NUTRIENT_CONCENTRATION_AT_BOTTOM = 0.5f;
+
 #endif /* MODELCONSTANTS_HPP_ */

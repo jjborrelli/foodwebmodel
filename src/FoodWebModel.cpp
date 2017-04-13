@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientLimitation, BiomassToDepth, Productivity, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, TempMortality, ResourceLimStress, Type, Biomass, Time\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, TempMortality, ResourceLimStress, Type, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<stepBuffer.str();
@@ -97,9 +97,9 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<localeLightAtDepth;
 	lineBuffer<<commaString<<localeTemperature;
 	lineBuffer<<commaString<<depthInMeters;
+	lineBuffer<<commaString<<localeNutrientConcentration;
 	lineBuffer<<commaString<<localeNutrientLimitation;
 	lineBuffer<<commaString<<biomass_to_depth;
-	lineBuffer<<commaString<<totalProductivity;
 	lineBuffer<<commaString<<localePhotoSynthesis;
 	lineBuffer<<commaString<<localeRespiraton;
 	lineBuffer<<commaString<<localeExcretion;
@@ -354,5 +354,5 @@ biomassType FoodWebModel::FoodWebModel::calculateNutrientLimitation(physicalType
 	if(localeNutrientConcentration>=PHOSPHORUS_LINEAR_THRESHOLD)
 		return 1.0f;
 	else
-		return (localeNutrientConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT;
+		return min((double)1.0f,(double)max((double)0.5f,(localeNutrientConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
 }

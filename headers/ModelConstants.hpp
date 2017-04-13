@@ -118,4 +118,14 @@ static const double NUTRIENT_DERIVATIVE = 0.02527915f;
 /* Nutrient concentration at bottom taken from lake data*/
 static const double NUTRIENT_CONCENTRATION_AT_BOTTOM = 5.225714f;
 
+/* Phosphorous linear limit threshold (obtained from Larry's data) */
+
+static const double PHOSPHORUS_LINEAR_THRESHOLD = 5.0f;
+
+static const double PHOSPHORUS_LINEAR_COEFFICIENT =  0.9954f;
+
+static const double PHOSPHORUS_INTERCEPT = -2.8344f;
+
+static const double PHOSPHORUS_GROWTH_LIMIT = 2.1426f;
+
 #endif /* MODELCONSTANTS_HPP_ */

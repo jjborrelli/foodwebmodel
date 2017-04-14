@@ -47,8 +47,8 @@ namespace FoodWebModel {
 		string commaString = string(", ");
 		/*Class methods*/
 	private:
-		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth;
-		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress;
+		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth, light_at_top;
+		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate;
 	public:
 		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
 		int simulate(int cycles,  std::string& outputFileName);

@@ -129,4 +129,12 @@ static const double PHOSPHORUS_INTERCEPT = -2.8344f;
 
 static const double PHOSPHORUS_GROWTH_LIMIT = 2.1426f;
 
+/* Added a weight factor to control resource limitation weight*/
+
+static const double RESOURCE_LIMITATION_WEIGHT = 0.9f;
+
+/* Added a weight factor to control sinking as a function of depth*/
+
+static const double SINKING_DEPTH_WEIGHT = 0.3f;
+
 #endif /* MODELCONSTANTS_HPP_ */

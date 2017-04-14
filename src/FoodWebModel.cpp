@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, Slough, TempMortality, ResourceLimStress, Type, Biomass, Time\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, LightAtTop, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<stepBuffer.str();
@@ -99,16 +99,20 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<depthInMeters;
 	lineBuffer<<commaString<<localeNutrientConcentration;
 	lineBuffer<<commaString<<localeNutrientLimitation;
+	lineBuffer<<commaString<<light_at_top;
 	lineBuffer<<commaString<<biomass_to_depth;
 	lineBuffer<<commaString<<localePhotoSynthesis;
 	lineBuffer<<commaString<<localeRespiraton;
 	lineBuffer<<commaString<<localeExcretion;
 	lineBuffer<<commaString<<localeNaturalMortality;
+	lineBuffer<<commaString<<sedimentation_rate;
 	lineBuffer<<commaString<<localSedimentation;
 	lineBuffer<<commaString<<localSlough;
 	lineBuffer<<commaString<<high_temperature_mortality;
 	lineBuffer<<commaString<<resource_limitation_stress;
+	lineBuffer<<commaString<<weighted_resource_limitation_stress;
 	lineBuffer<<commaString<<periPhyton?1:0;
+	lineBuffer<<commaString<<localPointBiomass;
 	return totalProductivity;
 }
 
@@ -253,7 +257,8 @@ biomassType FoodWebModel::FoodWebModel::highTemperatureMortality(physicalType lo
  */
 biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLightAllowance, physicalType localeNutrientLimitation){
 	resource_limitation_stress= 1.0f-exp(-MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLightAllowance*localeNutrientLimitation));
-	return resource_limitation_stress;
+	weighted_resource_limitation_stress = RESOURCE_LIMITATION_WEIGHT*resource_limitation_stress;
+	return weighted_resource_limitation_stress;
 
 }
 
@@ -262,7 +267,8 @@ biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType lo
  */
 biomassType FoodWebModel::FoodWebModel::sinking(int depthIndex, int columnIndex){
 	/*  Can the ration mean discharge/discharge be omitted? Does this mean the amount of biomass that accumulates due to sinking?*/
-	return INTRINSIC_SETTLING_RATE/indexToDepth[depthIndex]*phytoBiomass[depthIndex][columnIndex];
+	sedimentation_rate=(INTRINSIC_SETTLING_RATE/indexToDepth[depthIndex])*phytoBiomass[depthIndex][columnIndex];
+	return sedimentation_rate*SINKING_DEPTH_WEIGHT;
 }
 
 /*
@@ -328,7 +334,8 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
 	localePhotoPeriod = photoPeriod();
 	localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
-	return localePhotoPeriod*localeLightAtDepth;
+	light_at_top=AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
+	return Math_E*localePhotoPeriod*(localeLightAtDepth-light_at_top);
 }
 
 /*

@@ -31,9 +31,9 @@ static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
  */
 
 /* Outliers not removed*/
-//static const double TURBIDITY=14.54771f;
+static const double TURBIDITY=14.54771f;
 /* Outliers removed*/
-static const double TURBIDITY=5.426461f;
+//static const double TURBIDITY=5.426461f;
 //static const double TURBIDITY=0.0f;
 
 

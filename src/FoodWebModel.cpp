@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, NutrientAtDepthExponent, LightAtTop, LightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, NutrientAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<stepBuffer.str();
@@ -102,6 +102,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<nutrient_at_depth_exponent;
 	lineBuffer<<commaString<<light_at_top;
 	lineBuffer<<commaString<<light_difference;
+	lineBuffer<<commaString<<normalized_light_difference;
 	lineBuffer<<commaString<<sigmoid_light_difference;
 	lineBuffer<<commaString<<resource_limitation_exponent;
 	lineBuffer<<commaString<<biomass_to_depth;
@@ -341,8 +342,12 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
 	localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
 	light_at_top=AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
 	light_difference=Math_E*(localeLightAtDepth-light_at_top);
+	light_normalizer = biomass_to_depth*depthVector[columnIndex];
 	sigmoid_light_difference=1/(1+exp(-light_difference));
 	return localePhotoPeriod*sigmoid_light_difference;
+	/* Uncomment this line to make the model equivalent to AquaTox*/
+	//normalized_light_difference =light_difference/(light_normalizer+light_difference);
+	//return localePhotoPeriod*normalized_light_difference;
 }
 
 /*

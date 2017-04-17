@@ -33,8 +33,8 @@ static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
 /* Outliers not removed*/
 //static const double TURBIDITY=14.54771f;
 /* Outliers removed*/
-//static const double TURBIDITY=5.426461f;
-static const double TURBIDITY=0.0f;
+static const double TURBIDITY=5.426461f;
+//static const double TURBIDITY=0.0f;
 
 
 /* An alternative for water turbidity based on the average from Vince's processed data*/
@@ -136,5 +136,6 @@ static const double RESOURCE_LIMITATION_WEIGHT = 0.8f;
 /* Added a weight factor to control sinking as a function of depth*/
 
 static const double SINKING_DEPTH_WEIGHT = 0.3f;
+
 
 #endif /* MODELCONSTANTS_HPP_ */

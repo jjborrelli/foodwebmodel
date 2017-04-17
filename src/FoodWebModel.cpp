@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, LightAtTop, LightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, NutrientAtDepthExponent, LightAtTop, LightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<stepBuffer.str();
@@ -99,6 +99,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<depthInMeters;
 	lineBuffer<<commaString<<localeNutrientConcentration;
 	lineBuffer<<commaString<<localeNutrientLimitation;
+	lineBuffer<<commaString<<nutrient_at_depth_exponent;
 	lineBuffer<<commaString<<light_at_top;
 	lineBuffer<<commaString<<light_difference;
 	lineBuffer<<commaString<<sigmoid_light_difference;
@@ -357,7 +358,8 @@ physicalType FoodWebModel::FoodWebModel::photoPeriod(){
 
 physicalType FoodWebModel::FoodWebModel::nutrientConcentrationAtDepth(int depthIndex, int columnIndex){
 	physicalType localeNutrientAtBottom = NUTRIENT_CONCENTRATION_AT_BOTTOM;
-	physicalType nutrientAtDepth=localeNutrientAtBottom*exp((double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex])));
+	nutrient_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
+	physicalType nutrientAtDepth=localeNutrientAtBottom*exp(nutrient_at_depth_exponent);
 	return nutrientAtDepth;
 }
 

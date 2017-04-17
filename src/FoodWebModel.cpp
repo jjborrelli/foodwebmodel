@@ -24,7 +24,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
-	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, LightAtTop, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepth, Temperature, DepthInMeters, NutrientConcentration, NutrientLimitation, LightAtTop, LightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		step();
 		outputFile<<stepBuffer.str();
@@ -100,6 +100,9 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<localeNutrientConcentration;
 	lineBuffer<<commaString<<localeNutrientLimitation;
 	lineBuffer<<commaString<<light_at_top;
+	lineBuffer<<commaString<<light_difference;
+	lineBuffer<<commaString<<sigmoid_light_difference;
+	lineBuffer<<commaString<<resource_limitation_exponent;
 	lineBuffer<<commaString<<biomass_to_depth;
 	lineBuffer<<commaString<<localePhotoSynthesis;
 	lineBuffer<<commaString<<localeRespiraton;
@@ -256,7 +259,8 @@ biomassType FoodWebModel::FoodWebModel::highTemperatureMortality(physicalType lo
  * Biomass lost to stress related to resource limitation (AquaTox Documentation, page 86, equation 68)
  */
 biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLightAllowance, physicalType localeNutrientLimitation){
-	resource_limitation_stress= 1.0f-exp(-MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLightAllowance*localeNutrientLimitation));
+	resource_limitation_exponent = -MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLightAllowance*localeNutrientLimitation);
+	resource_limitation_stress= 1.0f-exp(resource_limitation_exponent);
 	weighted_resource_limitation_stress = RESOURCE_LIMITATION_WEIGHT*resource_limitation_stress;
 	return weighted_resource_limitation_stress;
 
@@ -335,7 +339,9 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
 	localePhotoPeriod = photoPeriod();
 	localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
 	light_at_top=AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
-	return Math_E*localePhotoPeriod*(localeLightAtDepth-light_at_top);
+	light_difference=Math_E*(localeLightAtDepth-light_at_top);
+	sigmoid_light_difference=1/(1+exp(-light_difference));
+	return localePhotoPeriod*sigmoid_light_difference;
 }
 
 /*

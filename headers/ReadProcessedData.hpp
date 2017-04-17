@@ -21,7 +21,7 @@ namespace FoodWebModel{
 	protected:
 		biomassType **initial_biomass;
 		physicalType **initial_temperature;
-		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_COLUMN_INDEX];
+		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX];
 	public:
 		ReadProcessedData();
 		~ReadProcessedData();

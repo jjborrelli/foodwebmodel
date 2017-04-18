@@ -30,8 +30,10 @@ static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
  * Alternative value of turbidity based on lake data
  */
 
-/* Outliers not removed*/
+/* Turbidity adjusted*/
+//static const double TURBIDITY=14.54771f;
 static const double TURBIDITY=14.54771f;
+
 /* Outliers removed*/
 //static const double TURBIDITY=5.426461f;
 //static const double TURBIDITY=0.0f;
@@ -137,5 +139,13 @@ static const double RESOURCE_LIMITATION_WEIGHT = 0.8f;
 
 static const double SINKING_DEPTH_WEIGHT = 0.3f;
 
+/* Added factors to manipulate steepness in light sigmoid*/
+
+static const double SIGMOID_LIGHT_WEIGHT = 0.001f;
+static const double LIGHT_OFFSET=0;
+
+/* Added factor to increase convergence of biomass*/
+
+static const double BIOMASS_DIFFERENTIAL_SCALE=100.0f;
 
 #endif /* MODELCONSTANTS_HPP_ */

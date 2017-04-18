@@ -9,6 +9,10 @@
 #ifndef FOODWEBMODEL_HPP_
 #define FOODWEBMODEL_HPP_
 
+/* Define mode constants*/
+#define HOMOGENEOUS_DEPTH
+#define EXPONENTIAL_LIGHT
+
 #include <math.h>
 #include <string>
 #include <sstream>
@@ -47,7 +51,7 @@ namespace FoodWebModel {
 		string commaString = string(", ");
 		/*Class methods*/
 	private:
-		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, nutrient_at_depth_exponent, light_normalizer, sigmoid_light_difference, light_at_depth_exponent;
+		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, nutrient_at_depth_exponent, light_normalizer, sigmoid_light_difference, light_at_depth_exponent, temperature_angular_frequency, temperature_sine;
 		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate;
 	public:
 		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
@@ -59,14 +63,14 @@ namespace FoodWebModel {
 		biomassType biomassDifferential(int depthIndex, int column, bool periPhyton);
 		physicalType lightAtDepth(int depthIndex, int column);
 		biomassType sumPhytoBiomassToDepth(int depthIndex, int column);
-		biomassType photoSynthesis(biomassType localPointBiomass, physicalType localeLightAllowance, bool periPhyton);
+		biomassType photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton);
 		physicalType productionLimit(physicalType localeLightAllowance, bool periPhyton);
 		void setBathymetricParameters();
 		biomassType respiration(biomassType localPointBiomass, physicalType localTemperature);
 		biomassType excretion(biomassType localePhotoSynthesis, physicalType localeLightAllowance);
-		biomassType naturalMortality(physicalType localTemperature, physicalType localeLightAllowance, physicalType localeNutrientLimitation, biomassType localPointBiomass);
+		biomassType naturalMortality(physicalType localTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass);
 		biomassType highTemperatureMortality(physicalType localeTemperature);
-		biomassType resourceLimitationStress(physicalType localeLightAllowance, physicalType localeNutrientStress);
+		biomassType resourceLimitationStress(physicalType llocaleLimitationProduct);
 		biomassType sinking(int depthIndex, int columnIndex);
 		biomassType slough(int depthIndex, int columnIndex);
 		physicalType calculateTemperature(int depthIndex, int columnIndex);

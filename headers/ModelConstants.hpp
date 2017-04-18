@@ -18,9 +18,10 @@ static const double EXTINCTION=0.02;
 /*
  * We consider that virtually all phytoplankton has the light attenuation coefficient of diatom algae
  */
-static const double  DIATOM_ATTENUATION=0.14;
-static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
-
+static const double  DIATOM_ATTENUATION=0.14f/2.0f;
+//static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
+static const double  ATTENUATION_COEFFICIENT=0.00102f;
+//static const double  ATTENUATION_COEFFICIENT=0.0f;
 
 /*
  * The Secchi disk is an indication of water turbidity (AquaTox Documentation, page 74).
@@ -32,10 +33,10 @@ static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
 
 /* Turbidity adjusted*/
 //static const double TURBIDITY=14.54771f;
-static const double TURBIDITY=14.54771f;
+//static const double TURBIDITY=14.54771f;
 
 /* Outliers removed*/
-//static const double TURBIDITY=5.426461f;
+static const double TURBIDITY=5.426461f/300.0f;
 //static const double TURBIDITY=0.0f;
 
 
@@ -48,6 +49,8 @@ static const double TURBIDITY=14.54771f;
  * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
  */
 static const double RESP20=0.3f;
+//static const double RESP20=0.1f;
+//static const double RESP20=0.01f;
 
 /*
  * The exponential temperature coefficient (AquaTox Documentation, page 84, equation 63)
@@ -63,7 +66,9 @@ static const double PROPORTION_EXCRETION_PHOTOSYNTHESIS=0.04f;
  * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
 
-static const double INTRINSIC_MORTALITY_RATE=0.019f;
+//static const double INTRINSIC_MORTALITY_RATE=0.019f;
+static const double INTRINSIC_MORTALITY_RATE=0.0019f;
+
 /*
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
  */
@@ -116,36 +121,34 @@ static const double AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653;
 static const double HOURS_PER_DAY = 24.0f;
 
 /* Nutrient derivative taken as the average difference between consecutive points*/
-static const double NUTRIENT_DERIVATIVE = 0.02527915f;
+//static const double NUTRIENT_DERIVATIVE = 0.02527915f;
+static const double NUTRIENT_DERIVATIVE = 0.02527915f*1.3f;
 
 /* Nutrient concentration at bottom taken from lake data*/
-static const double NUTRIENT_CONCENTRATION_AT_BOTTOM = 5.225714f;
+static const double NUTRIENT_CONCENTRATION_AT_BOTTOM = 2.507143f;
 
 /* Phosphorous linear limit threshold (obtained from Larry's data) */
 
-static const double PHOSPHORUS_LINEAR_THRESHOLD = 5.0f;
+static const double PHOSPHORUS_LINEAR_THRESHOLD = 2.5f;
 
-static const double PHOSPHORUS_LINEAR_COEFFICIENT =  0.9954f;
+static const double PHOSPHORUS_LINEAR_COEFFICIENT =  2.018f;
+//static const double PHOSPHORUS_LINEAR_COEFFICIENT =  1.518f;
 
-static const double PHOSPHORUS_INTERCEPT = -2.8344f;
+//static const double PHOSPHORUS_INTERCEPT = -2.618f;
+static const double PHOSPHORUS_INTERCEPT = -1.918f;
 
-static const double PHOSPHORUS_GROWTH_LIMIT = 2.1426f;
+static const double PHOSPHORUS_GROWTH_LIMIT = 2.5;
 
 /* Added a weight factor to control resource limitation weight*/
 
-static const double RESOURCE_LIMITATION_WEIGHT = 0.8f;
+static const double RESOURCE_LIMITATION_WEIGHT = 0.08f;
 
 /* Added a weight factor to control sinking as a function of depth*/
 
-static const double SINKING_DEPTH_WEIGHT = 0.3f;
-
-/* Added factors to manipulate steepness in light sigmoid*/
-
-static const double SIGMOID_LIGHT_WEIGHT = 0.001f;
-static const double LIGHT_OFFSET=0;
+static const double SINKING_DEPTH_WEIGHT = 1.0f;
 
 /* Added factor to increase convergence of biomass*/
 
-static const double BIOMASS_DIFFERENTIAL_SCALE=100.0f;
+static const double BIOMASS_DIFFERENTIAL_SCALE=2.0f;
 
 #endif /* MODELCONSTANTS_HPP_ */

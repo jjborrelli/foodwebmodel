@@ -155,6 +155,9 @@ static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
 /* Time and spatial resolution constants for simulation*/
 
 static const int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10, DEPTH_OUTPUT_RESOLUTION=10, COLUMN_OUTPUT_RESOLUTION=10;
+//static const int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTPUT_RESOLUTION=1, COLUMN_OUTPUT_RESOLUTION=1;
 
+/* Set an hour where the differential is considered stable*/
 
+static const int STABLE_STATE_HOUR=10;
 #endif /* MODELCONSTANTS_HPP_ */

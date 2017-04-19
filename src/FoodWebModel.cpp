@@ -94,11 +94,21 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	totalProductivity=totalProductivity*BIOMASS_DIFFERENTIAL_SCALE;
 
 	/* Register differential*/
-	if(periPhyton){
-		periDifferential[depthIndex][column]=totalProductivity/localPointBiomass;
-	} else {
-		phytoDifferential[depthIndex][column]=totalProductivity/localPointBiomass;
-	}
+	#ifndef STABLE_CHLOROPHYLL
+		if(periPhyton){
+			periDifferential[depthIndex][column]=totalProductivity/localPointBiomass;
+		} else {
+			phytoDifferential[depthIndex][column]=totalProductivity/localPointBiomass;
+		}
+	#else
+		if(currentHour<=STABLE_STATE_HOUR){
+			if(periPhyton){
+				periDifferential[depthIndex][column]=totalProductivity/localPointBiomass;
+			} else {
+				phytoDifferential[depthIndex][column]=totalProductivity/localPointBiomass;
+			}
+		}
+	#endif
 	/* Hydrodynamics rules still need to be encoded */
 	if(periPhyton){
 		localSlough=-localSlough;

@@ -44,38 +44,17 @@ void FoodWebModel::FoodWebModel::step(){
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 			bool registerBiomass=depthIndex%DEPTH_OUTPUT_RESOLUTION==0&&columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-			biomassType phytoBiomassDifferential=0.0f, periBiomassDifferential=0.0f;
 			/*Register previous biomass*/
 			priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
-
 			/*Update biomass and output new biomass*/
-#ifndef STABLE_CHLOROPHYLL
-			phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
-#else
-			/* If using a stable state differential, test for time. If it is greater than the stable state threshold established, use registered differential*/
-			if(currentHour<STABLE_STATE_HOUR){
-				phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
-			}	else{
-				phytoBiomassDifferential = phytoDifferential[depthIndex][columnIndex]*priorPhytoBiomass[depthIndex][columnIndex];
-
-			}
-#endif
+			biomassType phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
 			phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential);
 			lineBuffer<<commaString<<phytoBiomassDifferential<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
 			if(registerBiomass){
 				stepBuffer<<lineBuffer.str();
 			}
-
-#ifndef STABLE_CHLOROPHYLL
-			periBiomassDifferential = biomassDifferential(depthIndex, columnIndex, true);
-#else
-			if(currentHour<STABLE_STATE_HOUR){
-				periBiomassDifferential = biomassDifferential(depthIndex, columnIndex, true);
-			} else {
-				periBiomassDifferential = periDifferential[depthIndex][columnIndex]*priorPeriBiomass[depthIndex][columnIndex];
-			}
-#endif
+			biomassType periBiomassDifferential = biomassDifferential(depthIndex, columnIndex, true);
 			periBiomass[depthIndex][columnIndex]=max((double)0.0f, periBiomass[depthIndex][columnIndex]+periBiomassDifferential);
 			lineBuffer<<commaString<<periBiomassDifferential<<commaString<<periBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
 			if(registerBiomass){
@@ -165,6 +144,16 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	lineBuffer<<commaString<<weighted_resource_limitation_stress;
 	lineBuffer<<commaString<<periPhyton?1:0;
 	lineBuffer<<commaString<<localPointBiomass;
+	#ifdef STABLE_CHLOROPHYLL
+		if(currentHour>=STABLE_STATE_HOUR){
+			if(periPhyton){
+				totalProductivity= periDifferential[depthIndex][column]*priorPeriBiomass[depthIndex][column];
+			} else{
+				totalProductivity= phytoDifferential[depthIndex][column]*priorPhytoBiomass[depthIndex][column];
+
+			}
+		}
+	#endif
 	return totalProductivity;
 }
 

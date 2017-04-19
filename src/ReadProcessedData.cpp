@@ -32,13 +32,18 @@ vector<double> split(string &str){
 
 
 void FoodWebModel::ReadProcessedData::readInitialTemperature(const string& initialTemperatureRoute){
+	cout<<"Reading initial temperature from file: "<<initialTemperatureRoute<<endl;
 	readDataMatrix(initialTemperatureRoute, initial_temperature);
+	cout<<"Initial temperature read."<<endl;
+
+
 
 }
 
 void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& temperatureRangeRoute){
 	ifstream dataFile;
 	string readLine;
+	cout<<"Reading temperature range from file: "<<temperatureRangeRoute<<endl;
 	/* Store the file content in a vector*/
 	dataFile.open(temperatureRangeRoute.c_str());
 	/* Read until there are no more lines*/
@@ -52,6 +57,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 
 		     }
 		  dataFile.close();
+		  cout<<"Temperature range read."<<endl;
 	  } else{
 		  /* If the file could not be opened, report an error*/
 		  cerr << "File "<< temperatureRangeRoute<<" could not be opened";
@@ -97,17 +103,19 @@ vector<physicalType> FoodWebModel::ReadProcessedData::readValues(const string da
 void FoodWebModel::ReadProcessedData::readDepth(const string depthRoute){
 
 	/* Read depth as a vector*/
+	cout<<"Reading lake depth from file: "<<depthRoute<<endl;
 	vector<physicalType> depthVector = readValues(depthRoute);
 
 	/* Copy values to the depth array*/
 	for(int i=0; i<MAX_COLUMN_INDEX; i++)
 		depth[i]=depthVector[i];
+	cout<<"Lake depth read."<<endl;
 }
 
 void FoodWebModel::ReadProcessedData::readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialBiomassRoute){
 	/*Read depth and temperature data*/
-	readDepth(depthRoute);
 	readDepthScale(depthScaleRoute);
+	readDepth(depthRoute);
 	readInitialTemperature(initialTemperatureRoute);
 	readTemperatureRange(temperatureRangeRoute);
 	readInitialBiomass(initialBiomassRoute);
@@ -115,12 +123,15 @@ void FoodWebModel::ReadProcessedData::readGeophysicalData(const string &depthRou
 }
 void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){
 	/* Read depth as a vector*/
+	cout<<"Reading lake index/depth in meters scale from file: "<<depthScaleRoute<<endl;
 	vector<physicalType> depthVector = readValues(depthScaleRoute);
+
+
 
 	/* Copy values to the depth array*/
 	for(int i=0; i<MAX_DEPTH_INDEX; i++)
 		depth_scale[i]=depthVector[i];
-
+	cout<<"Index/depth in meters scale read."<<endl;
 }
 
 void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, double** dataMatrix){
@@ -148,7 +159,10 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, do
 }
 
 void FoodWebModel::ReadProcessedData::readInitialBiomass(const string& biomassRoute){
+	/* Read depth as a vector*/
+	cout<<"Reading initial biomass from file: "<<biomassRoute<<endl;
 	readDataMatrix(biomassRoute, initial_biomass);
+	cout<<"Initial biomass read."<<endl;
 }
 
 

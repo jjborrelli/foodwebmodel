@@ -22,14 +22,19 @@ string operator+(string arg1, int arg2){
 
 int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileName){
 	/*CSV file to write the output. Useful for calibration*/
+	cout<<"Simulation started."<<endl;
 	ofstream outputFile;
 	outputFile.open(outputFileName.c_str());
 	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, NutrientConcentration, NutrientLimitation, LimitationProduct, NutrientAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, BiomassDifferential, Biomass, Time\n";
 	for(currentHour=0; currentHour<cycles; currentHour++){
+		if(currentHour%TIME_MESSAGE_RESOLUTION==0)
+			cout<<"Simulation hour: "<<currentHour<<endl;
 		step();
-		outputFile<<stepBuffer.str();
+		if(currentHour%TIME_OUTPUT_RESOLUTION==0)
+			outputFile<<stepBuffer.str();
 	}
 	outputFile.close();
+	cout<<"Simulation finished."<<endl;
 	return 0;
 }
 
@@ -38,17 +43,26 @@ void FoodWebModel::FoodWebModel::step(){
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			bool registerBiomass=depthIndex%DEPTH_OUTPUT_RESOLUTION==0&&columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+			/*Register previous biomass*/
 			priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 			priorPeriBiomass[depthIndex][columnIndex] = periBiomass[depthIndex][columnIndex];
+
+			/*Update biomass and output new biomass*/
 			biomassType phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
 			phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential);
 			lineBuffer<<commaString<<phytoBiomassDifferential<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
-			stepBuffer<<lineBuffer.str();
+			if(registerBiomass){
+				stepBuffer<<lineBuffer.str();
+			}
+
+
 			biomassType periBiomassDifferential = biomassDifferential(depthIndex, columnIndex, true);
 			periBiomass[depthIndex][columnIndex]=max((double)0.0f, periBiomass[depthIndex][columnIndex]+periBiomassDifferential);
 			lineBuffer<<commaString<<periBiomassDifferential<<commaString<<periBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
-			stepBuffer<<lineBuffer.str();
-
+			if(registerBiomass){
+				stepBuffer<<lineBuffer.str();
+			}
 
 		}
 	}
@@ -213,8 +227,9 @@ FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleR
 	/*
 	 * Read the data from the files
 	 */
+	cout<<"Reading parameters."<<endl;
 	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialBiomassRoute);
-
+	cout<<"Parameters read."<<endl;
 
 
 }

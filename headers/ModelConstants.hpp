@@ -149,6 +149,12 @@ static const double SINKING_DEPTH_WEIGHT = 1.0f;
 
 /* Added factor to increase convergence of biomass*/
 
-static const double BIOMASS_DIFFERENTIAL_SCALE=2.0f;
+static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
+
+
+/* Time and spatial resolution constants for simulation*/
+
+static const int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10, DEPTH_OUTPUT_RESOLUTION=10, COLUMN_OUTPUT_RESOLUTION=10;
+
 
 #endif /* MODELCONSTANTS_HPP_ */

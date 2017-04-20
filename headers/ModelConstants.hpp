@@ -24,9 +24,10 @@ static const double EXTINCTION=0.02;
 /*
  * We consider that virtually all phytoplankton has the light attenuation coefficient of diatom algae
  */
-static const double  DIATOM_ATTENUATION=0.14f/2.0f;
+static const double  DIATOM_ATTENUATION=0.14f;
 //static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
-static const double  ATTENUATION_COEFFICIENT=0.00102f;
+static const double  ATTENUATION_COEFFICIENT=0.000102f;
+//static const double  ATTENUATION_COEFFICIENT=0.14f;
 //static const double  ATTENUATION_COEFFICIENT=0.0f;
 
 /*
@@ -42,7 +43,10 @@ static const double  ATTENUATION_COEFFICIENT=0.00102f;
 //static const double TURBIDITY=14.54771f;
 
 /* Outliers removed*/
+//static const double TURBIDITY=5.426461f;
 static const double TURBIDITY=5.426461f/300.0f;
+
+//static const double TURBIDITY=5.426461f/300.0f;
 //static const double TURBIDITY=0.0f;
 
 
@@ -72,8 +76,8 @@ static const double PROPORTION_EXCRETION_PHOTOSYNTHESIS=0.04f;
  * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
 
-//static const double INTRINSIC_MORTALITY_RATE=0.019f;
-static const double INTRINSIC_MORTALITY_RATE=0.0019f;
+static const double INTRINSIC_MORTALITY_RATE=0.019f;
+//static const double INTRINSIC_MORTALITY_RATE=0.0019f;
 
 /*
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
@@ -147,16 +151,19 @@ static const double PHOSPHORUS_GROWTH_LIMIT = 2.5;
 
 /* Added a weight factor to control resource limitation weight*/
 
-static const double RESOURCE_LIMITATION_WEIGHT = 0.08f;
-
+//static const double RESOURCE_LIMITATION_WEIGHT = 0.08f;
+//static const double RESOURCE_LIMITATION_WEIGHT = 0.5f;
+static const double RESOURCE_LIMITATION_WEIGHT = 1.0f;
 /* Added a weight factor to control sinking as a function of depth*/
 
 static const double SINKING_DEPTH_WEIGHT = 1.0f;
 
 /* Added factor to increase convergence of biomass*/
 
-static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
-
+//static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
+//static const double BIOMASS_DIFFERENTIAL_SCALE=0.1f;
+//static const double BIOMASS_DIFFERENTIAL_SCALE=0.05f;
+static const double BIOMASS_DIFFERENTIAL_SCALE=0.8f;
 
 /* Time and spatial resolution constants for simulation*/
 #ifndef DEBUG_MODE

@@ -184,9 +184,9 @@ physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int column
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	depthInMeters= indexToDepth[depthIndex];
-	biomass_to_depth = sumPhytoBiomassToDepth(depthIndex, column);
+	biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, column);
 	turbidity_at_depth=TURBIDITY*depthInMeters;
-	light_at_depth_exponent = -0.2f*(turbidity_at_depth+ATTENUATION_COEFFICIENT*biomass_to_depth);
+	light_at_depth_exponent = -(turbidity_at_depth+biomass_to_depth);
 	return localePhotoPeriod*AVERAGE_INCIDENT_LIGHT_INTENSITY*exp(light_at_depth_exponent);
 }
 

@@ -10,9 +10,7 @@
 #define FOODWEBMODEL_HPP_
 
 /* Define mode constants*/
-#define HOMOGENEOUS_DEPTH
-#define EXPONENTIAL_LIGHT
-#define STABLE_CHLOROPHYLL
+
 
 #include <math.h>
 #include <string>
@@ -81,6 +79,7 @@ namespace FoodWebModel {
 		biomassType calculateNutrientLimitation(physicalType localeNutrientConcentration);
 		void calculatePhysicalLakeDescriptors();
 		void initializePointers();
+		void printSimulationMode();
 
 	};
 }

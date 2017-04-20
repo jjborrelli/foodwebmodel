@@ -8,7 +8,13 @@
 #ifndef MODELCONSTANTS_HPP_
 #define MODELCONSTANTS_HPP_
 
-
+/* If running in Windows OS, use debug mode*/
+#if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
+	#define DEBUG_MODE
+#endif
+//#define HOMOGENEOUS_DEPTH
+#define EXPONENTIAL_LIGHT
+//#define STABLE_CHLOROPHYLL
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
  * Since we do not consider any feedback from the food water to the geophysical model, we assume that Light Extinction = Water Extinction
@@ -153,10 +159,11 @@ static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
 
 
 /* Time and spatial resolution constants for simulation*/
-
+#ifndef DEBUG_MODE
 static const int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10, DEPTH_OUTPUT_RESOLUTION=10, COLUMN_OUTPUT_RESOLUTION=10;
-//static const int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTPUT_RESOLUTION=1, COLUMN_OUTPUT_RESOLUTION=1;
-
+#else
+static const int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTPUT_RESOLUTION=1, COLUMN_OUTPUT_RESOLUTION=1;
+#endif
 /* Set an hour where the differential is considered stable*/
 
 static const int STABLE_STATE_HOUR=10;

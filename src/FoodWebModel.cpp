@@ -228,30 +228,50 @@ physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLimi
 /* Initialize vectors of parameters based on read data*/
 void FoodWebModel::FoodWebModel::initializeParameters(){
 	/* Copy the data to arrays inside the class */
+	/* Copy depth vector */
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
-
 		depthVector[i]=readProcessedData.depth[i];
-		for(int j=0; j<MAX_DEPTH_INDEX; j++){
-			this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
-			if(depthVector[i]<indexToDepth[j]){
-				phytoBiomass[j][i]=periBiomass[j][i]=priorPhytoBiomass[j][i]=priorPeriBiomass[j][i]=0.0f;
-			} else{
-				this->priorPeriBiomass[j][i]=this->priorPhytoBiomass[j][i] = this->periBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_biomass[j][i];
-
-			}
-			this->temperature[j][i] = this->initial_temperature[j][i];
-			this->phytoDifferential[j][i]=this->periDifferential[j][i] = 0;
-		}
-		//initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
 	}
-
 	/*Copy arrays that depend on maximum depth*/
 	for(int i=0; i<MAX_DEPTH_INDEX; i++){
 		this->temperature_range[i]=readProcessedData.temperature_range[i];
 		this->indexToDepth[i]=readProcessedData.depth_scale[i];
 
 	}
+	/* Calculate maximum depth index*/
+	for(int j=0; j<MAX_DEPTH_INDEX; j++){
+		for(int i=0; i<MAX_COLUMN_INDEX; i++){
+			if((depthVector[i]==indexToDepth[j])||(depthVector[i]<indexToDepth[j+1]&&depthVector[i]>=indexToDepth[j])){
+				this->maxDepthIndex[i]=j;
+			}
 
+		}
+	}
+	/* Copy initial biomass vector*/
+	for(int i=0; i<MAX_COLUMN_INDEX; i++){
+		for(int j=0; j<MAX_DEPTH_INDEX; j++){
+			this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
+			if(depthVector[i]<indexToDepth[j]){
+				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
+				phytoBiomass[j][i]=periBiomass[j][i]=priorPhytoBiomass[j][i]=priorPeriBiomass[j][i]=0.0f;
+				break;
+			} else{
+				/* If we are modeling the bottom of the lake (the depth is exactly lake depth or it is the closest possible to the lake depth) then all initial algae biomass is periphyton*/
+				if(maxDepthIndex[i]==j){
+					this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=0.0f;
+					this->priorPeriBiomass[j][i]=this->periBiomass[j][i]=readProcessedData.initial_biomass[j][i];
+				} else{
+					/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
+					this->priorPeriBiomass[j][i]=this->periBiomass[j][i]=0.0f;
+					this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_biomass[j][i];
+
+				}
+			}
+			this->temperature[j][i] = this->initial_temperature[j][i];
+			this->phytoDifferential[j][i]=this->periDifferential[j][i] = 0;
+		}
+		//initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
+	}
 	setBathymetricParameters();
 }
 

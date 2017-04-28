@@ -59,6 +59,7 @@ void FoodWebModel::FoodWebModel::step(){
 		priorPeriBiomass[columnIndex] = periBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
 		biomassType periBiomassDifferential = biomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+		/* Save periphyton biomass for later registering in file*/
 		std::ostringstream copyBuffer;
 		copyBuffer.str("");
 		copyBuffer.clear();
@@ -85,6 +86,7 @@ void FoodWebModel::FoodWebModel::step(){
 
 			}
 		}
+		/* Retrieve line registering periphyton biomass*/
 		lineBuffer.str("");
 		lineBuffer.clear();
 		lineBuffer<<copyBuffer.str();

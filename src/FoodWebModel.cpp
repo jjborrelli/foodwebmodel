@@ -32,8 +32,8 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileNam
 	cout<<"File "<<outputFileName<<" open for output."<<endl;
 	cout<<"File "<<outputSloughRoute<<" open for slough register."<<endl;
 	/*Write file headers*/
-	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, NutrientConcentration, NutrientLimitation, LimitationProduct, NutrientAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, VerticalMigration, BiomassDifferential, Biomass, Time\n";
-	outputSloughFile<<"Depth, Column, Type, Time, Washup\n";
+	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, NutrientConcentration, NutrientLimitation, LimitationProduct, NutrientAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, VerticalMigration, Time\n";
+	outputSloughFile<<"Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass\n";
 
 	for(currentHour=0; currentHour<cycles; currentHour++){
 		/* Register standard biomass and slough to file at the given hour frequency*/
@@ -56,9 +56,9 @@ void FoodWebModel::FoodWebModel::step(){
 	sloughBuffer.str("");
 	/* Clear vertical migrated phyto biomass*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-		verticalMigratedPeriBiomass[columnIndex]=0.0f;
+		verticalMigratedPeriBiomass[columnIndex]=periBiomassDifferential[columnIndex]=0.0f;
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
-			verticalMigratedPhytoBiomass[depthIndex][columnIndex]=sloughPhytoBiomass[depthIndex][columnIndex]=0.0f;
+			verticalMigratedPhytoBiomass[depthIndex][columnIndex]=sloughPhytoBiomass[depthIndex][columnIndex]=phytoBiomassDifferential[depthIndex][columnIndex]=0.0f;
 		}
 	}
 	/*Matrix to store the decision of biomass must be saved. It will be read when registering slough to output slough file*/
@@ -72,7 +72,7 @@ void FoodWebModel::FoodWebModel::step(){
 		/*Register previous biomass*/
 		priorPeriBiomass[columnIndex] = periBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
-		biomassType periBiomassDifferential = biomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+		periBiomassDifferential[columnIndex] = biomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 		/* Save periphyton biomass for later registering in file*/
 		std::ostringstream copyBuffer;
 		copyBuffer.str("");
@@ -92,16 +92,14 @@ void FoodWebModel::FoodWebModel::step(){
 				/*Register previous biomass*/
 				priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
-				biomassType phytoBiomassDifferential = biomassDifferential(depthIndex, columnIndex, false);
-				phytoBiomassDifferential+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
-				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential);
-				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<phytoBiomassDifferential<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
+				phytoBiomassDifferential[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, false);
+				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
+				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
+				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
 				/*If biomass must be registered, register standard phytoplankton biomass*/
 				if(registerPhytoBiomass[depthIndex][columnIndex]){
 					stepBuffer<<lineBuffer.str();
 				}
-
-				/*If at the bottom of the lake, update periphyton*/
 
 			}
 		}
@@ -110,22 +108,23 @@ void FoodWebModel::FoodWebModel::step(){
 		lineBuffer.clear();
 		lineBuffer<<copyBuffer.str();
 		/* Update vertical migration biomass*/
-		periBiomassDifferential+=verticalMigratedPeriBiomass[columnIndex];
-		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential);
-		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<commaString<<periBiomassDifferential<<commaString<<periBiomass[columnIndex]<<commaString<<currentHour<<"\n";
+		periBiomassDifferential[columnIndex]+=verticalMigratedPeriBiomass[columnIndex];
+		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
+		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<commaString<<currentHour<<"\n";
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerPeriBiomass){
 			stepBuffer<<lineBuffer.str();
-			sloughBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<1<<commaString<<currentHour<<commaString<<0.0f<<"\n";//Depth, Column, Type, Time, Washup
+			sloughBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<1<<commaString<<currentHour<<commaString<<0.0f<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<"\n";//Depth, Column, Type, Time, Washup
 		}
 	}
 	/*Add slough biomass*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 			phytoBiomass[depthIndex][columnIndex]=max((double)0.0f,phytoBiomass[depthIndex][columnIndex]+sloughPhytoBiomass[depthIndex][columnIndex]);
+			phytoBiomassDifferential[depthIndex][columnIndex]+=sloughPhytoBiomass[depthIndex][columnIndex];
 			/*If biomass must be registered and the bottom of the lake has not been reached yet, register slough biomass*/
 			if(registerPhytoBiomass[depthIndex][columnIndex]&&depthVector[columnIndex]>=indexToDepth[depthIndex]){
-				sloughBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<0<<commaString<<currentHour<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex]<<"\n";//Depth, Column, Type, Time, Washup
+				sloughBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<0<<commaString<<currentHour<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex]<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<"\n";//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
 
 			}
 		}

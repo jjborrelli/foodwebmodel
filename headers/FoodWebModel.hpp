@@ -37,7 +37,7 @@ namespace FoodWebModel {
 		int maxDepthIndex[MAX_COLUMN_INDEX];
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
-		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], priorPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorPeriBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX];
+		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], priorPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorPeriBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 		/*A vector to reference the calculated biomass*/
 
@@ -47,7 +47,7 @@ namespace FoodWebModel {
 		//int  maxColumn;
 
 		/*Buffer line to write simulation results*/
-		std::ostringstream lineBuffer, stepBuffer;
+		std::ostringstream lineBuffer, stepBuffer, sloughBuffer;
 		string commaString = string(", ");
 		/*Class methods*/
 	private:
@@ -55,14 +55,14 @@ namespace FoodWebModel {
 		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate;
 	public:
 		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
-		int simulate(int cycles,  std::string& outputFileName);
+		int simulate(int cycles,  std::string& outputFileName, std::string outputSloughRoute);
 		void initializeParameters();
 
 	protected:
 		void step();
-		biomassType biomassDifferential(int depthIndex, int column, bool periPhyton);
-		physicalType lightAtDepth(int depthIndex, int column);
-		biomassType sumPhytoBiomassToDepth(int depthIndex, int column);
+		biomassType biomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
+		physicalType lightAtDepth(int depthIndex, int columnIndex);
+		biomassType sumPhytoBiomassToDepth(int depthIndex, int columnIndex);
 		biomassType photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton);
 		physicalType productionLimit(physicalType localeLightAllowance, bool periPhyton);
 		void setBathymetricParameters();

@@ -112,13 +112,26 @@ void FoodWebModel::ReadProcessedData::readDepth(const string depthRoute){
 	cout<<"Lake depth read."<<endl;
 }
 
-void FoodWebModel::ReadProcessedData::readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialBiomassRoute){
+void FoodWebModel::ReadProcessedData::readLightAtSurface(const string lightRoute){
+
+	/* Read light as surface as a vector*/
+	cout<<"Reading hourly light at surface from file: "<<lightRoute<<endl;
+	vector<physicalType> lightVector = readValues(lightRoute);
+
+	/* Copy values to the depth array*/
+	for(int i=0; i<HOURS_PER_DAY; i++)
+		this->hourlyLightAtSurface[i]=lightVector[i];
+	cout<<"Light at surface read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialBiomassRoute, const string &lightAtSurfaceRoute){
 	/*Read depth and temperature data*/
 	readDepthScale(depthScaleRoute);
 	readDepth(depthRoute);
 	readInitialTemperature(initialTemperatureRoute);
 	readTemperatureRange(temperatureRangeRoute);
 	readInitialBiomass(initialBiomassRoute);
+	readLightAtSurface(lightAtSurfaceRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
 void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){

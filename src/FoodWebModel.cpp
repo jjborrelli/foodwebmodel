@@ -20,7 +20,7 @@ string operator+(string arg1, int arg2){
 }
 
 
-int FoodWebModel::FoodWebModel::simulate(int cycles,  std::string& outputFileName, std::string outputSloughRoute){
+int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputFileName, const std::string outputSloughRoute){
 	/*CSV file to write the output. Useful for calibration*/
 	printSimulationMode();
 	cout<<"Simulation started."<<endl;
@@ -256,7 +256,7 @@ physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int column
 	biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex);
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+biomass_to_depth);
-	return localePhotoPeriod*AVERAGE_INCIDENT_LIGHT_INTENSITY*exp(light_at_depth_exponent);
+	return light_at_top*exp(light_at_depth_exponent);
 }
 
 
@@ -307,6 +307,10 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		this->indexToDepth[i]=readProcessedData.depth_scale[i];
 
 	}
+	/*Copy cyclic light at surface*/
+	for(int i=0; i<HOURS_PER_DAY; i++){
+		this->hourlyLightAtSurface[i]=readProcessedData.hourlyLightAtSurface[i];
+	}
 	/* Calculate maximum depth index*/
 	for(int j=0; j<MAX_DEPTH_INDEX; j++){
 		for(int i=0; i<MAX_COLUMN_INDEX; i++){
@@ -345,7 +349,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	setBathymetricParameters();
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleRoute, string& initialTemperatureRoute, string& temperatureRangeRoute, string& initialBiomassRoute){
+FoodWebModel::FoodWebModel::FoodWebModel(const string& depthRoute, const string& depthScaleRoute, const string& initialTemperatureRoute, const string& temperatureRangeRoute, const string& initialBiomassRoute, const string& lightAtSurfaceRoute){
 /* Read the geophysical parameters from the lake, including depth and temperature at water surface
  *
  * */
@@ -356,7 +360,7 @@ FoodWebModel::FoodWebModel::FoodWebModel(string& depthRoute, string& depthScaleR
 	 * Read the data from the files
 	 */
 	cout<<"Reading parameters."<<endl;
-	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialBiomassRoute);
+	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialBiomassRoute, lightAtSurfaceRoute);
 	cout<<"Parameters read."<<endl;
 
 
@@ -496,8 +500,8 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
  * */
 physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
 	localePhotoPeriod = photoPeriod();
+	light_at_top=getLightAtTop();
 	localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
-	light_at_top=AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
 #ifndef HOMOGENEOUS_DEPTH
 	light_normalizer = biomass_to_depth*depthVector[columnIndex];
 #else
@@ -524,9 +528,21 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
  * Adapted from (AquaTox Documentation, page 58, equation 26)
  * */
 physicalType FoodWebModel::FoodWebModel::photoPeriod(){
-	physicalType hour_fraction = ((physicalType)(currentHour%(int)HOURS_PER_DAY))/HOURS_PER_DAY;
+	physicalType hour_fraction = ((physicalType)(currentHour%HOURS_PER_DAY))/(double)HOURS_PER_DAY;
 	return max<double>(0.0f, cos(2.0f*Math_PI*hour_fraction))*0.5f +0.5f;
 }
+
+/*
+ * Hourly light at top
+ * */
+physicalType FoodWebModel::FoodWebModel::getLightAtTop(){
+#ifdef USE_PHOTOPERIOD
+	return AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
+#else
+	return this->hourlyLightAtSurface[currentHour%HOURS_PER_DAY];
+#endif
+}
+
 
 /*Nutrient concentration at a given depth*/
 

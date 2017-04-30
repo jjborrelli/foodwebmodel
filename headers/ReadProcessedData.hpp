@@ -21,11 +21,11 @@ namespace FoodWebModel{
 	protected:
 		biomassType **initial_biomass;
 		physicalType **initial_temperature;
-		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX];
+		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY];
 	public:
 		ReadProcessedData();
 		~ReadProcessedData();
-		void readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string& initialBiomassRoute);
+		void readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string& initialBiomassRoute, const string &lightAtSurfaceRoute);
 	protected:
 		vector<physicalType> readValues(const string route);
 		void readDepth(const string depthFileRoute);
@@ -34,6 +34,7 @@ namespace FoodWebModel{
 		void readDepthScale(const string& depthScaleRoute);
 		void readInitialBiomass(const string& biomassRoute);
 		void readDataMatrix(const string& fileRoute, double** dataMatrix);
+		void readLightAtSurface(const string lightRoute);
 		//int readTemperatureAtSurface(string temperatureAtSurfaceFileRoute);
 
 	};

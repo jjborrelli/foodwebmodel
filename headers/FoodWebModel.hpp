@@ -33,7 +33,7 @@ namespace FoodWebModel {
 		ReadProcessedData readProcessedData;
 		int currentHour;
 		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX];
+		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY];
 		int maxDepthIndex[MAX_COLUMN_INDEX];
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
@@ -54,8 +54,8 @@ namespace FoodWebModel {
 		physicalType localePhotoPeriod,localeLightAtDepth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, nutrient_at_depth_exponent, light_normalizer, sigmoid_light_difference, light_at_depth_exponent, temperature_angular_frequency, temperature_sine;
 		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate;
 	public:
-		FoodWebModel(std::string& depthRoute, std::string& depthScaleRoute, std::string& initialTemperatureRoute, std::string& temperatureRangeRoute, string& initialBiomassRoute);
-		int simulate(int cycles,  std::string& outputFileName, std::string outputSloughRoute);
+		FoodWebModel(const std::string& depthRoute, const std::string& depthScaleRoute, const std::string& initialTemperatureRoute, const std::string& temperatureRangeRoute, const string& initialBiomassRoute, const string& lightAtSurfaceRoute);
+		int simulate(int cycles,  const std::string& outputFileName, const std::string outputSloughRoute);
 		void initializeParameters();
 
 	protected:
@@ -76,6 +76,7 @@ namespace FoodWebModel {
 		physicalType calculateTemperature(int depthIndex, int columnIndex);
 		physicalType lightAllowance(int depthIndex, int columnIndex);
 		physicalType photoPeriod();
+		physicalType getLightAtTop();
 		physicalType nutrientConcentrationAtDepth(int depthIndex, int columnIndex);
 		biomassType calculateNutrientLimitation(physicalType localeNutrientConcentration);
 		void calculatePhysicalLakeDescriptors();

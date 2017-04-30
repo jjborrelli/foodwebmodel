@@ -15,6 +15,7 @@
 //#define HOMOGENEOUS_DEPTH
 #define EXPONENTIAL_LIGHT
 //#define STABLE_CHLOROPHYLL
+//#define USE_PHOTOPERIOD
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
  * Since we do not consider any feedback from the food water to the geophysical model, we assume that Light Extinction = Water Extinction
@@ -128,7 +129,7 @@ static const double Math_PI = 3.141593;
 
 static const double AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653;
 
-static const double HOURS_PER_DAY = 24.0f;
+static const int HOURS_PER_DAY = 24;
 
 /* Nutrient derivative taken as the average difference between consecutive points*/
 //static const double NUTRIENT_DERIVATIVE = 0.02527915f;

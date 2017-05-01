@@ -586,4 +586,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Running with dynamic biomass differential."<<endl;
 #endif
+#ifdef USE_PHOTOPERIOD
+	cout<<"Using sinusoidal photoperiod."<<endl;
+#else
+	cout<<"Using table-based photoperiod."<<endl;
+#endif
 }

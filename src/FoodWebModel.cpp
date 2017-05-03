@@ -592,3 +592,96 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using table-based photoperiod."<<endl;
 #endif
 }
+
+/* Food consumption (AquaTox Documentation, page 105, equation 98)*/
+biomassType FoodWebModel::FoodWebModel::foodConsumptionRate(biomassType zooBiomass, biomassType phytoBiomass){
+	if(phytoBiomass/zooBiomass>FEEDING_SATURATION){
+		locale_grazing= MAXIMUM_GRAZING_PROPORTION;
+	} else{
+		locale_grazing= min<double>(phytoBiomass, zooBiomass*GRAZING_PROPORTION);
+	}
+	return locale_grazing;
+}
+
+/* Food consumption (AquaTox Documentation, page 105, equation 97)*/
+biomassType FoodWebModel::FoodWebModel::defecation(biomassType grazing){
+	locale_defecation = DEFECATION_COEFFICIENT*grazing;
+	return locale_defecation;
+}
+
+/* Zooplankton respiration (AquaTox Documentation, page 106, equation 100)*/
+biomassType FoodWebModel::FoodWebModel::animalRespiration(biomassType zooBiomass, biomassType consumptionBiomass, biomassType productionBiomass, physicalType localeTemperature){
+	base_zooplankton_respiration = (basalRespiration(zooBiomass) + activeRespiration(zooBiomass, localeTemperature) + metabolicFoodConsumption(productionBiomass, consumptionBiomass));
+	salinity_corrected_zooplankton_respiration = base_zooplankton_respiration*salinity_effect;
+	return salinity_corrected_zooplankton_respiration;
+}
+
+
+/* Basal respiration (AquaTox Documentation, page 106, equation 101)*/
+biomassType FoodWebModel::FoodWebModel::basalRespiration(biomassType zooBiomass){
+	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE;
+	return basal_respiration;
+
+}
+
+/* Active respiration (AquaTox Documentation, page 107, equation 104)*/
+biomassType FoodWebModel::FoodWebModel::activeRespiration(biomassType zooBiomass, physicalType localeTemperature){
+	active_respiration_exponent = RATE_RESPIRATION_CHANGE_10DEG*localeTemperature;
+	active_respiration_factor=exp(active_respiration_exponent);
+	active_respiration = zooBiomass*active_respiration_factor;
+	return active_respiration;
+}
+
+
+/* Specific dynamic action respiration (AquaTox Documentation, page 109, equation 110)*/
+biomassType FoodWebModel::FoodWebModel::metabolicFoodConsumption(biomassType productionBiomass, biomassType consumptionBiomass){
+	metabolic_respiration= K_RESP*(productionBiomass-consumptionBiomass);
+	return metabolic_respiration;
+}
+
+/* Grazer excretion biomass loss (AquaTox Documentation, page 109, equation 111)*/
+biomassType FoodWebModel::FoodWebModel::animalExcretion(biomassType localeRespiration){
+	grazer_excretion_loss= RESPIRATION_TO_EXCRETION*localeRespiration;
+	return grazer_excretion_loss;
+}
+
+
+/* Grazer mortality (AquaTox Documentation, page 110, equation 112)*/
+biomassType FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, physicalType localeTemperature){
+	animal_base_mortality= animalBaseMortality(localeTemperature, localeBiomass);
+	return animal_base_mortality;
+}
+
+/* Grazer base mortality (AquaTox Documentation, page 110, equation 113)*/
+biomassType FoodWebModel::FoodWebModel::animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass){
+	animal_temperature_mortality = animalTemperatureMortality(localeTemperature)*localeBiomass;
+	animal_temp_independent_mortality = ANIMAL_BASE_MORTALITY*localeBiomass;
+	return animal_temperature_mortality+animal_temp_independent_mortality;
+}
+
+/* Grazer base mortality (AquaTox Documentation, page 110, equation 114)*/
+biomassType FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType localeTemperature){
+	if(localeTemperature<=MAXIMUM_TOLERABLE_TEMPERATURE){
+		return 0;
+	} else{
+		return exp(MAXIMUM_TOLERABLE_TEMPERATURE-localeTemperature)/2.0f;
+	}
+
+}
+
+/* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
+biomassType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityConcentration){
+	salinity_effect=1;
+	salinity_exponent=0.0f;
+	biomassType salinityBase=1.0f;
+	if(salinityConcentration<MIN_SALINITY){
+		salinity_exponent=salinityConcentration-MIN_SALINITY;
+		salinity_effect=SALINITY_COEFFICIENT_LOW*exp(salinity_exponent);
+	}
+	if(salinityConcentration<=MAX_SALINITY){
+		salinity_exponent=MAX_SALINITY-salinityConcentration;
+		salinity_effect=SALINITY_COEFFICIENT_HIGH*exp(salinity_exponent);
+	}
+	return salinity_effect;
+
+}

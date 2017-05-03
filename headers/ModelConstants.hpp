@@ -175,4 +175,29 @@ static const int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTP
 /* Set an hour where the differential is considered stable*/
 
 static const int STABLE_STATE_HOUR=10;
+
+/* Threshold beyond no more food is grazed. It needs to be adjusted.*/
+static const double FEEDING_SATURATION=1.0f;
+static const double MAXIMUM_GRAZING_PROPORTION=1.0f, GRAZING_PROPORTION=0.5F, DEFECATION_COEFFICIENT=0.3f;
+
+/* Basal respiration rate. It needs to be adjusted*/
+
+static const double BASAL_RESPIRATION_RATE=1.0f;
+
+/* Rate of respiration change for each 10 degrees Celsius (AquaTox Documentation, page 107, equation 105)*/
+static const double RATE_RESPIRATION_CHANGE_10DEG=1.0f;
+
+
+/* Proportion of energy lost to respiration activity*/
+static const double K_RESP=1.0f;
+
+/* Proportion of respiration lost to excretion*/
+static const double RESPIRATION_TO_EXCRETION = 1.0f;
+
+/* Animal base mortality*/
+static const double ANIMAL_BASE_MORTALITY = 0.5f;
+
+/* Salinity thresholds*/
+
+static const double MIN_SALINITY = 0.0f, MAX_SALINITY=1.0f, SALINITY_COEFFICIENT_LOW=1.0f, SALINITY_COEFFICIENT_HIGH=1.0f;
 #endif /* MODELCONSTANTS_HPP_ */

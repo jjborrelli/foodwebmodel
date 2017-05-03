@@ -670,7 +670,7 @@ biomassType FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType 
 }
 
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
-biomassType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityConcentration){
+physicalType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityConcentration){
 	salinity_effect=1;
 	salinity_exponent=0.0f;
 	biomassType salinityBase=1.0f;
@@ -683,5 +683,12 @@ biomassType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityConc
 		salinity_effect=SALINITY_COEFFICIENT_HIGH*exp(salinity_exponent);
 	}
 	return salinity_effect;
+
+}
+
+/* Salinity mortality (AquaTox Documentation, page 110, equation 112)*/
+biomassType FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass, physicalType salinityConcentration){
+	salinity_mortality=localeBiomass*salinityConcentration;
+	return salinity_mortality;
 
 }

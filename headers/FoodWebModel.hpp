@@ -59,7 +59,7 @@ namespace FoodWebModel {
 		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate;
 
 		/* Zooplankton attributes*/
-		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_exponent;
+		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_exponent, salinity_mortality;
 	public:
 		FoodWebModel(const std::string& depthRoute, const std::string& depthScaleRoute, const std::string& initialTemperatureRoute, const std::string& temperatureRangeRoute, const string& initialBiomassRoute, const string& lightAtSurfaceRoute);
 		int simulate(int cycles,  const std::string& outputFileName, const std::string outputSloughRoute);
@@ -108,7 +108,8 @@ namespace FoodWebModel {
 		biomassType animalMortality(biomassType localeRespiration, physicalType localeTemperature);
 		biomassType animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 		biomassType animalTemperatureMortality(physicalType localeTemperature);
-		biomassType salinityEffect(physicalType salinityConcentration);
+		physicalType salinityEffect(physicalType salinityConcentration);
+		biomassType salinityMortality(biomassType localeBiomass, physicalType salinityConcentration){
 
 	};
 }

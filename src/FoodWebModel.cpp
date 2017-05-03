@@ -35,12 +35,12 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputF
 	outputFile<<"Depth, Column, LightAllowance, Turbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, NutrientConcentration, NutrientLimitation, LimitationProduct, NutrientAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, BiomassToDepth, PhotoSynthesys, Respiration, Excretion, NaturalMortality, Sedimentation, WeightedSedimentation, Slough, TempMortality, ResourceLimStress, WeightedResourceLimStress, Type, PriorBiomass, VerticalMigration, Time\n";
 	outputSloughFile<<"Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass\n";
 
-	for(currentHour=0; currentHour<cycles; currentHour++){
+	for(current_hour=0; current_hour<cycles; current_hour++){
 		/* Register standard biomass and slough to file at the given hour frequency*/
-		if(currentHour%TIME_MESSAGE_RESOLUTION==0)
-			cout<<"Simulation hour: "<<currentHour<<endl;
+		if(current_hour%TIME_MESSAGE_RESOLUTION==0)
+			cout<<"Simulation hour: "<<current_hour<<endl;
 		step();
-		if(currentHour%TIME_OUTPUT_RESOLUTION==0){
+		if(current_hour%TIME_OUTPUT_RESOLUTION==0){
 			outputFile<<stepBuffer.str();
 			outputSloughFile<<sloughBuffer.str();
 		}
@@ -95,7 +95,7 @@ void FoodWebModel::FoodWebModel::step(){
 				phytoBiomassDifferential[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, false);
 				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
-				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<currentHour<<"\n";
+				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<current_hour<<"\n";
 				/*If biomass must be registered, register standard phytoplankton biomass*/
 				if(registerPhytoBiomass[depthIndex][columnIndex]){
 					stepBuffer<<lineBuffer.str();
@@ -110,11 +110,11 @@ void FoodWebModel::FoodWebModel::step(){
 		/* Update vertical migration biomass*/
 		periBiomassDifferential[columnIndex]+=verticalMigratedPeriBiomass[columnIndex];
 		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
-		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<commaString<<currentHour<<"\n";
+		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<commaString<<current_hour<<"\n";
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerPeriBiomass){
 			stepBuffer<<lineBuffer.str();
-			sloughBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<1<<commaString<<currentHour<<commaString<<0.0f<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<"\n";//Depth, Column, Type, Time, Washup
+			sloughBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<1<<commaString<<current_hour<<commaString<<0.0f<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<"\n";//Depth, Column, Type, Time, Washup
 		}
 	}
 	/*Add slough biomass*/
@@ -124,7 +124,7 @@ void FoodWebModel::FoodWebModel::step(){
 			phytoBiomassDifferential[depthIndex][columnIndex]+=sloughPhytoBiomass[depthIndex][columnIndex];
 			/*If biomass must be registered and the bottom of the lake has not been reached yet, register slough biomass*/
 			if(registerPhytoBiomass[depthIndex][columnIndex]&&depthVector[columnIndex]>=indexToDepth[depthIndex]){
-				sloughBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<0<<commaString<<currentHour<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex]<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<"\n";//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
+				sloughBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<0<<commaString<<current_hour<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex]<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<"\n";//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
 
 			}
 		}
@@ -142,21 +142,22 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	biomassType localPointBiomass=periPhyton?priorPeriBiomass[columnIndex]:priorPhytoBiomass[depthIndex][columnIndex];
 
 	/* Calculate nutrient limitations*/
-	physicalType localeLightAllowance = lightAllowance(depthIndex, columnIndex);
-	physicalType localeNutrientConcentration=nutrientConcentrationAtDepth(depthIndex, columnIndex);
-	physicalType localeNutrientLimitation= calculateNutrientLimitation(localeNutrientConcentration);
-	physicalType localeLimitationProduct = localeLightAllowance*localeNutrientLimitation;
+	lightAllowance(depthIndex, columnIndex);
+	nutrientConcentrationAtDepth(depthIndex, columnIndex);
+	calculateNutrientLimitation();
+	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
 	/* Calculate biomass differential components*/
-	biomassType localePhotoSynthesis=photoSynthesis(localPointBiomass, localeLimitationProduct, periPhyton);
-	biomassType localSedimentation = sinking(depthIndex, columnIndex);
-    biomassType localSlough = slough(columnIndex);
-	physicalType localeTemperature =calculateTemperature(depthIndex, columnIndex);
-	biomassType localeRespiraton = -respiration(localPointBiomass, localeTemperature);
-	biomassType localeExcretion =-excretion(localePhotoSynthesis, localeLightAllowance);
-	biomassType localeNaturalMortality = -naturalMortality(localeTemperature, localeLimitationProduct, localPointBiomass);
+	photoSynthesis(localPointBiomass, localeLimitationProduct, periPhyton);
+	algaeSinking(depthIndex, columnIndex);
+    algaeSlough(columnIndex);
+	calculateTemperature(depthIndex, columnIndex);
+	physicalType localeTemperature =temperature[depthIndex][columnIndex];
+	algaeRespiration(localPointBiomass, localeTemperature);
+	algaeExcretion();
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
-	biomassType totalProductivity =  localePhotoSynthesis+localeRespiraton+localeExcretion
-			+localeNaturalMortality;
+	algaeNaturalMortality(localeTemperature, localeLimitationProduct, localPointBiomass);
+	biomassType totalProductivity =  photosynthesis_value+algae_respiration_value+algae_excretion_value
+			+algae_natural_mortality;
 	totalProductivity=totalProductivity*BIOMASS_DIFFERENTIAL_SCALE;
 
 	/* Register differential*/
@@ -167,7 +168,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 			phytoDifferential[depthIndex][columnIndex]=totalProductivity/localPointBiomass;
 		}
 	#else
-		if(currentHour<=STABLE_STATE_HOUR){
+		if(current_hour<=STABLE_STATE_HOUR){
 			if(periPhyton){
 				periDifferential[columnIndex]=totalProductivity/localPointBiomass;
 			} else {
@@ -177,62 +178,62 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 	#endif
 	/* Hydrodynamics rules still need to be encoded */
 	if(periPhyton){
-		localSlough=-localSlough;
-		verticalMigratedPhytoBiomass[depthIndex][columnIndex]+=localSlough/3.0f;
-		localSedimentation=0.0f;
+		verticalMigratedPhytoBiomass[depthIndex][columnIndex]+=algae_slough_value/3.0f;
+		algae_slough_value=-algae_slough_value;
+		algae_sinking_value=0.0f;
 
 	} else {
 		if(depthIndex==maxDepthIndex[columnIndex]){
-			verticalMigratedPeriBiomass[columnIndex]+=localSedimentation;
+			verticalMigratedPeriBiomass[columnIndex]+=algae_sinking_value;
 		} else{
-			verticalMigratedPhytoBiomass[depthIndex+1][columnIndex]+=localSedimentation;
+			verticalMigratedPhytoBiomass[depthIndex+1][columnIndex]+=algae_sinking_value;
 		}
-		localSedimentation=-localSedimentation;
+		algae_sinking_value=-algae_sinking_value;
 		/*Slough cannot be added on the spot (it affects the previous row), so it is now registered and added at the end of the step*/
 		if(depthIndex>0){
-			sloughPhytoBiomass[depthIndex-1][columnIndex]=localSlough;
+			sloughPhytoBiomass[depthIndex-1][columnIndex]=algae_slough_value;
+			algae_slough_value=-algae_slough_value;
 		}
-		localSlough=-localSlough;
 	}
-	totalProductivity+=localSlough+localSedimentation;
+	totalProductivity+=algae_slough_value+algae_sinking_value;
 	/* Create line buffer to write results*/
 	lineBuffer.str("");
 	lineBuffer.clear();
 	lineBuffer<<depthIndex;
 	lineBuffer<<commaString<<columnIndex;
-	lineBuffer<<commaString<<localeLightAllowance;
+	lineBuffer<<commaString<<light_allowance;
 	lineBuffer<<commaString<<turbidity_at_depth;
-	lineBuffer<<commaString<<localePhotoPeriod;
+	lineBuffer<<commaString<<locale_photo_period;
 	lineBuffer<<commaString<<light_at_depth_exponent;
-	lineBuffer<<commaString<<localeLightAtDepth;
+	lineBuffer<<commaString<<light_at_depth;
 	lineBuffer<<commaString<<localeTemperature;
 	lineBuffer<<commaString<<temperature_angular_frequency;
 	lineBuffer<<commaString<<temperature_sine;
 	lineBuffer<<commaString<<depthInMeters;
-	lineBuffer<<commaString<<localeNutrientConcentration;
-	lineBuffer<<commaString<<localeNutrientLimitation;
+	lineBuffer<<commaString<<nutrient_concentration;
+	lineBuffer<<commaString<<nutrient_limitation;
 	lineBuffer<<commaString<<localeLimitationProduct;
 	lineBuffer<<commaString<<nutrient_at_depth_exponent;
 	lineBuffer<<commaString<<light_at_top;
 	lineBuffer<<commaString<<light_difference;
 	lineBuffer<<commaString<<normalized_light_difference;
-	lineBuffer<<commaString<<sigmoid_light_difference;
+	lineBuffer<<commaString<<light_allowance;
 	lineBuffer<<commaString<<resource_limitation_exponent;
 	lineBuffer<<commaString<<biomass_to_depth;
-	lineBuffer<<commaString<<localePhotoSynthesis;
-	lineBuffer<<commaString<<localeRespiraton;
-	lineBuffer<<commaString<<localeExcretion;
-	lineBuffer<<commaString<<localeNaturalMortality;
+	lineBuffer<<commaString<<photosynthesis_value;
+	lineBuffer<<commaString<<algae_respiration_value;
+	lineBuffer<<commaString<<algae_excretion_value;
+	lineBuffer<<commaString<<algae_natural_mortality;
 	lineBuffer<<commaString<<sedimentation_rate;
-	lineBuffer<<commaString<<localSedimentation;
-	lineBuffer<<commaString<<localSlough;
+	lineBuffer<<commaString<<algae_sinking_value;
+	lineBuffer<<commaString<<algae_slough_value;
 	lineBuffer<<commaString<<high_temperature_mortality;
 	lineBuffer<<commaString<<resource_limitation_stress;
 	lineBuffer<<commaString<<weighted_resource_limitation_stress;
 	lineBuffer<<commaString<<periPhyton?1:0;
 	lineBuffer<<commaString<<localPointBiomass;
 	#ifdef STABLE_CHLOROPHYLL
-		if(currentHour>=STABLE_STATE_HOUR){
+		if(current_hour>=STABLE_STATE_HOUR){
 			if(periPhyton){
 				totalProductivity= periDifferential[columnIndex]*priorPeriBiomass[columnIndex];
 			} else{
@@ -248,7 +249,7 @@ biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int 
 /*
  * Light intensity is calculated using the simple model from Ryabov, 2012, Phytoplankton competition in deep biomass maximum, Theoretical Ecology, equation 3
  */
-physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
+void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	/*
 	 * Transform depth from an integer index to a real value in ms
 	 */
@@ -256,7 +257,7 @@ physicalType FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int column
 	biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex);
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+biomass_to_depth);
-	return light_at_top*exp(light_at_depth_exponent);
+	light_at_depth =  light_at_top*exp(light_at_depth_exponent);
 }
 
 
@@ -275,9 +276,9 @@ biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, i
 /*
  * Photosynthesis to calculate biomass differential
  */
-biomassType FoodWebModel::FoodWebModel::photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton){
+void FoodWebModel::FoodWebModel::photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton){
 
-	return productionLimit(localeLimitationProduct, periPhyton)*localPointBiomass;
+	photosynthesis_value =  productionLimit(localeLimitationProduct, periPhyton)*localPointBiomass;
 }
 
 physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLimitationProduct, bool periPhyton){
@@ -385,69 +386,67 @@ void FoodWebModel::FoodWebModel::setBathymetricParameters(){
 /*
  * Biomass lost to respiration (AquaTox Documentation, page 84, equation 63)
  */
-biomassType FoodWebModel::FoodWebModel::respiration(biomassType localPointBiomass, physicalType localTemperature){
-	return RESP20*pow(EXPONENTIAL_TEMPERATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
+void FoodWebModel::FoodWebModel::algaeRespiration(biomassType localPointBiomass, physicalType localTemperature){
+	algae_respiration_value = -RESP20*pow(EXPONENTIAL_TEMPERATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
 }
 
 /*
  * Biomass lost to excretion (AquaTox Documentation, page 85, equation 64)
  */
-biomassType FoodWebModel::FoodWebModel::excretion(biomassType localePhotoSynthesis, physicalType localeLightAllowance){
-	return PROPORTION_EXCRETION_PHOTOSYNTHESIS*(1-localeLightAllowance)*localePhotoSynthesis;
+void FoodWebModel::FoodWebModel::algaeExcretion(){
+	algae_excretion_value =  -PROPORTION_EXCRETION_PHOTOSYNTHESIS*(1-light_allowance)*photosynthesis_value;
 }
 
 
 /*
  * Biomass lost to natural mortality (AquaTox Documentation, page 86, equation 66)
  */
-biomassType FoodWebModel::FoodWebModel::naturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
-	return (INTRINSIC_MORTALITY_RATE+highTemperatureMortality(localeTemperature)+resourceLimitationStress(localeLimitationProduct))*localPointBiomass;
+void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
+	algaeHighTemperatureMortality(localeTemperature);
+	resourceLimitationStress(localeLimitationProduct);
+	algae_natural_mortality = -(INTRINSIC_MORTALITY_RATE+high_temperature_mortality+weighted_resource_limitation_stress)*localPointBiomass;
 }
 
 /*
  * Biomass lost to high temperature (AquaTox Documentation, page 86, equation 67)
  */
-biomassType FoodWebModel::FoodWebModel::highTemperatureMortality(physicalType localeTemperature){
+void FoodWebModel::FoodWebModel::algaeHighTemperatureMortality(physicalType localeTemperature){
 	high_temperature_mortality = exp(localeTemperature-MAXIMUM_TOLERABLE_TEMPERATURE)/2.0f;
-	return high_temperature_mortality;
 
 }
 
 /*
  * Biomass lost to stress related to resource limitation (AquaTox Documentation, page 86, equation 68)
  */
-biomassType FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLimitationProduct){
+void FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLimitationProduct){
 	resource_limitation_exponent = -MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLimitationProduct);
 	resource_limitation_stress= 1.0f-exp(resource_limitation_exponent);
 	weighted_resource_limitation_stress = RESOURCE_LIMITATION_WEIGHT*resource_limitation_stress;
-	return weighted_resource_limitation_stress;
-
 }
 
 /*
  * Biomass moved from phytoplankton to periphyton by sinking (AquaTox Documentation, page 87, equation 69)
  */
-biomassType FoodWebModel::FoodWebModel::sinking(int depthIndex, int columnIndex){
+void FoodWebModel::FoodWebModel::algaeSinking(int depthIndex, int columnIndex){
 	/*  Can the ration mean discharge/discharge be omitted? Does this mean the amount of biomass that accumulates due to sinking?*/
 	sedimentation_rate=(INTRINSIC_SETTLING_RATE/indexToDepth[depthIndex])*phytoBiomass[depthIndex][columnIndex];
-	return sedimentation_rate*SINKING_DEPTH_WEIGHT;
+	algae_sinking_value= sedimentation_rate*SINKING_DEPTH_WEIGHT;
 }
 
 /*
  * Biomass washed from periphyton to phytoplankton by slough (AquaTox Documentation, page 92, equation 75)
  */
-biomassType FoodWebModel::FoodWebModel::slough( int columnIndex){
-	return periBiomass[columnIndex]*FRACTION_SLOUGHED;
+void FoodWebModel::FoodWebModel::algaeSlough( int columnIndex){
+	algae_slough_value = periBiomass[columnIndex]*FRACTION_SLOUGHED;
 }
 
-physicalType FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int columnIndex){
-	int dayOfYear = (currentHour/24)%365;
+void FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int columnIndex){
+	int dayOfYear = (current_hour/24)%365;
 	physicalType localeTemperature=temperature[depthIndex][columnIndex];
 	temperature_angular_frequency = TEMPERATURE_AMPLITUDE*(TEMPERATURE_DAY_FACTOR*(dayOfYear+TEMPERATURE_PHASE_SHIFT)-TEMPERATURE_DELAY);
 	temperature_sine = sin(temperature_angular_frequency);
 	physicalType updatedTemperature = localeTemperature+(-1.0*(temperature_range[depthIndex]))*temperature_sine;
 	temperature[depthIndex][columnIndex] = updatedTemperature;
-	return updatedTemperature;
 }
 
 
@@ -498,10 +497,10 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
  * Amount of light that is allowed into the biomass depth
  * Adapted from (AquaTox Documentation, page 70, equation 39)
  * */
-physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
-	localePhotoPeriod = photoPeriod();
-	light_at_top=getLightAtTop();
-	localeLightAtDepth = lightAtDepth(depthIndex, columnIndex);
+void FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
+	photoPeriod();
+	calculateLightAtTop();
+	lightAtDepth(depthIndex, columnIndex);
 #ifndef HOMOGENEOUS_DEPTH
 	light_normalizer = biomass_to_depth*depthVector[columnIndex];
 #else
@@ -509,15 +508,14 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
 #endif
 #ifndef EXPONENTIAL_LIGHT
 	light_difference=Math_E*(localeLightAtDepth-light_at_top);
-	sigmoid_light_difference=1/(1+exp(-1.0f*light_difference));
+	light_allowance=1/(1+exp(-1.0f*light_difference));
 	//sigmoid_light_difference=1;
 
 #else
 	/* Use a simplistic model of light decreasing exponentially with depth*/
-	light_difference=localeLightAtDepth-light_at_top;
-	sigmoid_light_difference = localeLightAtDepth/light_at_top;
+	light_difference=light_at_depth-light_at_top;
+	light_allowance = light_at_depth/light_at_top;
 #endif
-	return sigmoid_light_difference;
 	/* Uncomment this line to make the model equivalent to AquaTox*/
 	//normalized_light_difference =light_difference/(light_normalizer+light_difference);
 	//return localePhotoPeriod*normalized_light_difference;
@@ -527,46 +525,44 @@ physicalType FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int colu
  * Daily photo-period modeling light limitation
  * Adapted from (AquaTox Documentation, page 58, equation 26)
  * */
-physicalType FoodWebModel::FoodWebModel::photoPeriod(){
-	physicalType hour_fraction = ((physicalType)(currentHour%HOURS_PER_DAY))/(double)HOURS_PER_DAY;
-	return max<double>(0.0f, cos(2.0f*Math_PI*hour_fraction))*0.5f +0.5f;
+void FoodWebModel::FoodWebModel::photoPeriod(){
+	physicalType hour_fraction = ((physicalType)(current_hour%HOURS_PER_DAY))/(double)HOURS_PER_DAY;
+	locale_photo_period= max<double>(0.0f, cos(2.0f*Math_PI*hour_fraction))*0.5f +0.5f;
 }
 
 /*
  * Hourly light at top
  * */
-physicalType FoodWebModel::FoodWebModel::getLightAtTop(){
+void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 #ifdef USE_PHOTOPERIOD
-	return AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
+	light_at_top= AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
 #else
-	return this->hourlyLightAtSurface[currentHour%HOURS_PER_DAY];
+	light_at_top= this->hourlyLightAtSurface[current_hour%HOURS_PER_DAY];
 #endif
 }
 
 
 /*Nutrient concentration at a given depth*/
 
-physicalType FoodWebModel::FoodWebModel::nutrientConcentrationAtDepth(int depthIndex, int columnIndex){
+void FoodWebModel::FoodWebModel::nutrientConcentrationAtDepth(int depthIndex, int columnIndex){
 	physicalType localeNutrientAtBottom = NUTRIENT_CONCENTRATION_AT_BOTTOM;
 #ifndef HOMOGENEOUS_DEPTH
 	nutrient_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #else
 	nutrient_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
 #endif
-	physicalType nutrientAtDepth=localeNutrientAtBottom*exp(nutrient_at_depth_exponent);
-	return nutrientAtDepth;
+	nutrient_concentration =localeNutrientAtBottom*exp(nutrient_at_depth_exponent);
 }
 
 /* Nutrient biomass growth limitation based on nutrient concentration */
 
-biomassType FoodWebModel::FoodWebModel::calculateNutrientLimitation(physicalType localeNutrientConcentration){
-	biomassType returnedValue=0.0f;
-	if(localeNutrientConcentration>=PHOSPHORUS_LINEAR_THRESHOLD)
-		returnedValue=1.0f;
+void FoodWebModel::FoodWebModel::calculateNutrientLimitation(){
+	nutrient_limitation=0.0f;
+	if(nutrient_concentration>=PHOSPHORUS_LINEAR_THRESHOLD)
+		nutrient_limitation=1.0f;
 	else
-		returnedValue=min((double)1.0f,(double)max((double)0.0f,(localeNutrientConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
+		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(nutrient_concentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
 	//returnedValue=1.0f;
-	return returnedValue;
 }
 
 /* A method to print the simulation mode in function of the defined flags*/
@@ -647,8 +643,9 @@ biomassType FoodWebModel::FoodWebModel::animalExcretion(biomassType localeRespir
 
 
 /* Grazer mortality (AquaTox Documentation, page 110, equation 112)*/
-biomassType FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, physicalType localeTemperature){
+biomassType FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, physicalType localeTemperature, physicalType localeSalinityConcentration){
 	animal_base_mortality= animalBaseMortality(localeTemperature, localeBiomass);
+	salinity_mortality=salinityMortality(localeBiomass, localeSalinityConcentration);
 	return animal_base_mortality;
 }
 
@@ -678,7 +675,7 @@ physicalType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityCon
 		salinity_exponent=salinityConcentration-MIN_SALINITY;
 		salinity_effect=SALINITY_COEFFICIENT_LOW*exp(salinity_exponent);
 	}
-	if(salinityConcentration<=MAX_SALINITY){
+	if(salinityConcentration>MAX_SALINITY){
 		salinity_exponent=MAX_SALINITY-salinityConcentration;
 		salinity_effect=SALINITY_COEFFICIENT_HIGH*exp(salinity_exponent);
 	}
@@ -688,7 +685,7 @@ physicalType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityCon
 
 /* Salinity mortality (AquaTox Documentation, page 110, equation 112)*/
 biomassType FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass, physicalType salinityConcentration){
-	salinity_mortality=localeBiomass*salinityConcentration;
+	salinity_mortality=localeBiomass*(1-salinityConcentration);
 	return salinity_mortality;
 
 }

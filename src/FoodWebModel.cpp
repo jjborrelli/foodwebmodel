@@ -72,7 +72,7 @@ void FoodWebModel::FoodWebModel::step(){
 		/*Register previous biomass*/
 		priorPeriBiomass[columnIndex] = periBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
-		periBiomassDifferential[columnIndex] = biomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+		periBiomassDifferential[columnIndex] = algaeBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 		/* Save periphyton biomass for later registering in file*/
 		std::ostringstream copyBuffer;
 		copyBuffer.str("");
@@ -92,7 +92,7 @@ void FoodWebModel::FoodWebModel::step(){
 				/*Register previous biomass*/
 				priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
-				phytoBiomassDifferential[depthIndex][columnIndex] = biomassDifferential(depthIndex, columnIndex, false);
+				phytoBiomassDifferential[depthIndex][columnIndex] = algaeBiomassDifferential(depthIndex, columnIndex, false);
 				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
 				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<current_hour<<"\n";
@@ -136,7 +136,7 @@ void FoodWebModel::FoodWebModel::step(){
  * Differential of biomass for photoplankton and periphyton at each time step
  */
 
-biomassType FoodWebModel::FoodWebModel::biomassDifferential(int depthIndex, int columnIndex, bool periPhyton){
+biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton){
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
 	biomassType localPointBiomass=periPhyton?priorPeriBiomass[columnIndex]:priorPhytoBiomass[depthIndex][columnIndex];
@@ -323,27 +323,27 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	}
 	/* Copy initial biomass vector*/
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
-		/* Initialize periphyton biomass*/
+		/* Initialize periphyton and bottom feeder biomass*/
 		this->periDifferential[i] = 0;
-		this->priorPeriBiomass[i]=this->periBiomass[i]=readProcessedData.initial_biomass[maxDepthIndex[i]][i];
+		this->priorPeriBiomass[i]=this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
+		this->priorBottomFeederBiomass[i]=this->bottomFeederBiomass[i]=readProcessedData.initial_grazer_biomass[maxDepthIndex[i]][i];
+
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
-			this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
-			if(depthVector[i]<indexToDepth[j]){
+			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
+			this->phytoDifferential[j][i]=0.0f;
+			if(depthVector[i]<indexToDepth[j]||maxDepthIndex[i]==j){
 				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
 				this->phytoBiomass[j][i]=this->priorPhytoBiomass[j][i]=0.0f;
-				break;
-			} else{
-				/* If we are modeling the bottom of the lake (the depth is exactly lake depth or it is the closest possible to the lake depth) then all initial algae biomass is periphyton*/
-				if(maxDepthIndex[i]==j){
-					this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=0.0f;
-				} else{
-					/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
-					this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_biomass[j][i];
+				this->priorZooplanktonBiomass[j][i]=this->zooplanktonBiomass[j][i]=0.0f;
 
-				}
+				break;
+			} else {
+				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
+				this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+				this->priorZooplanktonBiomass[j][i]=this->zooplanktonBiomass[j][i]=readProcessedData.initial_grazer_biomass[j][i];
+
+
 			}
-			this->temperature[j][i] = this->initial_temperature[j][i];
-			this->phytoDifferential[j][i]=0.0f;
 		}
 		//initialTemperatureAtSurface[i] = readProcessedData.temperaturAtSurface[i];
 	}
@@ -493,6 +493,8 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 
 }
 
+/* Calculation of algae biomass*/
+
 /*
  * Amount of light that is allowed into the biomass depth
  * Adapted from (AquaTox Documentation, page 70, equation 39)
@@ -588,6 +590,13 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using table-based photoperiod."<<endl;
 #endif
 }
+
+/* Calculation of grazer biomass*/
+
+biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex, int columnIndex, bool periPython){
+	return 0.0f;
+}
+
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
 biomassType FoodWebModel::FoodWebModel::foodConsumptionRate(biomassType zooBiomass, biomassType phytoBiomass){
@@ -689,3 +698,10 @@ biomassType FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiom
 	return salinity_mortality;
 
 }
+
+/* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.
+ * Assume that the grazing rate of Cladocerans is constant, independent of the abundance of algae biomass in the system
+ * Play with the number of Cladocerans in the system, increasing them directly proportional to temperature.
+ * Model grazers as an integer number (we are modeling the number of cladocerans, not their biomass) and grazers' biomass as an array of real numbers.
+ * We can assume that grazers are evenly distributed across all depth values.
+ * */

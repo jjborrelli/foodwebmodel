@@ -65,7 +65,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 
 }
 
-vector<physicalType> FoodWebModel::ReadProcessedData::readValues(const string dataRoute){
+vector<physicalType> FoodWebModel::ReadProcessedData::readValues(const string& dataRoute){
 	ifstream dataFile;
 	string readLine;
 	/* Store the file content in a vector*/
@@ -100,7 +100,7 @@ vector<physicalType> FoodWebModel::ReadProcessedData::readValues(const string da
 //}
 
 
-void FoodWebModel::ReadProcessedData::readDepth(const string depthRoute){
+void FoodWebModel::ReadProcessedData::readDepth(const string& depthRoute){
 
 	/* Read depth as a vector*/
 	cout<<"Reading lake depth from file: "<<depthRoute<<endl;
@@ -112,7 +112,7 @@ void FoodWebModel::ReadProcessedData::readDepth(const string depthRoute){
 	cout<<"Lake depth read."<<endl;
 }
 
-void FoodWebModel::ReadProcessedData::readLightAtSurface(const string lightRoute){
+void FoodWebModel::ReadProcessedData::readLightAtSurface(const string& lightRoute){
 
 	/* Read light as surface as a vector*/
 	cout<<"Reading hourly light at surface from file: "<<lightRoute<<endl;
@@ -174,25 +174,25 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, do
 void FoodWebModel::ReadProcessedData::readInitialBiomass(const string& biomassRoute){
 	/* Read depth as a vector*/
 	cout<<"Reading initial biomass from file: "<<biomassRoute<<endl;
-	readDataMatrix(biomassRoute, initial_biomass);
+	readDataMatrix(biomassRoute, initial_algae_biomass);
 	cout<<"Initial biomass read."<<endl;
 }
 
 
 /* Constructor and destructor to allocate biomass and temperature*/
 FoodWebModel::ReadProcessedData::ReadProcessedData(){
-	initial_biomass =new biomassType*[MAX_DEPTH_INDEX];
+	initial_algae_biomass =new biomassType*[MAX_DEPTH_INDEX];
 	initial_temperature = new physicalType*[MAX_DEPTH_INDEX];
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
-		initial_biomass[i] = new biomassType[MAX_COLUMN_INDEX];
+		initial_algae_biomass[i] = new biomassType[MAX_COLUMN_INDEX];
 		initial_temperature[i] = new physicalType[MAX_COLUMN_INDEX];
 	}
 }
 FoodWebModel::ReadProcessedData::~ReadProcessedData(){
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
-		delete initial_biomass[i];
+		delete initial_algae_biomass[i];
 		delete initial_temperature[i];
 	}
-	delete initial_biomass;
+	delete initial_algae_biomass;
 	delete initial_temperature;
 }

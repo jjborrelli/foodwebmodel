@@ -39,6 +39,10 @@ namespace FoodWebModel {
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], priorPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorPeriBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phytoBiomassDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomassDifferential[MAX_COLUMN_INDEX];
 
+		/* Grazer biomass*/
+		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
+		biomassType priorZooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederBiomass[MAX_COLUMN_INDEX];
+
 		/*A vector to reference the calculated biomass*/
 
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
@@ -87,7 +91,7 @@ namespace FoodWebModel {
 		void setBathymetricParameters();
 
 		/* Algae biomass*/
-		biomassType biomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
+		biomassType algaeBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
 		biomassType sumPhytoBiomassToDepth(int depthIndex, int columnIndex);
 		void photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton);
 		physicalType productionLimit(physicalType localeLimitationProduct, bool periPhyton);
@@ -101,6 +105,7 @@ namespace FoodWebModel {
 
 		/* Grazers biomass*/
 
+		biomassType grazerBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
 		biomassType foodConsumptionRate(biomassType zooBiomass, biomassType phytoBiomass);
 		biomassType defecation(biomassType grazing);
 		biomassType animalRespiration(biomassType zooBiomass, biomassType consumptionBiomass, biomassType productionBiomass, physicalType localeTemperature);

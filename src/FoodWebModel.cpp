@@ -326,7 +326,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		/* Initialize periphyton and bottom feeder biomass*/
 		this->periDifferential[i] = 0;
 		this->priorPeriBiomass[i]=this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
-		this->priorBottomFeederBiomass[i]=this->bottomFeederBiomass[i]=readProcessedData.initial_grazer_biomass[maxDepthIndex[i]][i];
+		this->priorBottomFeederCount[i]=this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
 
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
 			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
@@ -334,13 +334,13 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 			if(depthVector[i]<indexToDepth[j]||maxDepthIndex[i]==j){
 				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
 				this->phytoBiomass[j][i]=this->priorPhytoBiomass[j][i]=0.0f;
-				this->priorZooplanktonBiomass[j][i]=this->zooplanktonBiomass[j][i]=0.0f;
+				this->priorZooplanktonCount[j][i]=this->zooplanktonCount[j][i]=0;
 
 				break;
 			} else {
 				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
 				this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
-				this->priorZooplanktonBiomass[j][i]=this->zooplanktonBiomass[j][i]=readProcessedData.initial_grazer_biomass[j][i];
+				this->priorZooplanktonCount[j][i]=this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
 
 
 			}
@@ -350,7 +350,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	setBathymetricParameters();
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(const string& depthRoute, const string& depthScaleRoute, const string& initialTemperatureRoute, const string& temperatureRangeRoute, const string& initialBiomassRoute, const string& lightAtSurfaceRoute){
+FoodWebModel::FoodWebModel::FoodWebModel(const string& depthRoute, const string& depthScaleRoute, const string& initialTemperatureRoute, const string& temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string& initialZooplanktonCountRoute, const string& lightAtSurfaceRoute){
 /* Read the geophysical parameters from the lake, including depth and temperature at water surface
  *
  * */
@@ -361,7 +361,7 @@ FoodWebModel::FoodWebModel::FoodWebModel(const string& depthRoute, const string&
 	 * Read the data from the files
 	 */
 	cout<<"Reading parameters."<<endl;
-	readProcessedData.readGeophysicalData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialBiomassRoute, lightAtSurfaceRoute);
+	readProcessedData.readModelData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialAlgaeBiomassRoute, initialZooplanktonCountRoute, lightAtSurfaceRoute);
 	cout<<"Parameters read."<<endl;
 
 

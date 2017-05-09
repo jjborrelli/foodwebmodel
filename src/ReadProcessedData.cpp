@@ -19,11 +19,12 @@
 
 /* An auxiliary function to split a string*/
 
-vector<double> split(string &str){
+template<typename T>
+vector<T> split(string &str){
 	    string buf; // Have a buffer string
 	    stringstream ss(str); // Insert the string into a stream
 
-	    vector<double> tokens; // Create vector to hold our words
+	    vector<T> tokens; // Create vector to hold our words
 
 	    while (ss >> buf)
 	        tokens.push_back(atof(buf.c_str()));
@@ -53,7 +54,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 		  while ( getline (dataFile,readLine) )
 		     {
 			  /* The temperature range is the fourth column*/
-			  this->temperature_range[depth_index++] = split(readLine)[3];
+			  this->temperature_range[depth_index++] = split<physicalType>(readLine)[3];
 
 		     }
 		  dataFile.close();
@@ -124,13 +125,14 @@ void FoodWebModel::ReadProcessedData::readLightAtSurface(const string& lightRout
 	cout<<"Light at surface read."<<endl;
 }
 
-void FoodWebModel::ReadProcessedData::readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialBiomassRoute, const string &lightAtSurfaceRoute){
+void FoodWebModel::ReadProcessedData::readModelData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialAlgaeBiomassRoute, const string &initialZooplanktonCountRoute, const string &lightAtSurfaceRoute){
 	/*Read depth and temperature data*/
 	readDepthScale(depthScaleRoute);
 	readDepth(depthRoute);
 	readInitialTemperature(initialTemperatureRoute);
 	readTemperatureRange(temperatureRangeRoute);
-	readInitialBiomass(initialBiomassRoute);
+	readInitialAlgaeBiomass(initialAlgaeBiomassRoute);
+	readInitialZooplanktonCount(initialZooplanktonCountRoute);
 	readLightAtSurface(lightAtSurfaceRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
@@ -147,7 +149,8 @@ void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRou
 	cout<<"Index/depth in meters scale read."<<endl;
 }
 
-void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, double** dataMatrix){
+template<typename T>
+void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, T** dataMatrix){
 	ifstream dataFile;
 		string readLine;
 		dataFile.open(fileRoute.c_str());
@@ -158,7 +161,7 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, do
 			  while ( getline (dataFile,readLine) )
 			     {
 				  /* For each line, split the string and fill in the initial temperature values*/
-				  vector<double> initial_temperature_at_depth = split(readLine);
+				  vector<T> initial_temperature_at_depth = split<T>(readLine);
 				  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
 					  dataMatrix[depth_index][colIndex]=initial_temperature_at_depth[colIndex];
 				  }
@@ -171,11 +174,10 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, do
 		  }
 }
 
-void FoodWebModel::ReadProcessedData::readInitialBiomass(const string& biomassRoute){
-	/* Read depth as a vector*/
-	cout<<"Reading initial biomass from file: "<<biomassRoute<<endl;
-	readDataMatrix(biomassRoute, initial_algae_biomass);
-	cout<<"Initial biomass read."<<endl;
+void FoodWebModel::ReadProcessedData::readInitialAlgaeBiomass(const string& initialAlgaeBiomassRoute){
+	cout<<"Reading initial algae biomass from file: "<<initialAlgaeBiomassRoute<<endl;
+	readDataMatrix<biomassType>(initialAlgaeBiomassRoute, initial_algae_biomass);
+	cout<<"Initial algae biomass read."<<endl;
 }
 
 
@@ -183,16 +185,27 @@ void FoodWebModel::ReadProcessedData::readInitialBiomass(const string& biomassRo
 FoodWebModel::ReadProcessedData::ReadProcessedData(){
 	initial_algae_biomass =new biomassType*[MAX_DEPTH_INDEX];
 	initial_temperature = new physicalType*[MAX_DEPTH_INDEX];
+	initial_grazer_count = new zooplanktonCountType*[MAX_DEPTH_INDEX];
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
 		initial_algae_biomass[i] = new biomassType[MAX_COLUMN_INDEX];
 		initial_temperature[i] = new physicalType[MAX_COLUMN_INDEX];
+		initial_grazer_count[i]= new zooplanktonCountType[MAX_COLUMN_INDEX];
 	}
 }
 FoodWebModel::ReadProcessedData::~ReadProcessedData(){
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
 		delete initial_algae_biomass[i];
 		delete initial_temperature[i];
+		delete initial_grazer_count[i];
 	}
 	delete initial_algae_biomass;
 	delete initial_temperature;
+	delete initial_grazer_count;
+}
+
+
+void FoodWebModel::ReadProcessedData::readInitialZooplanktonCount(const string& grazerCountRoute){
+	cout<<"Reading initial grazer count from file: "<<grazerCountRoute<<endl;
+	readDataMatrix<zooplanktonCountType>(grazerCountRoute, initial_grazer_count);
+	cout<<"Initial grazer count read."<<endl;
 }

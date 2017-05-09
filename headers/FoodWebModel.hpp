@@ -43,6 +43,8 @@ namespace FoodWebModel {
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType priorZooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederBiomass[MAX_COLUMN_INDEX];
 
+		/* Grazer count*/
+		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX], priorZooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederCount[MAX_COLUMN_INDEX];
 		/*A vector to reference the calculated biomass*/
 
 		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
@@ -67,8 +69,9 @@ namespace FoodWebModel {
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
 		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_exponent, salinity_mortality;
+
 	public:
-		FoodWebModel(const std::string& depthRoute, const std::string& depthScaleRoute, const std::string& initialTemperatureRoute, const std::string& temperatureRangeRoute, const string& initialBiomassRoute, const string& lightAtSurfaceRoute);
+		FoodWebModel(const std::string& depthRoute, const std::string& depthScaleRoute, const std::string& initialTemperatureRoute, const std::string& temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string& initialZooplanktonCountRoute, const string& lightAtSurfaceRoute);
 		int simulate(int cycles,  const std::string& outputFileName, const std::string outputSloughRoute);
 		void initializeParameters();
 

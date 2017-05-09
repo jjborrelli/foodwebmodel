@@ -12,7 +12,7 @@
 
 typedef double biomassType;
 typedef double physicalType;
-
+typedef int zooplanktonCountType;
 
 
 #endif /* TYPEDEFINITIONS_HPP_ */

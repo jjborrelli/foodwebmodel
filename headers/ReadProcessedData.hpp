@@ -19,21 +19,24 @@ namespace FoodWebModel{
 	class ReadProcessedData{
 		friend class FoodWebModel;
 	protected:
-		biomassType **initial_algae_biomass, **initial_grazer_biomass;
+		biomassType **initial_algae_biomass;
+		zooplanktonCountType **initial_grazer_count;
 		physicalType **initial_temperature;
 		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY];
 	public:
 		ReadProcessedData();
 		~ReadProcessedData();
-		void readGeophysicalData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string& initialBiomassRoute, const string &lightAtSurfaceRoute);
+		void readModelData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string &initialZooplanktonCountRoute, const string &lightAtSurfaceRoute);
 	protected:
 		vector<physicalType> readValues(const string& route);
 		void readDepth(const string& depthFileRoute);
 		void readInitialTemperature(const string& initialTemperatureRoute);
 		void readTemperatureRange(const string& temperatureRangeRoute);
 		void readDepthScale(const string& depthScaleRoute);
-		void readInitialBiomass(const string& biomassRoute);
-		void readDataMatrix(const string& fileRoute, double** dataMatrix);
+		void readInitialAlgaeBiomass(const string& initialAlgaeBiomassRoute);
+		void readInitialZooplanktonCount(const string& biomassRoute);
+		template<typename T>
+		void readDataMatrix(const string& fileRoute, T** dataMatrix);
 		void readLightAtSurface(const string& lightRoute);
 		//int readTemperatureAtSurface(string temperatureAtSurfaceFileRoute);
 

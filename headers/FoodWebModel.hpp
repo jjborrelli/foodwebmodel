@@ -68,7 +68,7 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
-		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted;
+		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality;
 		physicalType salinity_exponent, stroganov_adjustment;
 
 	public:
@@ -120,9 +120,9 @@ namespace FoodWebModel {
 		biomassType activeRespiration(biomassType zooBiomass, physicalType localeTemperature);
 		biomassType metabolicFoodConsumption();
 		void animalExcretion(biomassType localeRespiration);
-		biomassType animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
-		biomassType animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
-		biomassType animalTemperatureMortality(physicalType localeTemperature);
+		void animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
+		void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
+		void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 		void salinityEffect();
 		void salinityMortality(biomassType localeBiomass);
 		void stroganovApproximation(physicalType localeTemperature);

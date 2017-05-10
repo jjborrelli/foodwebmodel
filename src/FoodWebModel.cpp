@@ -639,7 +639,8 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	defecation(locale_grazing_salt_adjusted);
 	animalRespiration(zooplanktonBiomass[depthIndex][columnIndex], temperature[depthIndex][columnIndex]);
 	animalExcretion(salinity_corrected_zooplankton_respiration);
-	biomassType localeBiomassDifferential=locale_grazing_salt_adjusted-locale_defecation-salinity_corrected_zooplankton_respiration;
+	animalMortality(zooplanktonBiomass[depthIndex][columnIndex], temperature[depthIndex][columnIndex], salinity_corrected_zooplankton_respiration);
+	biomassType localeBiomassDifferential=locale_grazing_salt_adjusted-locale_defecation-salinity_corrected_zooplankton_respiration-grazer_excretion_loss-animal_mortality;
 	return localeBiomassDifferential;
 }
 
@@ -667,7 +668,7 @@ void FoodWebModel::FoodWebModel::defecation(biomassType grazing){
 
 /* Zooplankton respiration (AquaTox Documentation, page 106, equation 100)*/
 void FoodWebModel::FoodWebModel::animalRespiration(biomassType zooBiomass, physicalType localeTemperature){
-	base_zooplankton_respiration = (basalRespiration(zooBiomass) + activeRespiration(zooBiomass, localeTemperature) + metabolicFoodConsumption());
+	base_zooplankton_respiration = RESPIRATION_ADJUSTMENT*(basalRespiration(zooBiomass) + activeRespiration(zooBiomass, localeTemperature) + metabolicFoodConsumption());
 	salinity_corrected_zooplankton_respiration = base_zooplankton_respiration*salinity_effect;
 }
 
@@ -706,25 +707,25 @@ void FoodWebModel::FoodWebModel::animalExcretion(biomassType localeRespiration){
 
 
 /* Grazer mortality (AquaTox Documentation, page 110, equation 112)*/
-biomassType FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, physicalType localeTemperature, physicalType localeSalinityConcentration){
-	animal_base_mortality= animalBaseMortality(localeTemperature, localeBiomass);
+void FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, physicalType localeTemperature, physicalType localeSalinityConcentration){
+	animalBaseMortality(localeTemperature, localeBiomass);
 	salinityMortality(localeBiomass);
-	return animal_base_mortality;
+	animal_mortality = animal_base_mortality+salinity_mortality;
 }
 
 /* Grazer base mortality (AquaTox Documentation, page 110, equation 113)*/
-biomassType FoodWebModel::FoodWebModel::animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass){
-	animal_temperature_mortality = animalTemperatureMortality(localeTemperature)*localeBiomass;
+void FoodWebModel::FoodWebModel::animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass){
+	animalTemperatureMortality(localeTemperature, localeBiomass);
 	animal_temp_independent_mortality = ANIMAL_BASE_MORTALITY*localeBiomass;
-	return animal_temperature_mortality+animal_temp_independent_mortality;
+	animal_base_mortality= animal_temperature_mortality+animal_temp_independent_mortality;
 }
 
 /* Grazer base mortality (AquaTox Documentation, page 110, equation 114)*/
-biomassType FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType localeTemperature){
+void FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass){
 	if(localeTemperature<=MAXIMUM_TOLERABLE_TEMPERATURE){
-		return 0;
+		animal_temperature_mortality = 0.0f;
 	} else{
-		return exp(MAXIMUM_TOLERABLE_TEMPERATURE-localeTemperature)/2.0f;
+		animal_temperature_mortality = localeBiomass*exp(MAXIMUM_TOLERABLE_TEMPERATURE-localeTemperature)/2.0f;
 	}
 
 }

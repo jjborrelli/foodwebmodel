@@ -210,7 +210,7 @@ static const double K_RESP=1.0f;
 
 
 /* Animal base mortality*/
-static const double ANIMAL_BASE_MORTALITY = 0.5f;
+static const double ANIMAL_BASE_MORTALITY = 0.05f;
 
 /* Salinity thresholds*/
 
@@ -220,4 +220,6 @@ static const double MIN_SALINITY = 0.0f, MAX_SALINITY=2.245f, SALINITY_COEFFICIE
 static const double EXCRETION_RESPIRATION_PROPORTION=0.17f;
 
 static const double STROGANOV_ADJUSTMENT = 2.0f;
+
+static const double RESPIRATION_ADJUSTMENT = 0.2f;
 #endif /* MODELCONSTANTS_HPP_ */

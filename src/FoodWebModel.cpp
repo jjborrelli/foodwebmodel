@@ -52,6 +52,11 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputF
 }
 
 void FoodWebModel::FoodWebModel::step(){
+	updateAlgaeBiomass();
+	updateZooplanktonBiomass();
+}
+
+void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 	stepBuffer.str("");
 	sloughBuffer.str("");
 	/* Clear vertical migrated phyto biomass*/
@@ -143,7 +148,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 
 	/* Calculate nutrient limitations*/
 	lightAllowance(depthIndex, columnIndex);
-	nutrientConcentrationAtDepth(depthIndex, columnIndex);
+	phosphorusConcentrationAtDepth(depthIndex, columnIndex);
 	calculateNutrientLimitation();
 	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
 	/* Calculate biomass differential components*/
@@ -210,10 +215,10 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	lineBuffer<<commaString<<temperature_angular_frequency;
 	lineBuffer<<commaString<<temperature_sine;
 	lineBuffer<<commaString<<depthInMeters;
-	lineBuffer<<commaString<<nutrient_concentration;
+	lineBuffer<<commaString<<chemical_concentration;
 	lineBuffer<<commaString<<nutrient_limitation;
 	lineBuffer<<commaString<<localeLimitationProduct;
-	lineBuffer<<commaString<<nutrient_at_depth_exponent;
+	lineBuffer<<commaString<<chemical_at_depth_exponent;
 	lineBuffer<<commaString<<light_at_top;
 	lineBuffer<<commaString<<light_difference;
 	lineBuffer<<commaString<<normalized_light_difference;
@@ -544,26 +549,40 @@ void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 }
 
 
+/*Phosphorous concentration at a given depth*/
+
+void FoodWebModel::FoodWebModel::phosphorusConcentrationAtDepth(int depthIndex, int columnIndex){
+	chemicalConcentrationAtDepth(depthIndex, columnIndex, PHOSPHORUS_CONCENTRATION_AT_BOTTOM);
+}
+
+/*Salt concentration at a given depth*/
+
+void FoodWebModel::FoodWebModel::saltConcentrationAtDepth(int depthIndex, int columnIndex){
+	chemicalConcentrationAtDepth(depthIndex, columnIndex, SALT_CONCENTRATION_AT_BOTTOM);
+}
+
+
+
 /*Nutrient concentration at a given depth*/
 
-void FoodWebModel::FoodWebModel::nutrientConcentrationAtDepth(int depthIndex, int columnIndex){
-	physicalType localeNutrientAtBottom = NUTRIENT_CONCENTRATION_AT_BOTTOM;
+void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom){
+	physicalType localeNutrientAtBottom = concentrationAtBottom;
 #ifndef HOMOGENEOUS_DEPTH
-	nutrient_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #else
-	nutrient_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
 #endif
-	nutrient_concentration =localeNutrientAtBottom*exp(nutrient_at_depth_exponent);
+	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
 }
 
 /* Nutrient biomass growth limitation based on nutrient concentration */
 
 void FoodWebModel::FoodWebModel::calculateNutrientLimitation(){
 	nutrient_limitation=0.0f;
-	if(nutrient_concentration>=PHOSPHORUS_LINEAR_THRESHOLD)
+	if(chemical_concentration>=PHOSPHORUS_LINEAR_THRESHOLD)
 		nutrient_limitation=1.0f;
 	else
-		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(nutrient_concentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
+		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(chemical_concentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
 	//returnedValue=1.0f;
 }
 
@@ -591,42 +610,78 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 }
 
-/* Calculation of grazer biomass*/
+/* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
 
-biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex, int columnIndex, bool periPython){
-	return 0.0f;
+void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
+	stepBuffer.str("");
+		/*Calculate phytoplankton and periphyton biomass on the current step*/
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			lineBuffer.str("");
+			lineBuffer.clear();
+			bool registerPeriBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+			/*Register previous biomass*/
+			priorBottomFeederCount[columnIndex] = bottomFeederCount[columnIndex];
+			/*Update biomass and output new biomass*/
+			bottomFeederBiomass[columnIndex] = grazerBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+			/*If biomass must be registered, register standard and slough periphyton biomass*/
+			if(registerPeriBiomass){
+				stepBuffer<<lineBuffer.str();
+				sloughBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<1<<commaString<<current_hour<<commaString<<0.0f<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<"\n";//Depth, Column, Type, Time, Washup
+			}
+		}
+}
+
+biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder){
+	stroganovApproximation(temperature[depthIndex][columnIndex]);
+	saltConcentrationAtDepth(depthIndex, columnIndex);
+	salinityEffect();
+	foodConsumptionRate(depthIndex,columnIndex,bottomFeeder);
+	defecation(locale_grazing_salt_adjusted);
+	animalRespiration(zooplanktonBiomass[depthIndex][columnIndex], temperature[depthIndex][columnIndex]);
+	animalExcretion(salinity_corrected_zooplankton_respiration);
+	biomassType localeBiomassDifferential=locale_grazing_salt_adjusted-locale_defecation-salinity_corrected_zooplankton_respiration;
+	return localeBiomassDifferential;
 }
 
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
-biomassType FoodWebModel::FoodWebModel::foodConsumptionRate(biomassType zooBiomass, biomassType phytoBiomass){
-	if(phytoBiomass/zooBiomass>FEEDING_SATURATION){
-		locale_grazing= MAXIMUM_GRAZING_PROPORTION;
+void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder){
+	zooplanktonCountType localeZooplanktonCount=bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
+	biomassType localeAlgaeBiomass=bottomFeeder?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
+	biomassType candidateGrazingPerIndividual = min<double>(FEEDING_SATURATION,WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR*localeAlgaeBiomass*salinity_effect*stroganov_adjustment);
+	locale_grazing= candidateGrazingPerIndividual*localeZooplanktonCount;
+	locale_grazing_salt_adjusted=locale_grazing;
+	if(bottomFeeder){
+		periBiomass[columnIndex]-=locale_grazing;
+		bottomFeederBiomass[columnIndex]+=locale_grazing;
 	} else{
-		locale_grazing= min<double>(phytoBiomass, zooBiomass*GRAZING_PROPORTION);
+		phytoBiomass[depthIndex][columnIndex]-=locale_grazing;
+		zooplanktonBiomass[depthIndex][columnIndex]+=locale_grazing;
 	}
-	return locale_grazing;
 }
 
 /* Food consumption (AquaTox Documentation, page 105, equation 97)*/
-biomassType FoodWebModel::FoodWebModel::defecation(biomassType grazing){
+void FoodWebModel::FoodWebModel::defecation(biomassType grazing){
 	locale_defecation = DEFECATION_COEFFICIENT*grazing;
-	return locale_defecation;
 }
 
 /* Zooplankton respiration (AquaTox Documentation, page 106, equation 100)*/
-biomassType FoodWebModel::FoodWebModel::animalRespiration(biomassType zooBiomass, biomassType consumptionBiomass, biomassType productionBiomass, physicalType localeTemperature){
-	base_zooplankton_respiration = (basalRespiration(zooBiomass) + activeRespiration(zooBiomass, localeTemperature) + metabolicFoodConsumption(productionBiomass, consumptionBiomass));
+void FoodWebModel::FoodWebModel::animalRespiration(biomassType zooBiomass, physicalType localeTemperature){
+	base_zooplankton_respiration = (basalRespiration(zooBiomass) + activeRespiration(zooBiomass, localeTemperature) + metabolicFoodConsumption());
 	salinity_corrected_zooplankton_respiration = base_zooplankton_respiration*salinity_effect;
-	return salinity_corrected_zooplankton_respiration;
 }
 
 
 /* Basal respiration (AquaTox Documentation, page 106, equation 101)*/
 biomassType FoodWebModel::FoodWebModel::basalRespiration(biomassType zooBiomass){
-	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE;
+	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE*stroganov_adjustment;
 	return basal_respiration;
 
+}
+
+/* An approximation of Stroganov function between 0 and 15 degrees (AquaTox Documentation, page 84, figure 59)*/
+void FoodWebModel::FoodWebModel::stroganovApproximation(physicalType localeTemperature){
+	stroganov_adjustment= (0.1f+0.011f*localeTemperature)*STROGANOV_ADJUSTMENT;
 }
 
 /* Active respiration (AquaTox Documentation, page 107, equation 104)*/
@@ -639,22 +694,21 @@ biomassType FoodWebModel::FoodWebModel::activeRespiration(biomassType zooBiomass
 
 
 /* Specific dynamic action respiration (AquaTox Documentation, page 109, equation 110)*/
-biomassType FoodWebModel::FoodWebModel::metabolicFoodConsumption(biomassType productionBiomass, biomassType consumptionBiomass){
-	metabolic_respiration= K_RESP*(productionBiomass-consumptionBiomass);
+biomassType FoodWebModel::FoodWebModel::metabolicFoodConsumption(){
+	metabolic_respiration= K_RESP*(locale_grazing_salt_adjusted-locale_defecation);
 	return metabolic_respiration;
 }
 
 /* Grazer excretion biomass loss (AquaTox Documentation, page 109, equation 111)*/
-biomassType FoodWebModel::FoodWebModel::animalExcretion(biomassType localeRespiration){
-	grazer_excretion_loss= RESPIRATION_TO_EXCRETION*localeRespiration;
-	return grazer_excretion_loss;
+void FoodWebModel::FoodWebModel::animalExcretion(biomassType localeRespiration){
+	grazer_excretion_loss= EXCRETION_RESPIRATION_PROPORTION*localeRespiration;
 }
 
 
 /* Grazer mortality (AquaTox Documentation, page 110, equation 112)*/
 biomassType FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, physicalType localeTemperature, physicalType localeSalinityConcentration){
 	animal_base_mortality= animalBaseMortality(localeTemperature, localeBiomass);
-	salinity_mortality=salinityMortality(localeBiomass, localeSalinityConcentration);
+	salinityMortality(localeBiomass);
 	return animal_base_mortality;
 }
 
@@ -676,26 +730,24 @@ biomassType FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType 
 }
 
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
-physicalType FoodWebModel::FoodWebModel::salinityEffect(physicalType salinityConcentration){
+void FoodWebModel::FoodWebModel::salinityEffect(){
 	salinity_effect=1;
 	salinity_exponent=0.0f;
 	biomassType salinityBase=1.0f;
-	if(salinityConcentration<MIN_SALINITY){
-		salinity_exponent=salinityConcentration-MIN_SALINITY;
+	if(chemical_concentration<MIN_SALINITY){
+		salinity_exponent=chemical_concentration-MIN_SALINITY;
 		salinity_effect=SALINITY_COEFFICIENT_LOW*exp(salinity_exponent);
 	}
-	if(salinityConcentration>MAX_SALINITY){
-		salinity_exponent=MAX_SALINITY-salinityConcentration;
+	if(chemical_concentration>MAX_SALINITY){
+		salinity_exponent=MAX_SALINITY-chemical_concentration;
 		salinity_effect=SALINITY_COEFFICIENT_HIGH*exp(salinity_exponent);
 	}
-	return salinity_effect;
 
 }
 
 /* Salinity mortality (AquaTox Documentation, page 110, equation 112)*/
-biomassType FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass, physicalType salinityConcentration){
-	salinity_mortality=localeBiomass*(1-salinityConcentration);
-	return salinity_mortality;
+void FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass){
+	salinity_mortality=localeBiomass*(1-salinity_effect);
 
 }
 

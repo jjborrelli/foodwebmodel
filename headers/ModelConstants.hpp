@@ -135,8 +135,11 @@ static const int HOURS_PER_DAY = 24;
 //static const double NUTRIENT_DERIVATIVE = 0.02527915f;
 static const double NUTRIENT_DERIVATIVE = 0.02527915f*1.3f;
 
-/* Nutrient concentration at bottom taken from lake data*/
-static const double NUTRIENT_CONCENTRATION_AT_BOTTOM = 2.507143f;
+/* Phosphorus concentration at bottom taken from lake data*/
+static const double PHOSPHORUS_CONCENTRATION_AT_BOTTOM = 2.507143f;
+
+/* Salt concentration at the bottom (taken from lake data)*/
+static const double SALT_CONCENTRATION_AT_BOTTOM = 15.31714f/1e3f;
 
 /* Phosphorous linear limit threshold (obtained from Larry's data) */
 
@@ -176,28 +179,45 @@ static const int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTP
 
 static const int STABLE_STATE_HOUR=10;
 
-/* Threshold beyond no more food is grazed. It needs to be adjusted.*/
-static const double FEEDING_SATURATION=1.0f;
-static const double MAXIMUM_GRAZING_PROPORTION=1.0f, GRAZING_PROPORTION=0.5F, DEFECATION_COEFFICIENT=0.3f;
+/* Individual Daphnia dry weight. Taken from (Baudouin and Ravera, 1972, Weight, size and chemical composition of some freshwater zooplankters: Daphnia Hyalina (Leydig)) (in milligrams) */
+
+static const double MILLIGRAM_TO_GRAM=1.0f/1000.0f;
+
+static const double DAPHNIA_WEIGHT=22.00f;
+
+
+/* Threshold beyond no more food is grazed. Taken from (Luecke et al. , 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
+static const double FEEDING_SATURATION=0.4f*DAPHNIA_WEIGHT*MILLIGRAM_TO_GRAM/((double)HOURS_PER_DAY);
+
+static const double MAXIMUM_GRAZING_PROPORTION=1.0f;
+
+
+static const double MILLILITERS_TO_M3=1000000.0f;
+/*The average grazing proportion has been taken from the average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters) */
+
+static const double WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=260.9333f/MILLILITERS_TO_M3, DEFECATION_COEFFICIENT=0.3f;
 
 /* Basal respiration rate. It needs to be adjusted*/
 
-static const double BASAL_RESPIRATION_RATE=1.0f;
+static const double BASAL_RESPIRATION_RATE=0.2f;
 
 /* Rate of respiration change for each 10 degrees Celsius (AquaTox Documentation, page 107, equation 105)*/
-static const double RATE_RESPIRATION_CHANGE_10DEG=1.0f;
+static const double RATE_RESPIRATION_CHANGE_10DEG=-1.0f;
 
 
 /* Proportion of energy lost to respiration activity*/
 static const double K_RESP=1.0f;
 
-/* Proportion of respiration lost to excretion*/
-static const double RESPIRATION_TO_EXCRETION = 1.0f;
 
 /* Animal base mortality*/
 static const double ANIMAL_BASE_MORTALITY = 0.5f;
 
 /* Salinity thresholds*/
 
-static const double MIN_SALINITY = 0.0f, MAX_SALINITY=1.0f, SALINITY_COEFFICIENT_LOW=1.0f, SALINITY_COEFFICIENT_HIGH=1.0f;
+static const double MIN_SALINITY = 0.0f, MAX_SALINITY=2.245f, SALINITY_COEFFICIENT_LOW=1.0f, SALINITY_COEFFICIENT_HIGH=1.0f;
+
+/* Excretion percentage of respiration (AquaTox Documentation, page 110)*/
+static const double EXCRETION_RESPIRATION_PROPORTION=0.17f;
+
+static const double STROGANOV_ADJUSTMENT = 2.0f;
 #endif /* MODELCONSTANTS_HPP_ */

@@ -59,7 +59,7 @@ namespace FoodWebModel {
 	private:
 
 		/* Physical attributes*/
-		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, nutrient_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, nutrient_concentration;
+		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration;
 
 		/* Algae attributes*/
 		biomassType biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate;
@@ -68,7 +68,8 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
-		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_exponent, salinity_mortality;
+		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted;
+		physicalType salinity_exponent, stroganov_adjustment;
 
 	public:
 		FoodWebModel(const std::string& depthRoute, const std::string& depthScaleRoute, const std::string& initialTemperatureRoute, const std::string& temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string& initialZooplanktonCountRoute, const string& lightAtSurfaceRoute);
@@ -88,12 +89,15 @@ namespace FoodWebModel {
 		void lightAllowance(int depthIndex, int columnIndex);
 		void photoPeriod();
 		void calculateLightAtTop();
-		void nutrientConcentrationAtDepth(int depthIndex, int columnIndex);
+		void phosphorusConcentrationAtDepth(int depthIndex, int columnIndex);
+		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
+		void chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom);
 		void calculateNutrientLimitation();
 		void calculatePhysicalLakeDescriptors();
 		void setBathymetricParameters();
 
 		/* Algae biomass*/
+		void updateAlgaeBiomass();
 		biomassType algaeBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
 		biomassType sumPhytoBiomassToDepth(int depthIndex, int columnIndex);
 		void photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton);
@@ -107,20 +111,21 @@ namespace FoodWebModel {
 		void algaeSlough(int columnIndex);
 
 		/* Grazers biomass*/
-
-		biomassType grazerBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
-		biomassType foodConsumptionRate(biomassType zooBiomass, biomassType phytoBiomass);
-		biomassType defecation(biomassType grazing);
-		biomassType animalRespiration(biomassType zooBiomass, biomassType consumptionBiomass, biomassType productionBiomass, physicalType localeTemperature);
+		void updateZooplanktonBiomass();
+		biomassType grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder);
+		void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder);
+		void defecation(biomassType grazing);
+		void animalRespiration(biomassType zooBiomass, physicalType localeTemperature);
 		biomassType basalRespiration(biomassType zooBiomass);
 		biomassType activeRespiration(biomassType zooBiomass, physicalType localeTemperature);
-		biomassType metabolicFoodConsumption(biomassType productionBiomass, biomassType consumptionBiomass);
-		biomassType animalExcretion(biomassType localeRespiration);
+		biomassType metabolicFoodConsumption();
+		void animalExcretion(biomassType localeRespiration);
 		biomassType animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
 		biomassType animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 		biomassType animalTemperatureMortality(physicalType localeTemperature);
-		physicalType salinityEffect(physicalType salinityConcentration);
-		biomassType salinityMortality(biomassType localeBiomass, physicalType localeSalinityConcentration);
+		void salinityEffect();
+		void salinityMortality(biomassType localeBiomass);
+		void stroganovApproximation(physicalType localeTemperature);
 
 	};
 }

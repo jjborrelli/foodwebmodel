@@ -53,7 +53,7 @@ namespace FoodWebModel {
 		//int  maxColumn;
 
 		/*Buffer line to write simulation results*/
-		std::ostringstream lineBuffer, stepBuffer, sloughBuffer;
+		std::ostringstream lineBuffer, algaeBuffer, sloughBuffer, grazerBuffer;
 		string commaString = string(", ");
 		/*Class methods*/
 	private:
@@ -68,12 +68,12 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
-		biomassType locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality;
+		biomassType grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality;
 		physicalType salinity_exponent, stroganov_adjustment;
 
 	public:
 		FoodWebModel(const std::string& depthRoute, const std::string& depthScaleRoute, const std::string& initialTemperatureRoute, const std::string& temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string& initialZooplanktonCountRoute, const string& lightAtSurfaceRoute);
-		int simulate(int cycles,  const std::string& outputFileName, const std::string outputSloughRoute);
+		int simulate(int cycles,  const std::string& outputAlgaeFileName, const std::string& outputSloughFileName, const std::string& outputGrazerFileName);
 		void initializeParameters();
 
 	protected:

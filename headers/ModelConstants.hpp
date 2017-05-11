@@ -185,9 +185,11 @@ static const double MILLIGRAM_TO_GRAM=1.0f/1000.0f;
 
 static const double DAPHNIA_WEIGHT=22.00f;
 
+static const double DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT*MILLIGRAM_TO_GRAM;
+
 
 /* Threshold beyond no more food is grazed. Taken from (Luecke et al. , 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
-static const double FEEDING_SATURATION=0.4f*DAPHNIA_WEIGHT*MILLIGRAM_TO_GRAM/((double)HOURS_PER_DAY);
+static const double FEEDING_SATURATION=0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
 
 static const double MAXIMUM_GRAZING_PROPORTION=1.0f;
 

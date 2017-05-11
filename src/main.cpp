@@ -9,26 +9,31 @@
 #include <string>
 #include <cstdlib>
 #include <iostream>
+
+#include "../headers/ParameterReader.hpp"
 using namespace std;
 using namespace FoodWebModel;
 
 
 int main(int argc, char **argv) {
-	/* Check correct number of parameters*/
-	if(argc<8){
-		cerr<<"Not enough input parameters to run the simulation: "<<argc<<endl;
-	}
-	string depthRoute = string(argv[1]);
-	string depthScaleRoute = string(argv[2]);
-	string initialTemperatureRoute = string(argv[3]);
-	string temperatureRangeRoute=string(argv[4]);
-	string outputAlgaeRoute=string(argv[5]);
-	string outputSloughRoute=string(argv[6]);
-	string outputGrazerRoute=string(argv[7]);
-	string initialAlgaeBiomassRoute=string(argv[8]);
-	string initialZooplanktonCountRoute=string(argv[9]);
-	string lightAtSurfaceRoute=string(argv[10]);
-	int simulationCycles=atoi(argv[11]);
+
+	/* Read file containing the parameters*/
+	FoodWebModel::ParameterReader reader;
+	reader.readSimulationParameters(argv[1]);
+	SimulationArguments *simArguments =&reader.simArguments;
+	/* Set parameters values*/
+
+	string depthRoute = simArguments->depthRoute;
+	string depthScaleRoute = simArguments->depthScaleRoute;
+	string initialTemperatureRoute = simArguments->initialTemperatureRoute;
+	string temperatureRangeRoute= simArguments->temperatureRangeRoute;
+	string outputAlgaeRoute = simArguments->outputAlgaeRoute;
+	string outputSloughRoute = simArguments->outputSloughRoute;
+	string outputGrazerRoute = simArguments->outputGrazerRoute;
+	string initialAlgaeBiomassRoute = simArguments->initialAlgaeBiomassRoute;
+	string initialZooplanktonCountRoute = simArguments->initialZooplanktonCountRoute;
+	string lightAtSurfaceRoute = simArguments->lightAtSurfaceRoute;
+	int simulationCycles =  simArguments->simulationCycles;
 
 	/* Initialize and run the simulator*/
 	FoodWebModel::FoodWebModel foodWebModel(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialAlgaeBiomassRoute, initialZooplanktonCountRoute, lightAtSurfaceRoute);

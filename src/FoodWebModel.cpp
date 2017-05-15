@@ -36,7 +36,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputA
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeType, PriorAlgaeBiomass, AlgaeVerticalMigration, Time\n";
 	outputSloughFile<<"Depth, Column, AlgaeType, Time, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass\n";
-	outputGrazerFile<<"Depth, Column, Time, Temperature, GrazerGrazingPerIndividual, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, BottomFeeder, GrazerBiomassDifferential, GrazerBiomass, GrazerCount\n";
+	outputGrazerFile<<"Depth, Column, Time, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, BottomFeeder, GrazerBiomassDifferential, GrazerBiomass, GrazerCount\n";
 
 
 	for(current_hour=0; current_hour<cycles; current_hour++){
@@ -213,7 +213,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 		}
 	}
 	totalProductivity+=algae_slough_value+algae_sinking_value;
-	/* Create line buffer to write results*/
+	/* Create line buffer to write algae biomass*/
 	lineBuffer.str("");
 	lineBuffer.clear();
 	lineBuffer<<depthIndex;
@@ -679,6 +679,8 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 	zooplanktonCountType localeZooplanktonCount = bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeZooplanktonBiomass = localeZooplanktonCount*DAPHNIA_WEIGHT_IN_GRAMS;
+	biomassType localeAlgaeBiomass = bottomFeeder?this->periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
+
 	stroganovApproximation(localeTemperature);
 	saltConcentrationAtDepth(depthIndex, columnIndex);
 	salinityEffect();
@@ -688,6 +690,8 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	animalExcretion(salinity_corrected_zooplankton_respiration);
 	animalMortality(localeZooplanktonBiomass, localeTemperature, salinity_corrected_zooplankton_respiration);
 	biomassType localeBiomassDifferential=used_grazing-locale_defecation-salinity_corrected_zooplankton_respiration-grazer_excretion_loss-animal_mortality;
+
+	/* Plot grazer biomass differential*/
 	lineBuffer.str("");
 	lineBuffer.clear();
 	lineBuffer<<depthIndex;
@@ -695,6 +699,8 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	lineBuffer<<commaString<<current_hour;
 	lineBuffer<<commaString<<localeTemperature;
 	lineBuffer<<commaString<<grazing_per_individual;
+	lineBuffer<<commaString<<grazing_per_individual/localeAlgaeBiomass;
+	lineBuffer<<commaString<<used_grazing/localeAlgaeBiomass;
 	lineBuffer<<commaString<<stroganov_adjustment;
 	lineBuffer<<commaString<<chemical_at_depth_exponent;
 	lineBuffer<<commaString<<chemical_concentration;

@@ -671,11 +671,11 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	saltConcentrationAtDepth(depthIndex, columnIndex);
 	salinityEffect();
 	foodConsumptionRate(depthIndex,columnIndex,bottomFeeder);
-	defecation(locale_grazing_salt_adjusted);
+	defecation();
 	animalRespiration(localeZooplanktonBiomass, localeTemperature);
 	animalExcretion(salinity_corrected_zooplankton_respiration);
 	animalMortality(localeZooplanktonBiomass, localeTemperature, salinity_corrected_zooplankton_respiration);
-	biomassType localeBiomassDifferential=locale_grazing_salt_adjusted-locale_defecation-salinity_corrected_zooplankton_respiration-grazer_excretion_loss-animal_mortality;
+	biomassType localeBiomassDifferential=used_grazing-locale_defecation-salinity_corrected_zooplankton_respiration-grazer_excretion_loss-animal_mortality;
 	lineBuffer.str("");
 	lineBuffer.clear();
 	lineBuffer<<depthIndex;
@@ -715,19 +715,24 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder){
 	zooplanktonCountType localeZooplanktonCount=bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeAlgaeBiomass=bottomFeeder?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
-	grazing_per_individual = min<double>(FEEDING_SATURATION,WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR*localeAlgaeBiomass*salinity_effect*stroganov_adjustment);
+	grazing_per_individual = min<double>(FEEDING_SATURATION,WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR*localeAlgaeBiomass*stroganov_adjustment);
 	locale_grazing= grazing_per_individual*localeZooplanktonCount;
-	locale_grazing_salt_adjusted=locale_grazing;
+	locale_grazing_salt_adjusted=locale_grazing*salinity_effect;
+#ifdef ADJUST_SALINITY_GRAZERS
+	used_grazing=locale_grazing_salt_adjusted;
+#else
+	used_grazing=locale_grazing;
+#endif
 	if(bottomFeeder){
-		periBiomass[columnIndex]-=locale_grazing;
+		periBiomass[columnIndex]-=used_grazing;
 	} else{
-		phytoBiomass[depthIndex][columnIndex]-=locale_grazing;
+		phytoBiomass[depthIndex][columnIndex]-=used_grazing;
 	}
 }
 
 /* Food consumption (AquaTox Documentation, page 105, equation 97)*/
-void FoodWebModel::FoodWebModel::defecation(biomassType grazing){
-	locale_defecation = DEFECATION_COEFFICIENT*grazing;
+void FoodWebModel::FoodWebModel::defecation(){
+	used_grazing = DEFECATION_COEFFICIENT*used_grazing;
 }
 
 /* Zooplankton respiration (AquaTox Documentation, page 106, equation 100)*/
@@ -760,7 +765,7 @@ biomassType FoodWebModel::FoodWebModel::activeRespiration(biomassType zooBiomass
 
 /* Specific dynamic action respiration (AquaTox Documentation, page 109, equation 110)*/
 biomassType FoodWebModel::FoodWebModel::metabolicFoodConsumption(){
-	metabolic_respiration= K_RESP*(locale_grazing_salt_adjusted-locale_defecation);
+	metabolic_respiration= K_RESP*(used_grazing-locale_defecation);
 	return metabolic_respiration;
 }
 
@@ -812,8 +817,11 @@ void FoodWebModel::FoodWebModel::salinityEffect(){
 
 /* Salinity mortality (AquaTox Documentation, page 110, equation 112)*/
 void FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass){
+#ifdef ADJUST_SALINITY_GRAZERS
 	salinity_mortality=localeBiomass*(1-salinity_effect);
-
+#else
+	salinity_mortality = 0.0f;
+#endif
 }
 
 /* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.

@@ -42,7 +42,7 @@ namespace FoodWebModel {
 		/* Grazer biomass*/
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType priorZooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederBiomass[MAX_COLUMN_INDEX];
-
+		biomassType used_grazing;
 		/* Grazer count*/
 		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX], priorZooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederCount[MAX_COLUMN_INDEX];
 		/*A vector to reference the calculated biomass*/
@@ -114,7 +114,7 @@ namespace FoodWebModel {
 		void updateZooplanktonBiomass();
 		biomassType grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder);
 		void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder);
-		void defecation(biomassType grazing);
+		void defecation();
 		void animalRespiration(biomassType zooBiomass, physicalType localeTemperature);
 		biomassType basalRespiration(biomassType zooBiomass);
 		biomassType activeRespiration(biomassType zooBiomass, physicalType localeTemperature);

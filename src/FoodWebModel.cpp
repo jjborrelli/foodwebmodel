@@ -160,6 +160,13 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	photoSynthesis(localPointBiomass, localeLimitationProduct, periPhyton);
 	algaeSinking(depthIndex, columnIndex);
     algaeSlough(columnIndex);
+    /**
+     * Temperature at surface 25o
+     * Temperature at bottom 2o
+     * And thermocline is about 8.25m
+     * Model as a reversed sigmoid
+     *
+     */
 	calculateTemperature(depthIndex, columnIndex);
 	physicalType localeTemperature =temperature[depthIndex][columnIndex];
 	algaeRespiration(localPointBiomass, localeTemperature);
@@ -448,7 +455,12 @@ void FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int column
 	physicalType localeTemperature=temperature[depthIndex][columnIndex];
 	temperature_angular_frequency = TEMPERATURE_AMPLITUDE*(TEMPERATURE_DAY_FACTOR*(dayOfYear+TEMPERATURE_PHASE_SHIFT)-TEMPERATURE_DELAY);
 	temperature_sine = sin(temperature_angular_frequency);
+	/* Temperature can be modeled as a sigmoidal function sloping at the thermocline or as a sinusoidal function*/
+#ifdef IBM_MODEL_TEMPERATURE
 	physicalType updatedTemperature = localeTemperature+(-1.0*(temperature_range[depthIndex]))*temperature_sine;
+#else
+	physicalType updatedTemperature = (1-1/(1+exp(-TEMPERATURE_SLOPE_AMPLITUDE*(indexToDepth[depthIndex]-ZMax/2)+TEMPERATURE_SLOPE_PHASE)))*TEMPERATURE_ADDITIVE_COMPONENT+TEMPERATURE_LOWER_LIMIT;
+#endif
 	temperature[depthIndex][columnIndex] = updatedTemperature;
 }
 
@@ -718,6 +730,7 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 	grazing_per_individual = min<double>(FEEDING_SATURATION,WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR*localeAlgaeBiomass*stroganov_adjustment);
 	locale_grazing= grazing_per_individual*localeZooplanktonCount;
 	locale_grazing_salt_adjusted=locale_grazing*salinity_effect;
+	/* Grazing can be adjusted according to water salinity*/
 #ifdef ADJUST_SALINITY_GRAZERS
 	used_grazing=locale_grazing_salt_adjusted;
 #else
@@ -817,6 +830,7 @@ void FoodWebModel::FoodWebModel::salinityEffect(){
 
 /* Salinity mortality (AquaTox Documentation, page 110, equation 112)*/
 void FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass){
+		/* Salinity mortality can be present or not*/
 #ifdef ADJUST_SALINITY_GRAZERS
 	salinity_mortality=localeBiomass*(1-salinity_effect);
 #else

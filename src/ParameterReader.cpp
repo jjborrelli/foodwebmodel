@@ -40,14 +40,15 @@ FoodWebModel::ParameterReader::~ParameterReader() {
 
 
 /* Read the simulation parameters from a text file*/
-void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& XMLFileName){
+void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& parameterFileName){
 
 	/* Open the parameter file*/
 	ifstream parametersFile;
 	string file_buffer, file_content;
-	parametersFile.open(XMLFileName);
+	parametersFile.open(parameterFileName);
 	if(parametersFile.is_open()){
 		/*Read while there are lines left in the file*/
+		std::cout<<"Reading parameters from file "<<parameterFileName;
 		while(!parametersFile.eof()){
 			parametersFile >> file_buffer;
 			/*Split the line and set the value associated to the name*/
@@ -56,6 +57,7 @@ void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& 
 
 		}
 		parametersFile.close();
+		std::cout<<"Closed parameter file "<<parameterFileName;
 	}
 
 }

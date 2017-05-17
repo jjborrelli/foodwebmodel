@@ -8,6 +8,7 @@
 #ifndef MODELCONSTANTS_HPP_
 #define MODELCONSTANTS_HPP_
 
+/* Simulation modes*/
 /* If running in Windows OS, use debug mode*/
 #if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
 	#define DEBUG_MODE
@@ -18,6 +19,11 @@
 //#define IBM_MODEL_TEMPERATURE
 //#define STABLE_CHLOROPHYLL
 //#define USE_PHOTOPERIOD
+#define USE_LITERATURE_AND_DATA_CONSTANTS
+
+//#define ADDITIVE_TURBIDITY
+
+/* End simulation modes*/
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
  * Since we do not consider any feedback from the food water to the geophysical model, we assume that Light Extinction = Water Extinction
@@ -28,8 +34,11 @@ static const double EXTINCTION=0.02;
  * We consider that virtually all phytoplankton has the light attenuation coefficient of diatom algae
  */
 static const double  DIATOM_ATTENUATION=0.14f;
-//static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
+#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
+static const double  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
+#else
 static const double  ATTENUATION_COEFFICIENT=0.000102f;
+#endif
 //static const double  ATTENUATION_COEFFICIENT=0.14f;
 //static const double  ATTENUATION_COEFFICIENT=0.0f;
 
@@ -46,9 +55,12 @@ static const double  ATTENUATION_COEFFICIENT=0.000102f;
 //static const double TURBIDITY=14.54771f;
 
 /* Outliers removed*/
+#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
 //static const double TURBIDITY=5.426461f;
+static const double TURBIDITY=5.426461f/5.0f;
+#else
 static const double TURBIDITY=5.426461f/300.0f;
-
+#endif
 //static const double TURBIDITY=5.426461f/300.0f;
 //static const double TURBIDITY=0.0f;
 
@@ -210,7 +222,8 @@ static const double RATE_RESPIRATION_CHANGE_10DEG=-1.0f;
 
 
 /* Proportion of energy lost to respiration activity*/
-static const double K_RESP=1.0f;
+//static const double K_RESP=1.0f;
+static const double K_RESP=0.05f;
 
 
 /* Animal base mortality*/
@@ -223,7 +236,11 @@ static const double MIN_SALINITY = 0.0f, MAX_SALINITY=2.245f, SALINITY_COEFFICIE
 /* Excretion percentage of respiration (AquaTox Documentation, page 110)*/
 static const double EXCRETION_RESPIRATION_PROPORTION=0.17f;
 
+#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
+static const double STROGANOV_ADJUSTMENT = 1.0f;
+#else
 static const double STROGANOV_ADJUSTMENT = 2.0f;
+#endif
 
 static const double RESPIRATION_ADJUSTMENT = 0.2f;
 

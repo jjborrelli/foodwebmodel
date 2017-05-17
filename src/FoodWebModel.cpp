@@ -33,6 +33,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputA
 	cout<<"File "<<outputAlgaeFileName<<" open for algae biomass output."<<endl;
 	cout<<"File "<<outputSloughFileName<<" open for slough register."<<endl;
 	cout<<"File "<<outputGrazerFileName<<" open for grazer register."<<endl;
+
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeType, PriorAlgaeBiomass, AlgaeVerticalMigration, Time\n";
 	outputSloughFile<<"Depth, Column, AlgaeType, Time, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass\n";
@@ -274,7 +275,13 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex);
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+biomass_to_depth);
+#ifdef ADDITIVE_TURBIDITY
+	light_at_depth =  light_at_top*(exp(biomass_to_depth)+exp(turbidity_at_depth));
+
+#else
 	light_at_depth =  light_at_top*exp(light_at_depth_exponent);
+
+#endif
 }
 
 
@@ -617,6 +624,16 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using sinusoidal photoperiod."<<endl;
 #else
 	cout<<"Using table-based photoperiod."<<endl;
+#endif
+#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
+	cout<<"Using literature constants."<<endl;
+#else
+	cout<<"Using model-tuned constants."<<endl;
+#endif
+#ifdef ADDITIVE_TURBIDITY
+	cout<<"Using additive turbidity."<<endl;
+#else
+	cout<<"Using multiplicative turbidity."<<endl;
 #endif
 }
 

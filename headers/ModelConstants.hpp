@@ -21,7 +21,7 @@
 //#define USE_PHOTOPERIOD
 #define USE_LITERATURE_AND_DATA_CONSTANTS
 
-//#define ADDITIVE_TURBIDITY
+#define ADDITIVE_TURBIDITY
 
 /* End simulation modes*/
 /*
@@ -56,8 +56,8 @@ static const double  ATTENUATION_COEFFICIENT=0.000102f;
 
 /* Outliers removed*/
 #ifdef USE_LITERATURE_AND_DATA_CONSTANTS
-//static const double TURBIDITY=5.426461f;
-static const double TURBIDITY=5.426461f/5.0f;
+static const double TURBIDITY=5.426461f;
+//static const double TURBIDITY=5.426461f/5.0f;
 #else
 static const double TURBIDITY=5.426461f/300.0f;
 #endif

@@ -276,7 +276,7 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+biomass_to_depth);
 #ifdef ADDITIVE_TURBIDITY
-	light_at_depth =  light_at_top*(exp(-biomass_to_depth)+exp(-turbidity_at_depth));
+	light_at_depth =  light_at_top*(ALGAE_ATTENUATION_PROPORTION*ALGAE_ATTENUATION_WEIGHT*exp(-biomass_to_depth)+TURBIDITY_PROPORTION*ALGAE_ATTENUATION_WEIGHT*exp(-turbidity_at_depth));
 
 #else
 	light_at_depth =  light_at_top*exp(light_at_depth_exponent);

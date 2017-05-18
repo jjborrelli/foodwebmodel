@@ -58,9 +58,13 @@ static const double  ATTENUATION_COEFFICIENT=0.000102f;
 #ifdef USE_LITERATURE_AND_DATA_CONSTANTS
 static const double TURBIDITY=5.426461f;
 //static const double TURBIDITY=5.426461f/5.0f;
+static const double TURBIDITY_PROPORTION = 0.5f;
+static const double ALGAE_ATTENUATION_PROPORTION = 1-TURBIDITY_PROPORTION;
+static const double ALGAE_ATTENUATION_WEIGHT=2.0f;
 #else
 static const double TURBIDITY=5.426461f/300.0f;
 #endif
+
 //static const double TURBIDITY=5.426461f/300.0f;
 //static const double TURBIDITY=0.0f;
 

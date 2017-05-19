@@ -157,9 +157,9 @@ static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 static const int HOURS_PER_DAY = 24;
 
 /* Nutrient derivative taken as the average difference between consecutive points*/
-static const physicalType NUTRIENT_DERIVATIVE = 0.02527915f;
+//static const physicalType NUTRIENT_DERIVATIVE = 0.02527915f;
 //static const double NUTRIENT_DERIVATIVE = 0.02527915f*1.3f;
-//static const double NUTRIENT_DERIVATIVE = 0.02527915f*20.0f;
+static const double NUTRIENT_DERIVATIVE = 0.02527915f*3.0f;
 
 /* Phosphorus concentration at bottom taken from lake data*/
 static const physicalType PHOSPHORUS_CONCENTRATION_AT_BOTTOM = 2.507143f;

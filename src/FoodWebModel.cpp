@@ -592,7 +592,7 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 #ifdef HOMOGENEOUS_DEPTH
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
 #elif defined (RADIATED_CHEMICAL)
-	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->distance_to_focus[depthIndex][columnIndex]));
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(-this->distance_to_focus[depthIndex][columnIndex]));
 #else
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #endif

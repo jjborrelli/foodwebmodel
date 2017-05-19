@@ -31,8 +31,8 @@ namespace FoodWebModel {
 		/*Class attributes*/
 	protected:
 		ReadProcessedData readProcessedData;
-		int current_hour;
-		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		int current_hour, ZMaxIndex;
+		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY];
 		int maxDepthIndex[MAX_COLUMN_INDEX];
 
@@ -95,6 +95,7 @@ namespace FoodWebModel {
 		void calculateNutrientLimitation();
 		void calculatePhysicalLakeDescriptors();
 		void setBathymetricParameters();
+		void calculateDistanceToFocus();
 
 		/* Algae biomass*/
 		void updateAlgaeBiomass();

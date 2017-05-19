@@ -371,6 +371,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		}
 	}
 	setBathymetricParameters();
+	calculateDistanceToFocus();
 }
 
 FoodWebModel::FoodWebModel::FoodWebModel(const string& depthRoute, const string& depthScaleRoute, const string& initialTemperatureRoute, const string& temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string& initialZooplanktonCountRoute, const string& lightAtSurfaceRoute){
@@ -507,8 +508,12 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 
 	/* Calculate maximum and mean depth*/
 	this->ZMax=this->ZMean=0;
+	this->ZMaxIndex=-1;
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
-		ZMax = max<double>(ZMax, this->depthVector[i]);
+		if(this->ZMax<this->depthVector[i]){
+			ZMax = this->depthVector[i];
+			ZMaxIndex=i;
+		}
 		this->ZMean+=this->depthVector[i];
 	}
 	this->ZMean/=(physicalType)MAX_COLUMN_INDEX;
@@ -584,10 +589,12 @@ void FoodWebModel::FoodWebModel::saltConcentrationAtDepth(int depthIndex, int co
 
 void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom){
 	physicalType localeNutrientAtBottom = concentrationAtBottom;
-#ifndef HOMOGENEOUS_DEPTH
-	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
-#else
+#ifdef HOMOGENEOUS_DEPTH
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
+#elif defined (RADIATED_CHEMICAL)
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->distance_to_focus[depthIndex][columnIndex]));
+#else
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #endif
 	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
 }
@@ -614,6 +621,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Considering homogeneous depth"<<endl;
 #else
 	cout<<"Considering non-homogeneous depth"<<endl;
+#endif
+#ifdef RADIATED_CHEMICAL
+	cout<<"Modeling chemical concentration as radiated"<<endl;
+#else
+	cout<<"Modeling chemical concentration as non-radiated with depth distance to column bottom"<<endl;
 #endif
 #ifdef STABLE_CHLOROPHYLL
 	cout<<"Running with static biomass differential."<<endl;
@@ -859,6 +871,15 @@ void FoodWebModel::FoodWebModel::salinityMortality(biomassType localeBiomass){
 #else
 	salinity_mortality = 0.0f;
 #endif
+}
+
+void FoodWebModel::FoodWebModel::calculateDistanceToFocus(){
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			distance_to_focus[depthIndex][columnIndex] =sqrt(pow(ZMax-indexToDepth[depthIndex],2)+pow((ZMaxIndex-columnIndex)*COLUMN_TO_METER,2));
+		}
+	}
+
 }
 
 /* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.

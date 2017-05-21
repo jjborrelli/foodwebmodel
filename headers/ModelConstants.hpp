@@ -76,7 +76,8 @@ static const physicalType TURBIDITY=5.426461f/300.0f;
 
 //static const double TURBIDITY=14.54771f;
 
-static const biomassType CONSTANT_BIOMASS_DIFFERENTIAL=0.3f;
+static const biomassType CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL=0.3f;
+static const biomassType VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT=0.3f;
 //static const unsigned int GRAZERS_LIMIT=5;
 static const unsigned int GRAZERS_LIMIT=99;
 

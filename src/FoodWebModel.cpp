@@ -178,10 +178,10 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	biomassType constantBiomassDifferential=0.0f;
 #ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
 	if(depthIndex>=GRAZERS_LIMIT){
-		constantBiomassDifferential = CONSTANT_BIOMASS_DIFFERENTIAL;
+		constantBiomassDifferential = CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL;
 	}
 #elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
-	constantBiomassDifferential = this->baseAlgaeBiomassDifferential[depthIndex];
+	constantBiomassDifferential = this->baseAlgaeBiomassDifferential[depthIndex]*VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT;
 #endif
 	biomassType totalProductivity =  constantBiomassDifferential + photosynthesis_value+algae_respiration_value+algae_excretion_value
 			+algae_natural_mortality;

@@ -20,19 +20,19 @@ string operator+(string arg1, int arg2){
 }
 
 
-int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputAlgaeFileName, const std::string& outputSloughFileName, const std::string& outputGrazerFileName){
+int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	/*CSV file to write the output. Useful for calibration*/
 	printSimulationMode();
 	cout<<"Simulation started."<<endl;
 	ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
-	outputAlgaeFile.open(outputAlgaeFileName.c_str());
-	outputGrazerFile.open(outputGrazerFileName.c_str());
+	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
+	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
 	/*Slough will be registered in a different file*/
-	outputSloughFile.open(outputSloughFileName.c_str());
+	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
 	/*Report successful open files*/
-	cout<<"File "<<outputAlgaeFileName<<" open for algae biomass output."<<endl;
-	cout<<"File "<<outputSloughFileName<<" open for slough register."<<endl;
-	cout<<"File "<<outputGrazerFileName<<" open for grazer register."<<endl;
+	cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
+	cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
+	cout<<"File "<<simArguments.outputGrazerRoute<<" open for grazer register."<<endl;
 
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeType, PriorAlgaeBiomass, AlgaeVerticalMigration, Time\n";
@@ -40,7 +40,7 @@ int FoodWebModel::FoodWebModel::simulate(int cycles,  const std::string& outputA
 	outputGrazerFile<<"Depth, Column, Time, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, BottomFeeder, GrazerBiomassDifferential, GrazerBiomass, GrazerCount\n";
 
 
-	for(current_hour=0; current_hour<cycles; current_hour++){
+	for(current_hour=0; current_hour<simArguments.simulationCycles; current_hour++){
 		/* Register standard biomass and slough to file at the given hour frequency*/
 		if(current_hour%TIME_MESSAGE_RESOLUTION==0)
 			cout<<"Simulation hour: "<<current_hour<<endl;
@@ -174,7 +174,16 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	algaeExcretion();
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
 	algaeNaturalMortality(localeTemperature, localeLimitationProduct, localPointBiomass);
-	biomassType totalProductivity =  photosynthesis_value+algae_respiration_value+algae_excretion_value
+	/*Add algae constant differential if grazers are present*/
+	biomassType constantBiomassDifferential=0.0f;
+#ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+	if(depthIndex>=GRAZERS_LIMIT){
+		constantBiomassDifferential = CONSTANT_BIOMASS_DIFFERENTIAL;
+	}
+#elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
+	constantBiomassDifferential = this->baseAlgaeBiomassDifferential[depthIndex];
+#endif
+	biomassType totalProductivity =  constantBiomassDifferential + photosynthesis_value+algae_respiration_value+algae_excretion_value
 			+algae_natural_mortality;
 	totalProductivity=totalProductivity*BIOMASS_DIFFERENTIAL_SCALE;
 
@@ -330,6 +339,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	for(int i=0; i<MAX_DEPTH_INDEX; i++){
 		this->temperature_range[i]=readProcessedData.temperature_range[i];
 		this->indexToDepth[i]=readProcessedData.depth_scale[i];
+		this->baseAlgaeBiomassDifferential[i]=readProcessedData.baseBiomassDifferential[i];
 
 	}
 	/*Copy cyclic light at surface*/
@@ -374,12 +384,12 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	calculateDistanceToFocus();
 }
 
-FoodWebModel::FoodWebModel::FoodWebModel(const string& depthRoute, const string& depthScaleRoute, const string& initialTemperatureRoute, const string& temperatureRangeRoute, const string& initialAlgaeBiomassRoute, const string& initialZooplanktonCountRoute, const string& lightAtSurfaceRoute){
+FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments){
 /* Read the geophysical parameters from the lake, including depth and temperature at water surface
  *
  * */
 	cout<<"Reading parameters."<<endl;
-	readProcessedData.readModelData(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialAlgaeBiomassRoute, initialZooplanktonCountRoute, lightAtSurfaceRoute);
+	readProcessedData.readModelData(simArguments);
 	cout<<"Parameters read."<<endl;
 
 
@@ -646,6 +656,13 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using additive turbidity."<<endl;
 #else
 	cout<<"Using multiplicative turbidity."<<endl;
+#endif
+#ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+	cout<<"Using constant base biomass differential"<<endl;
+#elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
+	cout<<"Using depth-dependent base biomass differential"<<endl;
+#else
+	cout<<"Using no base biomass differential"<<endl;
 #endif
 }
 

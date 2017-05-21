@@ -83,6 +83,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.initialZooplanktonCountRoute= parameterValue;
 	if(!parameterName.compare("LightAtSurfaceRoute"))
 		simArguments.lightAtSurfaceRoute= parameterValue;
+	if(!parameterName.compare("BiomassBaseDifferential"))
+		simArguments.biomassBaseDifferential= parameterValue;
 	if(!parameterName.compare("SimulationCycles"))
 		simArguments.simulationCycles= atoi(parameterValue.c_str());
 }

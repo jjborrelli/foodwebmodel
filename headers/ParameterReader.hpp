@@ -9,24 +9,13 @@
 #define PARAMETERREADER_HPP_
 
 #include <string>
+#include "TypeDefinitions.hpp"
 
 using namespace std;
 
 
 namespace FoodWebModel{
-typedef struct {
-	string depthRoute,
-	depthScaleRoute,
-	initialTemperatureRoute,
-	temperatureRangeRoute,
-	outputAlgaeRoute,
-	outputSloughRoute,
-	outputGrazerRoute,
-	initialAlgaeBiomassRoute,
-	initialZooplanktonCountRoute,
-	lightAtSurfaceRoute;
-	int simulationCycles;
-} SimulationArguments;
+
 
 class ParameterReader {
 public:

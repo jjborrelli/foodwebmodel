@@ -24,6 +24,8 @@
 
 #define ADDITIVE_TURBIDITY
 
+//#define ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+#define ADD_VARIABLE_BIOMASS_DIFFERENTIAL
 /* End simulation modes*/
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
@@ -61,7 +63,7 @@ static const physicalType TURBIDITY=5.426461f;
 //static const double TURBIDITY=5.426461f/5.0f;
 static const physicalType TURBIDITY_PROPORTION = 0.5f;
 static const biomassType ALGAE_ATTENUATION_PROPORTION = 1-TURBIDITY_PROPORTION;
-static const biomassType ALGAE_ATTENUATION_WEIGHT=2.0f;
+static const biomassType ALGAE_ATTENUATION_WEIGHT=1.0f;
 #else
 static const physicalType TURBIDITY=5.426461f/300.0f;
 #endif
@@ -74,6 +76,9 @@ static const physicalType TURBIDITY=5.426461f/300.0f;
 
 //static const double TURBIDITY=14.54771f;
 
+static const biomassType CONSTANT_BIOMASS_DIFFERENTIAL=0.3f;
+//static const unsigned int GRAZERS_LIMIT=5;
+static const unsigned int GRAZERS_LIMIT=99;
 
 /*
  * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
@@ -122,11 +127,11 @@ static const biomassType FRACTION_SLOUGHED=0.1f;
 
 /* Set an arbitrary index for max depth index. Depth will be normalized according to this max index*/
 
-static const int MAX_DEPTH_INDEX = 254;
+static const unsigned int MAX_DEPTH_INDEX = 254;
 
 /* Set an arbitrary index for max columns. Depth will be normalized according to this max index*/
 
-static const int MAX_COLUMN_INDEX = 41;
+static const unsigned int MAX_COLUMN_INDEX = 41;
 
 static const physicalType MODEL_WIDTH = 1610.0f;
 
@@ -154,7 +159,7 @@ static const physicalType Math_PI = 3.141593f;
 
 static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
-static const int HOURS_PER_DAY = 24;
+static const unsigned int HOURS_PER_DAY = 24;
 
 /* Nutrient derivative taken as the average difference between consecutive points*/
 //static const physicalType NUTRIENT_DERIVATIVE = 0.02527915f;
@@ -197,13 +202,13 @@ static const physicalType BIOMASS_DIFFERENTIAL_SCALE=0.8f;
 
 /* Time and spatial resolution constants for simulation*/
 #ifndef DEBUG_MODE
-static const int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10, DEPTH_OUTPUT_RESOLUTION=2, COLUMN_OUTPUT_RESOLUTION=2;
+static const unsigned int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10, DEPTH_OUTPUT_RESOLUTION=2, COLUMN_OUTPUT_RESOLUTION=2;
 #else
-static const int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTPUT_RESOLUTION=1, COLUMN_OUTPUT_RESOLUTION=1;
+static const unsigned int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTPUT_RESOLUTION=1, COLUMN_OUTPUT_RESOLUTION=1;
 #endif
 /* Set an hour where the differential is considered stable*/
 
-static const int STABLE_STATE_HOUR=10;
+static const unsigned int STABLE_STATE_HOUR=10;
 
 /* Individual Daphnia dry weight. Taken from (Baudouin and Ravera, 1972, Weight, size and chemical composition of some freshwater zooplankters: Daphnia Hyalina (Leydig)) (in milligrams) */
 

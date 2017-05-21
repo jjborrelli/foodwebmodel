@@ -12,7 +12,25 @@
 
 typedef double biomassType;
 typedef double physicalType;
-typedef int zooplanktonCountType;
+typedef unsigned int zooplanktonCountType;
 
+#include <string>
+
+using namespace std;
+
+typedef struct {
+	string depthRoute,
+	depthScaleRoute,
+	initialTemperatureRoute,
+	temperatureRangeRoute,
+	outputAlgaeRoute,
+	outputSloughRoute,
+	outputGrazerRoute,
+	initialAlgaeBiomassRoute,
+	initialZooplanktonCountRoute,
+	lightAtSurfaceRoute,
+	biomassBaseDifferential;
+	int simulationCycles;
+} SimulationArguments;
 
 #endif /* TYPEDEFINITIONS_HPP_ */

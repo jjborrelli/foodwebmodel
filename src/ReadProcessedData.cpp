@@ -66,25 +66,26 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 
 }
 
-vector<physicalType> FoodWebModel::ReadProcessedData::readValues(const string& dataRoute){
+template<typename T>
+void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* readArray){
 	ifstream dataFile;
 	string readLine;
 	/* Store the file content in a vector*/
 	vector<physicalType> localeVector;
 	dataFile.open(dataRoute.c_str());
+	int arrayIndex=0;
 	/* Read until there are no more lines*/
 	  if (dataFile.is_open())
 	  {
 		  while ( getline (dataFile,readLine) )
 		     {
-			  localeVector.push_back(std::stod(readLine.c_str()));
+			  readArray[arrayIndex++]=std::stod(readLine.c_str());
 		     }
 		  dataFile.close();
 	  } else{
 		  /* If the file could not be opened, report an error*/
 		  cerr << "File "<< dataRoute<<" could not be opened";
 	  }
-	 return localeVector;
 
 }
 
@@ -105,48 +106,32 @@ void FoodWebModel::ReadProcessedData::readDepth(const string& depthRoute){
 
 	/* Read depth as a vector*/
 	cout<<"Reading lake depth from file: "<<depthRoute<<endl;
-	vector<physicalType> depthVector = readValues(depthRoute);
-
-	/* Copy values to the depth array*/
-	for(int i=0; i<MAX_COLUMN_INDEX; i++)
-		depth[i]=depthVector[i];
-	cout<<"Lake depth read."<<endl;
+	readValues<physicalType>(depthRoute, depth);
 }
 
 void FoodWebModel::ReadProcessedData::readLightAtSurface(const string& lightRoute){
 
 	/* Read light as surface as a vector*/
 	cout<<"Reading hourly light at surface from file: "<<lightRoute<<endl;
-	vector<physicalType> lightVector = readValues(lightRoute);
-
-	/* Copy values to the depth array*/
-	for(int i=0; i<HOURS_PER_DAY; i++)
-		this->hourlyLightAtSurface[i]=lightVector[i];
-	cout<<"Light at surface read."<<endl;
+	readValues<physicalType>(lightRoute, hourlyLightAtSurface);
 }
 
-void FoodWebModel::ReadProcessedData::readModelData(const string &depthRoute, const string &depthScaleRoute, const string &initialTemperatureRoute, const string &temperatureRangeRoute, const string &initialAlgaeBiomassRoute, const string &initialZooplanktonCountRoute, const string &lightAtSurfaceRoute){
+void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& simArguments){
 	/*Read depth and temperature data*/
-	readDepthScale(depthScaleRoute);
-	readDepth(depthRoute);
-	readInitialTemperature(initialTemperatureRoute);
-	readTemperatureRange(temperatureRangeRoute);
-	readInitialAlgaeBiomass(initialAlgaeBiomassRoute);
-	readInitialZooplanktonCount(initialZooplanktonCountRoute);
-	readLightAtSurface(lightAtSurfaceRoute);
+	readDepthScale(simArguments.depthScaleRoute);
+	readDepth(simArguments.depthRoute);
+	readInitialTemperature(simArguments.initialTemperatureRoute);
+	readTemperatureRange(simArguments.temperatureRangeRoute);
+	readInitialAlgaeBiomass(simArguments.initialAlgaeBiomassRoute);
+	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
+	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferential);
+	readLightAtSurface(simArguments.lightAtSurfaceRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
 void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){
 	/* Read depth as a vector*/
 	cout<<"Reading lake index/depth in meters scale from file: "<<depthScaleRoute<<endl;
-	vector<physicalType> depthVector = readValues(depthScaleRoute);
-
-
-
-	/* Copy values to the depth array*/
-	for(int i=0; i<MAX_DEPTH_INDEX; i++)
-		depth_scale[i]=depthVector[i];
-	cout<<"Index/depth in meters scale read."<<endl;
+	readValues<physicalType>(depthScaleRoute, depth_scale);
 }
 
 template<typename T>
@@ -161,9 +146,9 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, T*
 			  while ( getline (dataFile,readLine) )
 			     {
 				  /* For each line, split the string and fill in the initial temperature values*/
-				  vector<T> initial_temperature_at_depth = split<T>(readLine);
+				  vector<T> vector_data = split<T>(readLine);
 				  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
-					  dataMatrix[depth_index][colIndex]=initial_temperature_at_depth[colIndex];
+					  dataMatrix[depth_index][colIndex]=vector_data[colIndex];
 				  }
 				  depth_index++;
 			     }
@@ -208,4 +193,10 @@ void FoodWebModel::ReadProcessedData::readInitialZooplanktonCount(const string& 
 	cout<<"Reading initial grazer count from file: "<<grazerCountRoute<<endl;
 	readDataMatrix<zooplanktonCountType>(grazerCountRoute, initial_grazer_count);
 	cout<<"Initial grazer count read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readBaseAlgaeBiomassDifferential(const string& biomassDifferentialRoute){
+	cout<<"Reading base algae biomass differential from file: "<<biomassDifferentialRoute<<endl;
+	readValues<physicalType>(biomassDifferentialRoute, baseBiomassDifferential);
+	cout<<"Base algae biomass read."<<endl;
 }

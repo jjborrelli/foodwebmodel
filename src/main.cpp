@@ -36,9 +36,9 @@ int main(int argc, char **argv) {
 	int simulationCycles =  simArguments->simulationCycles;
 
 	/* Initialize and run the simulator*/
-	FoodWebModel::FoodWebModel foodWebModel(depthRoute, depthScaleRoute, initialTemperatureRoute, temperatureRangeRoute, initialAlgaeBiomassRoute, initialZooplanktonCountRoute, lightAtSurfaceRoute);
+	FoodWebModel::FoodWebModel foodWebModel(*simArguments);
 	foodWebModel.initializeParameters();
-	foodWebModel.simulate(simulationCycles, outputAlgaeRoute, outputSloughRoute, outputGrazerRoute);
+	foodWebModel.simulate(*simArguments);
 	return 0;
 }
 

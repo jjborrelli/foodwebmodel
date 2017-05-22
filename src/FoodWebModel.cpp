@@ -316,7 +316,7 @@ biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, i
  */
 void FoodWebModel::FoodWebModel::photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton){
 
-	photosynthesis_value =  productionLimit(localeLimitationProduct, periPhyton)*localPointBiomass*PHOTOSYNTHESIS_FACTOR;
+	photosynthesis_value =  max<biomassType>(0.0002f,productionLimit(localeLimitationProduct, periPhyton)*localPointBiomass*PHOTOSYNTHESIS_FACTOR);
 }
 
 physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLimitationProduct, bool periPhyton){
@@ -606,7 +606,7 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 #ifdef HOMOGENEOUS_DEPTH
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
 #elif defined (RADIATED_CHEMICAL)
-	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*0.8f*(-this->distance_to_focus[depthIndex][columnIndex]));
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(-this->distance_to_focus[depthIndex][columnIndex]));
 #else
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #endif

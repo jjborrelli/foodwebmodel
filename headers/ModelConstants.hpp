@@ -20,12 +20,15 @@
 //#define IBM_MODEL_TEMPERATURE
 //#define STABLE_CHLOROPHYLL
 //#define USE_PHOTOPERIOD
+
+#define LIMITATION_MINIMUM
+
 #define USE_LITERATURE_AND_DATA_CONSTANTS
 
-#define ADDITIVE_TURBIDITY
+//#define ADDITIVE_TURBIDITY
 
-//#define ADD_CONSTANT_BIOMASS_DIFFERENTIAL
-#define ADD_VARIABLE_BIOMASS_DIFFERENTIAL
+#define ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+//#define ADD_VARIABLE_BIOMASS_DIFFERENTIAL
 /* End simulation modes*/
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
@@ -76,10 +79,12 @@ static const physicalType TURBIDITY=5.426461f/300.0f;
 
 //static const double TURBIDITY=14.54771f;
 
-static const biomassType CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL=0.3f;
-static const biomassType VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT=0.3f;
+static const biomassType CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL=0.00085f;
+static const biomassType LOW_DEPTH_CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL=CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL;///5.0f;
+static const biomassType VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT=0.0002f;
 //static const unsigned int GRAZERS_LIMIT=5;
 static const unsigned int GRAZERS_LIMIT=99;
+//static const unsigned int GRAZERS_LIMIT=22;
 
 /*
  * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
@@ -160,12 +165,16 @@ static const physicalType Math_PI = 3.141593f;
 
 static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
+static const physicalType LIGHT_STEEPNESS = 0.05f;
+
+static const biomassType PHOTOSYNTHESIS_FACTOR = 10.0f;
+
 static const unsigned int HOURS_PER_DAY = 24;
 
 /* Nutrient derivative taken as the average difference between consecutive points*/
 //static const physicalType NUTRIENT_DERIVATIVE = 0.02527915f;
 //static const double NUTRIENT_DERIVATIVE = 0.02527915f*1.3f;
-static const double NUTRIENT_DERIVATIVE = 0.02527915f*3.0f;
+static const double NUTRIENT_DERIVATIVE = 0.02527915f*2.4f;
 
 /* Phosphorus concentration at bottom taken from lake data*/
 static const physicalType PHOSPHORUS_CONCENTRATION_AT_BOTTOM = 2.507143f;
@@ -192,14 +201,16 @@ static const biomassType PHOSPHORUS_GROWTH_LIMIT = 2.5f;
 static const biomassType RESOURCE_LIMITATION_WEIGHT = 1.0f;
 /* Added a weight factor to control sinking as a function of depth*/
 
-static const biomassType SINKING_DEPTH_WEIGHT = 1.0f;
+//static const biomassType SINKING_DEPTH_WEIGHT = 1.0f;
+static const biomassType SINKING_DEPTH_WEIGHT = 0.3f;
 
 /* Added factor to increase convergence of biomass*/
 
 //static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
 //static const double BIOMASS_DIFFERENTIAL_SCALE=0.1f;
 //static const double BIOMASS_DIFFERENTIAL_SCALE=0.05f;
-static const physicalType BIOMASS_DIFFERENTIAL_SCALE=0.8f;
+//static const physicalType BIOMASS_DIFFERENTIAL_SCALE=2.75f;
+static const physicalType BIOMASS_DIFFERENTIAL_SCALE=1.0f;
 
 /* Time and spatial resolution constants for simulation*/
 #ifndef DEBUG_MODE

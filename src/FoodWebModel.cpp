@@ -105,6 +105,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 				/*Update biomass and output new biomass*/
 				phytoBiomassDifferential[depthIndex][columnIndex] = algaeBiomassDifferential(depthIndex, columnIndex, false);
 				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
+				phytoBiomassDifferential[depthIndex][columnIndex]*=BIOMASS_DIFFERENTIAL_SCALE;
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
 				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<current_hour<<"\n";
 				/*If biomass must be registered, register standard phytoplankton biomass*/
@@ -120,7 +121,9 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		lineBuffer<<copyBuffer.str();
 		/* Update vertical migration biomass*/
 		periBiomassDifferential[columnIndex]+=verticalMigratedPeriBiomass[columnIndex];
+		periBiomassDifferential[columnIndex]*=BIOMASS_DIFFERENTIAL_SCALE;
 		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
+
 		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<commaString<<current_hour<<"\n";
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerPeriBiomass){
@@ -156,7 +159,11 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	lightAllowance(depthIndex, columnIndex);
 	phosphorusConcentrationAtDepth(depthIndex, columnIndex);
 	calculateNutrientLimitation();
+#ifdef LIMITATION_MINIMUM
+	physicalType localeLimitationProduct = min<physicalType>(light_allowance,nutrient_limitation);
+#else
 	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
+#endif
 	/* Calculate biomass differential components*/
 	photoSynthesis(localPointBiomass, localeLimitationProduct, periPhyton);
 	algaeSinking(depthIndex, columnIndex);
@@ -185,8 +192,6 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 #endif
 	biomassType totalProductivity =  constantBiomassDifferential + photosynthesis_value+algae_respiration_value+algae_excretion_value
 			+algae_natural_mortality;
-	totalProductivity=totalProductivity*BIOMASS_DIFFERENTIAL_SCALE;
-
 	/* Register differential*/
 	#ifndef STABLE_CHLOROPHYLL
 		if(periPhyton){
@@ -288,7 +293,7 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	light_at_depth =  light_at_top*ALGAE_ATTENUATION_WEIGHT*(ALGAE_ATTENUATION_PROPORTION*exp(-biomass_to_depth)+TURBIDITY_PROPORTION*exp(-turbidity_at_depth));
 
 #else
-	light_at_depth =  light_at_top*exp(light_at_depth_exponent);
+	light_at_depth =  light_at_top*exp(LIGHT_STEEPNESS*light_at_depth_exponent);
 
 #endif
 }
@@ -311,7 +316,7 @@ biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, i
  */
 void FoodWebModel::FoodWebModel::photoSynthesis(biomassType localPointBiomass, physicalType localeLimitationProduct, bool periPhyton){
 
-	photosynthesis_value =  productionLimit(localeLimitationProduct, periPhyton)*localPointBiomass;
+	photosynthesis_value =  productionLimit(localeLimitationProduct, periPhyton)*localPointBiomass*PHOTOSYNTHESIS_FACTOR;
 }
 
 physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLimitationProduct, bool periPhyton){
@@ -545,15 +550,14 @@ void FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex)
 #else
 	light_normalizer = biomass_to_depth*ZMax;
 #endif
-#ifndef EXPONENTIAL_LIGHT
-	light_difference=Math_E*(localeLightAtDepth-light_at_top);
-	light_allowance=1/(1+exp(-1.0f*light_difference));
-	//sigmoid_light_difference=1;
-
-#else
+#ifdef EXPONENTIAL_LIGHT
 	/* Use a simplistic model of light decreasing exponentially with depth*/
 	light_difference=light_at_depth-light_at_top;
 	light_allowance = light_at_depth/light_at_top;
+#else
+	light_difference=Math_E*(localeLightAtDepth-light_at_top);
+	light_allowance=1/(1+exp(-1.0f*light_difference));
+	//sigmoid_light_difference=1;
 #endif
 	/* Uncomment this line to make the model equivalent to AquaTox*/
 	//normalized_light_difference =light_difference/(light_normalizer+light_difference);
@@ -602,7 +606,7 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 #ifdef HOMOGENEOUS_DEPTH
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
 #elif defined (RADIATED_CHEMICAL)
-	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(-this->distance_to_focus[depthIndex][columnIndex]));
+	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*0.8f*(-this->distance_to_focus[depthIndex][columnIndex]));
 #else
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #endif
@@ -658,11 +662,16 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using multiplicative turbidity."<<endl;
 #endif
 #ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
-	cout<<"Using constant base biomass differential"<<endl;
+	cout<<"Using constant base biomass differential."<<endl;
 #elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
-	cout<<"Using depth-dependent base biomass differential"<<endl;
+	cout<<"Using depth-dependent base biomass differential."<<endl;
 #else
-	cout<<"Using no base biomass differential"<<endl;
+	cout<<"Using no base biomass differential."<<endl;
+#endif
+#ifdef LIMITATION_MINIMUM
+	cout<<"Calculating resource limitation as minimum."<<endl;
+#else
+	cout<<"Calculating resource limitation as product."<<endl;
 #endif
 }
 

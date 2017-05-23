@@ -186,7 +186,8 @@ static const physicalType SALT_CONCENTRATION_AT_BOTTOM = 15.31714f/1e3f;
 
 static const physicalType PHOSPHORUS_LINEAR_THRESHOLD = 2.5f;
 
-static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.018f;
+//static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.018f;
+static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.22f;
 //static const double PHOSPHORUS_LINEAR_COEFFICIENT =  1.518f;
 
 //static const double PHOSPHORUS_INTERCEPT = -2.618f;

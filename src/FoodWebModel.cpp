@@ -63,6 +63,8 @@ void FoodWebModel::FoodWebModel::step(){
 }
 
 void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
+	/*Use different algae biomass differential weights for burn-in and production*/
+	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE;
 	algaeBuffer.str("");
 	sloughBuffer.str("");
 	/* Clear vertical migrated phyto biomass*/
@@ -105,7 +107,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 				/*Update biomass and output new biomass*/
 				phytoBiomassDifferential[depthIndex][columnIndex] = algaeBiomassDifferential(depthIndex, columnIndex, false);
 				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
-				phytoBiomassDifferential[depthIndex][columnIndex]*=BIOMASS_DIFFERENTIAL_SCALE;
+				phytoBiomassDifferential[depthIndex][columnIndex]*=algae_biomass_differential_scale;
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
 				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<current_hour<<"\n";
 				/*If biomass must be registered, register standard phytoplankton biomass*/
@@ -121,7 +123,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		lineBuffer<<copyBuffer.str();
 		/* Update vertical migration biomass*/
 		periBiomassDifferential[columnIndex]+=verticalMigratedPeriBiomass[columnIndex];
-		periBiomassDifferential[columnIndex]*=BIOMASS_DIFFERENTIAL_SCALE;
+		periBiomassDifferential[columnIndex]*=algae_biomass_differential_scale;
 		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
 
 		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<commaString<<current_hour<<"\n";
@@ -251,7 +253,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	lineBuffer<<commaString<<normalized_light_difference;
 	lineBuffer<<commaString<<light_allowance;
 	lineBuffer<<commaString<<resource_limitation_exponent;
-	lineBuffer<<commaString<<biomass_to_depth;
+	lineBuffer<<commaString<<algae_biomass_to_depth;
 	lineBuffer<<commaString<<photosynthesis_value;
 	lineBuffer<<commaString<<algae_respiration_value;
 	lineBuffer<<commaString<<algae_excretion_value;
@@ -286,11 +288,11 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	depthInMeters= indexToDepth[depthIndex];
-	biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex);
+	algae_biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex);
 	turbidity_at_depth=TURBIDITY*depthInMeters;
-	light_at_depth_exponent = -(turbidity_at_depth+biomass_to_depth);
+	light_at_depth_exponent = -(turbidity_at_depth+algae_biomass_to_depth);
 #ifdef ADDITIVE_TURBIDITY
-	light_at_depth =  light_at_top*ALGAE_ATTENUATION_WEIGHT*(ALGAE_ATTENUATION_PROPORTION*exp(-biomass_to_depth)+TURBIDITY_PROPORTION*exp(-turbidity_at_depth));
+	light_at_depth =  light_at_top*ALGAE_ATTENUATION_WEIGHT*(ALGAE_ATTENUATION_PROPORTION*exp(-algae_biomass_to_depth)+TURBIDITY_PROPORTION*exp(-turbidity_at_depth));
 
 #else
 	light_at_depth =  light_at_top*exp(LIGHT_STEEPNESS*light_at_depth_exponent);
@@ -546,9 +548,9 @@ void FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex)
 	calculateLightAtTop();
 	lightAtDepth(depthIndex, columnIndex);
 #ifndef HOMOGENEOUS_DEPTH
-	light_normalizer = biomass_to_depth*depthVector[columnIndex];
+	light_normalizer = algae_biomass_to_depth*depthVector[columnIndex];
 #else
-	light_normalizer = biomass_to_depth*ZMax;
+	light_normalizer = algae_biomass_to_depth*ZMax;
 #endif
 #ifdef EXPONENTIAL_LIGHT
 	/* Use a simplistic model of light decreasing exponentially with depth*/

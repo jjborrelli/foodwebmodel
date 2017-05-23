@@ -167,7 +167,7 @@ static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
 static const physicalType LIGHT_STEEPNESS = 0.0005f;
 
-static const biomassType PHOTOSYNTHESIS_FACTOR = 10.0f;
+static const biomassType PHOTOSYNTHESIS_FACTOR = 8.0f;
 
 static const unsigned int HOURS_PER_DAY = 24;
 

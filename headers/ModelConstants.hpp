@@ -13,8 +13,8 @@
 #if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
 	#define DEBUG_MODE
 #endif
-//#define HOMOGENEOUS_DEPTH
-#define RADIATED_CHEMICAL
+#define HOMOGENEOUS_DEPTH
+//#define RADIATED_CHEMICAL
 #define EXPONENTIAL_LIGHT
 //#define ADJUST_SALINITY_GRAZERS
 //#define IBM_MODEL_TEMPERATURE
@@ -165,7 +165,7 @@ static const physicalType Math_PI = 3.141593f;
 
 static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
-static const physicalType LIGHT_STEEPNESS = 0.05f;
+static const physicalType LIGHT_STEEPNESS = 0.0005f;
 
 static const biomassType PHOTOSYNTHESIS_FACTOR = 10.0f;
 
@@ -187,11 +187,11 @@ static const physicalType SALT_CONCENTRATION_AT_BOTTOM = 15.31714f/1e3f;
 static const physicalType PHOSPHORUS_LINEAR_THRESHOLD = 2.5f;
 
 //static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.018f;
-static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.22f;
+static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.664f;
 //static const double PHOSPHORUS_LINEAR_COEFFICIENT =  1.518f;
 
 //static const double PHOSPHORUS_INTERCEPT = -2.618f;
-static const physicalType PHOSPHORUS_INTERCEPT = -1.918f;
+static const physicalType PHOSPHORUS_INTERCEPT = -2.118f;
 
 static const biomassType PHOSPHORUS_GROWTH_LIMIT = 2.5f;
 

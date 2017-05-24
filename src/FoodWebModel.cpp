@@ -192,7 +192,8 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 #elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
 	constantBiomassDifferential = this->baseAlgaeBiomassDifferential[depthIndex]*VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT;
 #endif
-	biomassType totalProductivity =  constantBiomassDifferential + photosynthesis_value+algae_respiration_value+algae_excretion_value
+	biomassType localeConstantBiomassDifferential = localPointBiomass>0.0f?constantBiomassDifferential:0.0f;
+	biomassType totalProductivity =  localeConstantBiomassDifferential + photosynthesis_value+algae_respiration_value+algae_excretion_value
 			+algae_natural_mortality;
 	/* Register differential*/
 	#ifndef STABLE_CHLOROPHYLL

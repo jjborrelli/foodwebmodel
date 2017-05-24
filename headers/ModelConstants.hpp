@@ -211,7 +211,7 @@ static const biomassType SINKING_DEPTH_WEIGHT = 0.3f;
 //static const double BIOMASS_DIFFERENTIAL_SCALE=0.1f;
 //static const double BIOMASS_DIFFERENTIAL_SCALE=0.05f;
 //static const physicalType BIOMASS_DIFFERENTIAL_SCALE=2.75f;
-static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE=1.0f, ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.25f;
+static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE=1.0f, ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.0006594164f;
 static const unsigned int BURNIN_MAX_CYCLE=1;
 
 /* Time and spatial resolution constants for simulation*/

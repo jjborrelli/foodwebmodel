@@ -343,6 +343,12 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
 		depthVector[i]=readProcessedData.depth[i];
 	}
+
+	/* Store phosphorus concentration at bottom*/
+	phosphorus_concentration_at_bottom_in_hour= new physicalType[readProcessedData.simulationCycles];
+	for(int i=0; i<readProcessedData.simulationCycles; i++){
+		phosphorus_concentration_at_bottom_in_hour[i]=readProcessedData.phosphorusConcentrationAtBottom[i];
+	}
 	/*Copy arrays that depend on maximum depth*/
 	for(int i=0; i<MAX_DEPTH_INDEX; i++){
 		this->temperature_range[i]=readProcessedData.temperature_range[i];
@@ -591,7 +597,12 @@ void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 /*Phosphorous concentration at a given depth*/
 
 void FoodWebModel::FoodWebModel::phosphorusConcentrationAtDepth(int depthIndex, int columnIndex){
-	chemicalConcentrationAtDepth(depthIndex, columnIndex, PHOSPHORUS_CONCENTRATION_AT_BOTTOM);
+	physicalType phosphorus_at_bottom = PHOSPHORUS_CONCENTRATION_AT_BOTTOM;
+	#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
+		phosphorus_at_bottom = phosphorus_concentration_at_bottom_in_hour[current_hour];
+	#endif
+	chemicalConcentrationAtDepth(depthIndex, columnIndex, phosphorus_at_bottom);
+
 }
 
 /*Salt concentration at a given depth*/
@@ -676,6 +687,12 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Calculating resource limitation as product."<<endl;
 #endif
+#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
+	cout<<"Using time-variable phosphorus concentration at bottom."<<endl;
+#else
+	cout<<"Using constant phosphorus concentration at bottom."<<endl;
+#endif
+	cout<<"Using algae biomass differential weight "<<ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE<<"."<<endl;
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
@@ -800,11 +817,13 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 #else
 	used_grazing=locale_grazing;
 #endif
+#ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottomFeeder){
 		periBiomass[columnIndex]-=used_grazing;
 	} else{
 		phytoBiomass[depthIndex][columnIndex]-=used_grazing;
 	}
+#endif
 }
 
 /* Food consumption (AquaTox Documentation, page 105, equation 97)*/

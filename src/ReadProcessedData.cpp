@@ -118,6 +118,7 @@ void FoodWebModel::ReadProcessedData::readLightAtSurface(const string& lightRout
 
 void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& simArguments){
 	/*Read depth and temperature data*/
+	this->simulationCycles=simArguments.simulationCycles;
 	readDepthScale(simArguments.depthScaleRoute);
 	readDepth(simArguments.depthRoute);
 	readInitialTemperature(simArguments.initialTemperatureRoute);
@@ -126,6 +127,7 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
 	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferential);
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
+	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottom);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
 void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){
@@ -199,4 +201,11 @@ void FoodWebModel::ReadProcessedData::readBaseAlgaeBiomassDifferential(const str
 	cout<<"Reading base algae biomass differential from file: "<<biomassDifferentialRoute<<endl;
 	readValues<physicalType>(biomassDifferentialRoute, baseBiomassDifferential);
 	cout<<"Base algae biomass read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readPhosphorusConcentrationAtBottom(const string& phosphorusConcentrationAtBottomRoute){
+	cout<<"Reading phosphorus concentration at bottom from file: "<<phosphorusConcentrationAtBottomRoute<<endl;
+	phosphorusConcentrationAtBottom = new physicalType[this->simulationCycles];
+	readValues<physicalType>(phosphorusConcentrationAtBottomRoute, phosphorusConcentrationAtBottom);
+	cout<<"Phosphorus concentration at bottom read."<<endl;
 }

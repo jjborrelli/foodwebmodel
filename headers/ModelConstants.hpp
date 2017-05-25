@@ -29,6 +29,11 @@
 
 #define ADD_CONSTANT_BIOMASS_DIFFERENTIAL
 //#define ADD_VARIABLE_BIOMASS_DIFFERENTIAL
+
+//#define GRAZING_EFFECT_ON_ALGAE_BIOMASS
+
+
+#define TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
 /* End simulation modes*/
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
@@ -207,11 +212,11 @@ static const biomassType SINKING_DEPTH_WEIGHT = 0.3f;
 
 /* Added factor to increase convergence of biomass*/
 
-//static const double BIOMASS_DIFFERENTIAL_SCALE=1.0f;
-//static const double BIOMASS_DIFFERENTIAL_SCALE=0.1f;
-//static const double BIOMASS_DIFFERENTIAL_SCALE=0.05f;
-//static const physicalType BIOMASS_DIFFERENTIAL_SCALE=2.75f;
-static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE=1.0f, ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.0006594164f;
+static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE=1.0f;
+//static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=1.0f;
+//static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.0006594164f; //Using data without grazers removal
+static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.04728224; //Using data with grazers removal
+
 static const unsigned int BURNIN_MAX_CYCLE=1;
 
 /* Time and spatial resolution constants for simulation*/

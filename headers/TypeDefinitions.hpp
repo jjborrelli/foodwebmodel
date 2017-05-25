@@ -29,8 +29,9 @@ typedef struct {
 	initialAlgaeBiomassRoute,
 	initialZooplanktonCountRoute,
 	lightAtSurfaceRoute,
-	biomassBaseDifferential;
-	int simulationCycles;
+	biomassBaseDifferential,
+	phosphorusConcentrationAtBottom;
+	unsigned int simulationCycles;
 } SimulationArguments;
 
 #endif /* TYPEDEFINITIONS_HPP_ */

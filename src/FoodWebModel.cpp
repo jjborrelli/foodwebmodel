@@ -693,6 +693,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Using constant phosphorus concentration at bottom."<<endl;
 #endif
+#ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
+	cout<<"Grazing removed from algae biomass."<<endl;
+#else
+	cout<<"Grazing kept in algae biomass."<<endl;
+#endif
 	cout<<"Using algae biomass differential weight "<<ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE<<"."<<endl;
 }
 

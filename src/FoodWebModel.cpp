@@ -37,7 +37,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeType, PriorAlgaeBiomass, AlgaeVerticalMigration, Time\n";
 	outputSloughFile<<"Depth, Column, AlgaeType, Time, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass\n";
-	outputGrazerFile<<"Depth, Column, Time, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, BottomFeeder, GrazerBiomassDifferential, GrazerBiomass, GrazerCount\n";
+	outputGrazerFile<<"Depth, Column, Time, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, BottomFeeder, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount\n";
 
 
 	for(current_hour=0; current_hour<simArguments.simulationCycles; current_hour++){
@@ -806,6 +806,8 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	lineBuffer<<commaString<<bottomFeeder?1:0;
 	lineBuffer<<commaString<<localeBiomassDifferential;
 	lineBuffer<<commaString<<localeZooplanktonBiomass;
+	lineBuffer<<commaString<<localeAlgaeBiomass;
+	lineBuffer<<commaString<<bottomFeeder?periBiomass[columnIndex]:phytoBiomass[columnIndex][depthIndex];
 	return localeBiomassDifferential;
 }
 
@@ -825,16 +827,18 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 #endif
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottomFeeder){
-		periBiomass[columnIndex]-=used_grazing;
+		periBiomass[columnIndex]= periBiomass[columnIndex] - used_grazing;
+		priorPeriBiomass[columnIndex]= priorPeriBiomass[columnIndex] - used_grazing;
 	} else{
-		phytoBiomass[depthIndex][columnIndex]-=used_grazing;
+		phytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex] - used_grazing;
+		priorPhytoBiomass[depthIndex][columnIndex]= priorPhytoBiomass[depthIndex][columnIndex] - used_grazing;
 	}
 #endif
 }
 
 /* Food consumption (AquaTox Documentation, page 105, equation 97)*/
 void FoodWebModel::FoodWebModel::defecation(){
-	used_grazing = DEFECATION_COEFFICIENT*used_grazing;
+	locale_defecation = DEFECATION_COEFFICIENT*used_grazing;
 }
 
 /* Zooplankton respiration (AquaTox Documentation, page 106, equation 100)*/

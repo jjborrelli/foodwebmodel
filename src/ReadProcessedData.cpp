@@ -67,7 +67,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 }
 
 template<typename T>
-void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* readArray){
+void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* readArray, bool plotReadParameter, unsigned int readLimit){
 	ifstream dataFile;
 	string readLine;
 	/* Store the file content in a vector*/
@@ -77,8 +77,11 @@ void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* rea
 	/* Read until there are no more lines*/
 	  if (dataFile.is_open())
 	  {
-		  while ( getline (dataFile,readLine) )
+		  while ( getline (dataFile,readLine)&&(readLimit<0||arrayIndex<readLimit) )
 		     {
+			  if(plotReadParameter){
+				  cout<<"Reading parameter index: "<<arrayIndex<<"."<<endl;
+			  }
 			  readArray[arrayIndex++]=std::stod(readLine.c_str());
 		     }
 		  dataFile.close();
@@ -206,6 +209,7 @@ void FoodWebModel::ReadProcessedData::readBaseAlgaeBiomassDifferential(const str
 void FoodWebModel::ReadProcessedData::readPhosphorusConcentrationAtBottom(const string& phosphorusConcentrationAtBottomRoute){
 	cout<<"Reading phosphorus concentration at bottom from file: "<<phosphorusConcentrationAtBottomRoute<<endl;
 	phosphorusConcentrationAtBottom = new physicalType[this->simulationCycles];
-	readValues<physicalType>(phosphorusConcentrationAtBottomRoute, phosphorusConcentrationAtBottom);
+	cout<<"Allocated phosphorus concentration at bottom with size "<<this->simulationCycles<<endl;
+	readValues<physicalType>(phosphorusConcentrationAtBottomRoute, phosphorusConcentrationAtBottom, false, this->simulationCycles);
 	cout<<"Phosphorus concentration at bottom read."<<endl;
 }

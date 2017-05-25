@@ -31,7 +31,7 @@ namespace FoodWebModel{
 		void readModelData(const SimulationArguments& simArguments);
 	protected:
 		template<typename T>
-		void readValues(const string& route, T* readArray);
+		void readValues(const string& route, T* readArray, bool plotReadParameter = false, unsigned int readLimit=-1);
 		void readDepth(const string& depthFileRoute);
 		void readInitialTemperature(const string& initialTemperatureRoute);
 		void readTemperatureRange(const string& temperatureRangeRoute);

@@ -83,7 +83,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		lineBuffer.clear();
 		bool registerPeriBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
 		/*Register previous biomass*/
-		priorPeriBiomass[columnIndex] = periBiomass[columnIndex];
+//		priorPeriBiomass[columnIndex] = periBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
 		periBiomassDifferential[columnIndex] = algaeBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 		/* Save periphyton biomass for later registering in file*/
@@ -96,14 +96,15 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 			lineBuffer.clear();
 			/* Do not register biomass for empty cells. Since this is the bottom of the lake, do not register biomass below it*/
 			if(depthVector[columnIndex]<indexToDepth[depthIndex]){
-				phytoBiomass[depthIndex][columnIndex]=priorPhytoBiomass[depthIndex][columnIndex]=0.0f;
+				phytoBiomass[depthIndex][columnIndex]=0.0f;
+//				priorPhytoBiomass[depthIndex][columnIndex]=0.0f;
 				registerPhytoBiomass[depthIndex][columnIndex]=false;
 				break;
 			} else{
 				/*Set if biomass must be registered*/
 				registerPhytoBiomass[depthIndex][columnIndex]=depthIndex%DEPTH_OUTPUT_RESOLUTION==0&&columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
 				/*Register previous biomass*/
-				priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
+//				priorPhytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
 				phytoBiomassDifferential[depthIndex][columnIndex] = algaeBiomassDifferential(depthIndex, columnIndex, false);
 				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
@@ -155,7 +156,8 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton){
 
 	/*Calculate temporal and spatially local values that will be used to calculate biomass differential*/
-	biomassType localPointBiomass=periPhyton?priorPeriBiomass[columnIndex]:priorPhytoBiomass[depthIndex][columnIndex];
+//	biomassType localPointBiomass=periPhyton?priorPeriBiomass[columnIndex]:priorPhytoBiomass[depthIndex][columnIndex];
+	biomassType localPointBiomass=periPhyton?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
 
 	/* Calculate nutrient limitations*/
 	lightAllowance(depthIndex, columnIndex);
@@ -271,10 +273,12 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	#ifdef STABLE_CHLOROPHYLL
 		if(current_hour>=STABLE_STATE_HOUR){
 			if(periPhyton){
-				totalProductivity= periDifferential[columnIndex]*priorPeriBiomass[columnIndex];
-			} else{
-				totalProductivity= phytoDifferential[depthIndex][columnIndex]*priorPhytoBiomass[depthIndex][columnIndex];
+//				totalProductivity= periDifferential[columnIndex]*priorPeriBiomass[columnIndex];
+				totalProductivity= periDifferential[columnIndex]*periBiomass[columnIndex];
 
+			} else{
+//				totalProductivity= phytoDifferential[depthIndex][columnIndex]*priorPhytoBiomass[depthIndex][columnIndex];
+				totalProductivity= phytoDifferential[depthIndex][columnIndex]*phytoBiomass[depthIndex][columnIndex];
 			}
 		}
 	#endif
@@ -309,7 +313,8 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, int columnIndex){
 	biomassType sumPhytoBiomass=0.0l;
 	for(int i=0; i<depthIndex; i++){
-		sumPhytoBiomass+=priorPhytoBiomass[i][columnIndex];
+//		sumPhytoBiomass+=priorPhytoBiomass[i][columnIndex];
+		sumPhytoBiomass+=phytoBiomass[i][columnIndex];
 	}
 	return sumPhytoBiomass;
 }
@@ -374,24 +379,28 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
 		/* Initialize periphyton and bottom feeder biomass*/
 		this->periDifferential[i] = 0;
-		this->priorPeriBiomass[i]=this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
-		this->priorBottomFeederCount[i]=this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
+//		this->priorPeriBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
+		this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
+//		this->priorBottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
+		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
 
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
 			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
 			this->phytoDifferential[j][i]=0.0f;
 			if(depthVector[i]<indexToDepth[j]||maxDepthIndex[i]==j){
 				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
-				this->phytoBiomass[j][i]=this->priorPhytoBiomass[j][i]=0.0f;
-				this->priorZooplanktonCount[j][i]=this->zooplanktonCount[j][i]=0;
+//				this->priorPhytoBiomass[j][i]=0.0f;
+				this->phytoBiomass[j][i]=0.0f;
+//				this->priorZooplanktonCount[j][i]=0;
+				this->zooplanktonCount[j][i]=0;
 
 				break;
 			} else {
 				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
-				this->priorPhytoBiomass[j][i]=this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
-				this->priorZooplanktonCount[j][i]=this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
-
-
+//				this->priorPhytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+				this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+//				this->priorZooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
+				this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
 			}
 		}
 	}
@@ -720,7 +729,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 		lineBuffer.clear();
 		bool registerBottomFeederBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
 		/*Register previous biomass*/
-		priorBottomFeederCount[columnIndex] = bottomFeederCount[columnIndex];
+//		priorBottomFeederCount[columnIndex] = bottomFeederCount[columnIndex];
 		/*Update biomass and output new biomass*/
 		bottomFeederBiomass[columnIndex] = grazerBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 		/* From biomass to discrete count*/
@@ -760,12 +769,14 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 	zooplanktonCountType localeZooplanktonCount = bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeZooplanktonBiomass = localeZooplanktonCount*DAPHNIA_WEIGHT_IN_GRAMS;
-	biomassType localeAlgaeBiomass = bottomFeeder?this->periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
+	biomassType localeAlgaeBiomass = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];
 
 	stroganovApproximation(localeTemperature);
 	saltConcentrationAtDepth(depthIndex, columnIndex);
 	salinityEffect();
 	foodConsumptionRate(depthIndex,columnIndex,bottomFeeder);
+	biomassType localeAlgaeBiomassAfterGrazing = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];
+
 	defecation();
 	animalRespiration(localeZooplanktonBiomass, localeTemperature);
 	animalExcretion(salinity_corrected_zooplankton_respiration);
@@ -807,7 +818,7 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	lineBuffer<<commaString<<localeBiomassDifferential;
 	lineBuffer<<commaString<<localeZooplanktonBiomass;
 	lineBuffer<<commaString<<localeAlgaeBiomass;
-	lineBuffer<<commaString<<bottomFeeder?periBiomass[columnIndex]:phytoBiomass[columnIndex][depthIndex];
+	lineBuffer<<commaString<<localeAlgaeBiomassAfterGrazing;
 	return localeBiomassDifferential;
 }
 
@@ -828,10 +839,10 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottomFeeder){
 		periBiomass[columnIndex]= periBiomass[columnIndex] - used_grazing;
-		priorPeriBiomass[columnIndex]= priorPeriBiomass[columnIndex] - used_grazing;
+//		priorPeriBiomass[columnIndex]= priorPeriBiomass[columnIndex] - used_grazing;
 	} else{
 		phytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex] - used_grazing;
-		priorPhytoBiomass[depthIndex][columnIndex]= priorPhytoBiomass[depthIndex][columnIndex] - used_grazing;
+//		priorPhytoBiomass[depthIndex][columnIndex]= priorPhytoBiomass[depthIndex][columnIndex] - used_grazing;
 	}
 #endif
 }

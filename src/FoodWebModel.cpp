@@ -366,6 +366,10 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	for(int i=0; i<HOURS_PER_DAY; i++){
 		this->hourlyLightAtSurface[i]=readProcessedData.hourlyLightAtSurface[i];
 	}
+	/*Copy zooplankton biomass center per daily hour*/
+	for(int i=0; i<HOURS_PER_DAY; i++){
+		this->zooplanktonBiomassCenterDifferencePerDepth[i]=readProcessedData.zooplanktonBiomassCenterDifferencePerDepth[i];
+	}
 	/* Calculate maximum depth index*/
 	for(int j=0; j<MAX_DEPTH_INDEX; j++){
 		for(int i=0; i<MAX_COLUMN_INDEX; i++){
@@ -714,6 +718,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 
 void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 	grazerBuffer.str("");
+
 	/*Matrix to store the decision of biomass must be saved. It will be read when registering slough to output slough file*/
 	bool registerZooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	/* Clear vertical migrated phyto biomass*/
@@ -723,6 +728,11 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 			zooplanktonBiomass[depthIndex][columnIndex]=0.0f;
 		}
 	}
+	/*Migrate verically zooplankton according to current time */
+#ifdef MIGRATE_ZOOPLANKTON_AT_HOUR
+	verticalMigrateZooplanktonCount();
+#endif
+
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		lineBuffer.str("");
@@ -765,8 +775,52 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 	}
 }
 
+
+void FoodWebModel::FoodWebModel::verticalMigrateZooplanktonCount(){
+
+	/* Temporary store zooplankton count in a buffer*/
+	biomassType verticalMigrationZooplanktonBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex] =zooplanktonCount[depthIndex][columnIndex];
+		}
+	}
+
+	/* Migrate biomass with respect to the previous hour*/
+
+	/* First, calculate depth movement with respect to previous hour*/
+	int depth_dependent_hour_shift =zooplanktonBiomassCenterDifferencePerDepth[current_hour%HOURS_PER_DAY];
+	int initial_depth_index=max(0, -depth_dependent_hour_shift), final_depth_index=min(MAX_DEPTH_INDEX, MAX_DEPTH_INDEX-depth_dependent_hour_shift);
+	for(int depthIndex=initial_depth_index; depthIndex<final_depth_index; depthIndex++){
+
+		/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
+		int depth_adjustment=depthIndex+depth_dependent_hour_shift;
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			/* Move zooplankton individuals to the adjusted depth*/
+			zooplanktonCount[depth_adjustment][columnIndex] =verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+		}
+	}
+
+	/* Accumulate unmoved biomass to extreme shallow or deep index*/
+	unsigned int receivingIndex=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX-1:0;
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+
+		/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
+		int depth_adjustment=depthIndex+depth_dependent_hour_shift;
+		if(depth_adjustment<0||depth_adjustment>=MAX_DEPTH_INDEX){
+			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+				/* Move zooplankton individuals to the adjusted depth*/
+				zooplanktonCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+			}
+		}
+	}
+}
+
+
+
 biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder){
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
+
 	zooplanktonCountType localeZooplanktonCount = bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeZooplanktonBiomass = localeZooplanktonCount*DAPHNIA_WEIGHT_IN_GRAMS;
 	biomassType localeAlgaeBiomass = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];

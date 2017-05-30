@@ -131,6 +131,7 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferential);
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
 	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottom);
+	readZooplanktonBiomassCenterDifferencePerDepth(simArguments.zooplanktonBiomassDepthCenter);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
 void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){
@@ -212,4 +213,11 @@ void FoodWebModel::ReadProcessedData::readPhosphorusConcentrationAtBottom(const 
 	cout<<"Allocated phosphorus concentration at bottom with size "<<this->simulationCycles<<endl;
 	readValues<physicalType>(phosphorusConcentrationAtBottomRoute, phosphorusConcentrationAtBottom, this->simulationCycles);
 	cout<<"Phosphorus concentration at bottom read."<<endl;
+}
+
+
+void FoodWebModel::ReadProcessedData::readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute){
+	cout<<"Reading zooplankton biomass center difference per depth at hour from file: "<<zooplanktonBiomassCenterDifferencePerDepthRoute<<endl;
+	readValues<physicalType>(zooplanktonBiomassCenterDifferencePerDepthRoute, zooplanktonBiomassCenterDifferencePerDepth, HOURS_PER_DAY);
+	cout<<"Zooplankton biomass center difference per depth at hour read."<<endl;
 }

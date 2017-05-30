@@ -89,6 +89,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.simulationCycles= atoi(parameterValue.c_str());
 	if(!parameterName.compare("PhosphorusConcentrationAtBottom"))
 		simArguments.phosphorusConcentrationAtBottom= parameterValue.c_str();
+	if(!parameterName.compare("ZooplanktonBiomassDepthCenter"))
+		simArguments.zooplanktonBiomassDepthCenter= parameterValue.c_str();
 }
 
 //

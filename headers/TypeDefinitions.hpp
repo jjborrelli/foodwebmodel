@@ -30,7 +30,8 @@ typedef struct {
 	initialZooplanktonCountRoute,
 	lightAtSurfaceRoute,
 	biomassBaseDifferential,
-	phosphorusConcentrationAtBottom;
+	phosphorusConcentrationAtBottom,
+	zooplanktonBiomassDepthCenter;
 	unsigned int simulationCycles;
 } SimulationArguments;
 

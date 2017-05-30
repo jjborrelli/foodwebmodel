@@ -36,6 +36,8 @@
 #define TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
 
 #define MIGRATE_ZOOPLANKTON_AT_HOUR
+
+#define ZOOPLANKTON_ACCUMULATION
 /* End simulation modes*/
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)

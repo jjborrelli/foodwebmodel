@@ -711,6 +711,16 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Grazing kept in algae biomass."<<endl;
 #endif
+#ifdef MIGRATE_ZOOPLANKTON_AT_HOUR
+	cout<<"Migrating zooplankton vertically at each hour of the day."<<endl;
+#ifdef ZOOPLANKTON_ACCUMULATION
+	cout<<"Accumulating zooplankton count at extreme depth values."<<endl;
+#else
+	cout<<"Discarding zooplankton excess from vertical migration."<<endl;
+#endif
+#else
+	cout<<"Maintaining zooplankton at each depth at each hour of the day."<<endl;
+#endif
 	cout<<"Using algae biomass differential weight "<<ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE<<"."<<endl;
 }
 
@@ -797,20 +807,31 @@ void FoodWebModel::FoodWebModel::verticalMigrateZooplanktonCount(){
 		int depth_adjustment=depthIndex+depth_dependent_hour_shift;
 		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 			/* Move zooplankton individuals to the adjusted depth*/
-			zooplanktonCount[depth_adjustment][columnIndex] =verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+			if(depth_adjustment<=maxDepthIndex[columnIndex]&&depthIndex<=maxDepthIndex[columnIndex]){
+				zooplanktonCount[depth_adjustment][columnIndex] =verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+			}
 		}
 	}
 
 	/* Accumulate unmoved biomass to extreme shallow or deep index*/
-	unsigned int receivingIndex=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX-1:0;
+
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 
 		/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
 		int depth_adjustment=depthIndex+depth_dependent_hour_shift;
-		if(depth_adjustment<0||depth_adjustment>=MAX_DEPTH_INDEX){
-			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			if(depth_adjustment<0||depth_adjustment>=MAX_DEPTH_INDEX||depth_adjustment>maxDepthIndex[columnIndex]){
 				/* Move zooplankton individuals to the adjusted depth*/
-				zooplanktonCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+				unsigned int receivingIndex=depth_dependent_hour_shift>0?maxDepthIndex[columnIndex]:0;
+#ifdef ZOOPLANKTON_ACCUMULATION
+				bool zooplanktionAccumulationCondition = depthIndex>maxDepthIndex[columnIndex];
+#else
+				bool zooplanktionAccumulationCondition = depthIndex<=maxDepthIndex[columnIndex];
+#endif
+				if(zooplanktionAccumulationCondition){
+					zooplanktonCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+				}
 			}
 		}
 	}

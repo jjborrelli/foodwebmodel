@@ -218,7 +218,9 @@ static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT*MILLIGRAM_TO_GRA
 
 
 /* Threshold beyond no more food is grazed. Taken from (Luecke et al. , 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
-static const biomassType FEEDING_SATURATION=0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
+static const biomassType FEEDING_SATURATION_ADJUSTMENT = 10.0f;
+
+static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
 
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 

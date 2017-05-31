@@ -705,6 +705,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Maintaining zooplankton at each depth at each hour of the day."<<endl;
 #endif
 	cout<<"Using algae biomass differential weight "<<ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE<<"."<<endl;
+	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/

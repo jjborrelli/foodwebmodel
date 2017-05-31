@@ -8,37 +8,12 @@
 #ifndef MODELCONSTANTS_HPP_
 #define MODELCONSTANTS_HPP_
 #include "TypeDefinitions.hpp"
-/* Simulation modes*/
-/* If running in Windows OS, use debug mode*/
+
 #if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
 	#define DEBUG_MODE
 #endif
-#define HOMOGENEOUS_DEPTH
-//#define RADIATED_CHEMICAL
-#define EXPONENTIAL_LIGHT
-//#define ADJUST_SALINITY_GRAZERS
-//#define IBM_MODEL_TEMPERATURE
-//#define STABLE_CHLOROPHYLL
-//#define USE_PHOTOPERIOD
 
-#define LIMITATION_MINIMUM
-
-#define USE_LITERATURE_AND_DATA_CONSTANTS
-
-//#define ADDITIVE_TURBIDITY
-
-#define ADD_CONSTANT_BIOMASS_DIFFERENTIAL
-//#define ADD_VARIABLE_BIOMASS_DIFFERENTIAL
-
-#define GRAZING_EFFECT_ON_ALGAE_BIOMASS
-
-
-#define TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
-
-#define MIGRATE_ZOOPLANKTON_AT_HOUR
-
-#define ZOOPLANKTON_ACCUMULATION
-/* End simulation modes*/
+#include "SimulationModes.hpp"
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
  * Since we do not consider any feedback from the food water to the geophysical model, we assume that Light Extinction = Water Extinction

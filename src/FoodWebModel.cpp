@@ -23,7 +23,7 @@ string operator+(string arg1, int arg2){
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	/*CSV file to write the output. Useful for calibration*/
 	printSimulationMode();
-	cout<<"Simulation started."<<endl;
+	cout<<"Simulation started for "<<simArguments.simulationCycles<<" cycles."<<endl;
 	ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
 	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
 	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());

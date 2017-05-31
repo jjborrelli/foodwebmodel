@@ -21,9 +21,6 @@ int main(int argc, char **argv) {
 	FoodWebModel::ParameterReader reader;
 	reader.readSimulationParameters(argv[1]);
 	SimulationArguments *simArguments =&reader.simArguments;
-	/* Set parameters values*/
-
-	int simulationCycles =  simArguments->simulationCycles;
 
 	/* Initialize and run the simulator*/
 	FoodWebModel::FoodWebModel foodWebModel(*simArguments);

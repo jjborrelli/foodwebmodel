@@ -218,17 +218,22 @@ static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT*MILLIGRAM_TO_GRA
 
 
 /* Threshold beyond no more food is grazed. Taken from (Luecke et al. , 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
-static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;
+//static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;
+static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
 
 static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
-
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 
 
 static const physicalType MILLILITERS_TO_M3=1000000.0f;
 /*The average grazing proportion has been taken from the average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters) */
 
-static const biomassType WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=260.9333f/MILLILITERS_TO_M3, DEFECATION_COEFFICIENT=0.3f;
+static const biomassType
+//		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=260.9333f/MILLILITERS_TO_M3,
+WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=2609.333f/MILLILITERS_TO_M3,
+//		DEFECATION_COEFFICIENT=0.3f;
+//		DEFECATION_COEFFICIENT=0.1f;
+		DEFECATION_COEFFICIENT=0.03f;
 
 /* Basal respiration rate. It needs to be adjusted*/
 
@@ -259,7 +264,8 @@ static const biomassType STROGANOV_ADJUSTMENT = 1.0f;
 static const biomassType STROGANOV_ADJUSTMENT = 2.0f;
 #endif
 
-static const biomassType RESPIRATION_ADJUSTMENT = 0.2f;
+//static const biomassType RESPIRATION_ADJUSTMENT = 0.2f;
+static const biomassType RESPIRATION_ADJUSTMENT = 0.02f;
 
 /* Temperature sigmoid constants*/
 

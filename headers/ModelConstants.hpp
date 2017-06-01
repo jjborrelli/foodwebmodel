@@ -91,8 +91,8 @@ static const biomassType PROPORTION_EXCRETION_PHOTOSYNTHESIS=0.04f;
  * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
 
-static const biomassType INTRINSIC_MORTALITY_RATE=0.019f;
-//static const double INTRINSIC_MORTALITY_RATE=0.0019f;
+static const biomassType INTRINSIC_ALGAE_MORTALITY_RATE=0.019f;
+//static const double INTRINSIC_ALGAE_MORTALITY_RATE=0.0019f;
 
 /*
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
@@ -217,10 +217,11 @@ static const biomassType DAPHNIA_WEIGHT=22.00f;
 static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT*MILLIGRAM_TO_GRAM;
 
 
-/* Threshold beyond no more food is grazed. Taken from (Luecke et al. , 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
+/* Threshold beyond no more food is grazed. Taken from (Luecke et al., 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;
-static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
-
+//static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
+//static const biomassType FEEDING_SATURATION_ADJUSTMENT = 5.0f;
+static const biomassType FEEDING_SATURATION_ADJUSTMENT = 1.0f;
 static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 
@@ -229,11 +230,15 @@ static const physicalType MILLILITERS_TO_M3=1000000.0f;
 /*The average grazing proportion has been taken from the average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters) */
 
 static const biomassType
-//		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=260.9333f/MILLILITERS_TO_M3,
-WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=2609.333f/MILLILITERS_TO_M3,
+WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS=260.9333f,
+		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS/MILLILITERS_TO_M3,
+//WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=2609.333f/MILLILITERS_TO_M3,
+//WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=6262.399f/MILLILITERS_TO_M3, // Stable algae biomass
+//WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=365.4528f/MILLILITERS_TO_M3,
 //		DEFECATION_COEFFICIENT=0.3f;
 //		DEFECATION_COEFFICIENT=0.1f;
-		DEFECATION_COEFFICIENT=0.03f;
+//		DEFECATION_COEFFICIENT=0.03f;
+DEFECATION_COEFFICIENT=0.01f;
 
 /* Basal respiration rate. It needs to be adjusted*/
 
@@ -249,7 +254,10 @@ static const biomassType K_RESP=0.05f;
 
 
 /* Animal base mortality*/
-static const biomassType ANIMAL_BASE_MORTALITY = 0.05f;
+//static const biomassType ANIMAL_BASE_MORTALITY = 0.05f;
+static const biomassType ANIMAL_BASE_MORTALITY = 0.00005f;
+//static const biomassType ANIMAL_BASE_MORTALITY = 0.0f;
+
 
 /* Salinity thresholds*/
 
@@ -257,6 +265,7 @@ static const biomassType MIN_SALINITY = 0.0f, MAX_SALINITY=2.245f, SALINITY_COEF
 
 /* Excretion percentage of respiration (AquaTox Documentation, page 110)*/
 static const biomassType EXCRETION_RESPIRATION_PROPORTION=0.17f;
+//static const biomassType EXCRETION_RESPIRATION_PROPORTION=0.017f;
 
 #ifdef USE_LITERATURE_AND_DATA_CONSTANTS
 static const biomassType STROGANOV_ADJUSTMENT = 1.0f;

@@ -445,7 +445,7 @@ void FoodWebModel::FoodWebModel::algaeExcretion(){
 void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
 	algaeHighTemperatureMortality(localeTemperature);
 	resourceLimitationStress(localeLimitationProduct);
-	algae_natural_mortality = -(INTRINSIC_MORTALITY_RATE+high_temperature_mortality+weighted_resource_limitation_stress)*localPointBiomass;
+	algae_natural_mortality = -(INTRINSIC_ALGAE_MORTALITY_RATE+high_temperature_mortality+weighted_resource_limitation_stress)*localPointBiomass;
 }
 
 /*
@@ -706,6 +706,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 	cout<<"Using algae biomass differential weight "<<ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
+	cout<<"Using grazer water filtering per individual "<<WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS<<" milliliters/hour."<<endl;
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/

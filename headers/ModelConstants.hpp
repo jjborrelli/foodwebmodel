@@ -194,7 +194,6 @@ static const biomassType SINKING_DEPTH_WEIGHT = 0.3f;
 static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE=1.0f;
 //static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=1.0f;
 //static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.0006594164f; //Using data without grazers removal
-static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.04728224; //Using data with grazers removal
 
 static const unsigned int BURNIN_MAX_CYCLE=1;
 

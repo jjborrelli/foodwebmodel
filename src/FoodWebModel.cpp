@@ -21,13 +21,13 @@ string operator+(string arg1, int arg2){
 
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
-	/*CSV file to write the output. Useful for calibration*/
+	this->algae_biomass_differential_production_scale = simArguments.algae_biomass_differential_production_scale;
 	printSimulationMode();
 	cout<<"Simulation started for "<<simArguments.simulationCycles<<" cycles."<<endl;
+	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
 	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
 	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
-	/*Slough will be registered in a different file*/
 	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
 	/*Report successful open files*/
 	cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
@@ -64,7 +64,7 @@ void FoodWebModel::FoodWebModel::step(){
 
 void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 	/*Use different algae biomass differential weights for burn-in and production*/
-	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE;
+	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:this->algae_biomass_differential_production_scale;
 	algaeBuffer.str("");
 	sloughBuffer.str("");
 	/* Clear vertical migrated phyto biomass*/
@@ -704,7 +704,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Maintaining zooplankton at each depth at each hour of the day."<<endl;
 #endif
-	cout<<"Using algae biomass differential weight "<<ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE<<"."<<endl;
+	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS<<" milliliters/hour."<<endl;
 }

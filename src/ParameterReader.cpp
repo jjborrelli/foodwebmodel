@@ -91,6 +91,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.phosphorusConcentrationAtBottom= parameterValue.c_str();
 	if(!parameterName.compare("ZooplanktonBiomassDepthCenter"))
 		simArguments.zooplanktonBiomassDepthCenter= parameterValue.c_str();
+	if(!parameterName.compare("AlgaeBiomassDifferentialScale"))
+		simArguments.algae_biomass_differential_production_scale=  atof(parameterValue.c_str());
 }
 
 //

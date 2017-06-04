@@ -38,6 +38,9 @@ namespace FoodWebModel {
 
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phytoBiomassDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomassDifferential[MAX_COLUMN_INDEX], baseAlgaeBiomassDifferential[MAX_DEPTH_INDEX];
+
+		/*Algae differential growth*/
+		biomassType algae_biomass_differential_production_scale;
 		/* Grazer biomass*/
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
@@ -47,7 +50,7 @@ namespace FoodWebModel {
 		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX], priorZooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederCount[MAX_COLUMN_INDEX];
 		/*A vector to reference the calculated biomass*/
 
-		double fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
+		physicalType fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
 
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;

@@ -48,7 +48,7 @@ void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& 
 	parametersFile.open(parameterFileName);
 	if(parametersFile.is_open()){
 		/*Read while there are lines left in the file*/
-		std::cout<<"Reading parameters from file "<<parameterFileName;
+		std::cout<<"Reading parameters from file "<<parameterFileName<<"."<<endl;
 		while(!parametersFile.eof()){
 			parametersFile >> file_buffer;
 			/*Split the line and set the value associated to the name*/
@@ -57,7 +57,7 @@ void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& 
 
 		}
 		parametersFile.close();
-		std::cout<<"Closed parameter file "<<parameterFileName;
+		std::cout<<"Closed parameter file "<<parameterFileName<<"."<<endl;
 	}
 
 }

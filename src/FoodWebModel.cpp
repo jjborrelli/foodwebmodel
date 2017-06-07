@@ -779,7 +779,7 @@ void FoodWebModel::FoodWebModel::verticalMigrateZooplanktonCount(){
 	/* Migrate biomass with respect to the previous hour*/
 
 	/* First, calculate depth movement with respect to previous hour*/
-	int depth_dependent_hour_shift =zooplanktonBiomassCenterDifferencePerDepth[current_hour%HOURS_PER_DAY];
+	int depth_dependent_hour_shift =current_hour==0?INITIAL_ZOOPLANKTON_SHIFT:zooplanktonBiomassCenterDifferencePerDepth[current_hour%HOURS_PER_DAY];
 
 	/*If there exists a movement in zooplankton across depth*/
 	if(depth_dependent_hour_shift!=0){

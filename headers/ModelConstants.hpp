@@ -9,9 +9,9 @@
 #define MODELCONSTANTS_HPP_
 #include "TypeDefinitions.hpp"
 
-#if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
-	#define DEBUG_MODE
-#endif
+//#if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
+//	#define DEBUG_MODE
+//#endif
 
 #include "SimulationModes.hpp"
 /*
@@ -215,6 +215,10 @@ static const biomassType DAPHNIA_WEIGHT=22.00f;
 
 static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT*MILLIGRAM_TO_GRAM;
 
+
+/*Initial zooplankton vertical shift*/
+
+static const biomassType INITIAL_ZOOPLANKTON_SHIFT=22;
 
 /* Threshold beyond no more food is grazed. Taken from (Luecke et al., 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;

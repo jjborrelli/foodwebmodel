@@ -31,11 +31,13 @@ namespace FoodWebModel {
 		/*Class attributes*/
 	protected:
 		ReadProcessedData readProcessedData;
-		int current_hour, ZMaxIndex;
+		unsigned int current_hour, ZMaxIndex;
 		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour;
-		int maxDepthIndex[MAX_COLUMN_INDEX];
+		unsigned int maxDepthIndex[MAX_COLUMN_INDEX];
 
+		/*Register lake intensity for zooplankton migration*/
+		physicalType lakeLightAtDepth[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], previousLakeLightAtDepth[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		/*Phytoplankton biomass, periphyton biomass and temperature*/
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phytoBiomassDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomassDifferential[MAX_COLUMN_INDEX], baseAlgaeBiomassDifferential[MAX_DEPTH_INDEX];
 
@@ -48,6 +50,7 @@ namespace FoodWebModel {
 		biomassType used_grazing;
 		/* Grazer count*/
 		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX], priorZooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederCount[MAX_COLUMN_INDEX];
+		biomassType grazerPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		/*A vector to reference the calculated biomass*/
 
 		physicalType fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
@@ -71,8 +74,11 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
-		biomassType grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality;
+		biomassType grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality, grazer_predatory_pressure;
 		physicalType salinity_exponent, stroganov_adjustment;
+
+		/* Zooplankton parameter weights*/
+		biomassType animal_base_mortality_proportion;
 
 	public:
 		FoodWebModel(const SimulationArguments& simArguments);
@@ -117,6 +123,8 @@ namespace FoodWebModel {
 		/* Grazers biomass*/
 		void updateZooplanktonBiomass();
 		void verticalMigrateZooplanktonCount();
+		void verticalMigrateZooplanktonAlgae();
+		void calculateLocalPreferenceScore();
 		biomassType grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder);
 
 		void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder);
@@ -132,8 +140,8 @@ namespace FoodWebModel {
 		void salinityEffect();
 		void salinityMortality(biomassType localeBiomass);
 		void stroganovApproximation(physicalType localeTemperature);
-
-	};
+		void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
+};
 }
 
 

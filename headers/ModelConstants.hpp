@@ -207,20 +207,31 @@ static const unsigned int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, D
 
 static const unsigned int STABLE_STATE_HOUR=10;
 
-/* Individual Daphnia dry weight. Taken from (Baudouin and Ravera, 1972, Weight, size and chemical composition of some freshwater zooplankters: Daphnia Hyalina (Leydig)) (in milligrams) */
+/* Individual Daphnia dry weight. Taken from (Baudouin and Ravera, 1972, Weight, size and chemical composition of some freshwater zooplankters: Daphnia hyalina (Leydig)) (in milligrams) */
 
-static const biomassType MILLIGRAM_TO_GRAM=1.0f/1000.0f;
+static const biomassType MICROGRAM_TO_GRAM=1.0f/1000000.0f;
 
-static const biomassType DAPHNIA_WEIGHT=22.00f;
+static const biomassType DAPHNIA_WEIGHT_IN_MICROGRAMS=47.41f;
 
-static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT*MILLIGRAM_TO_GRAM;
+static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT_IN_MICROGRAMS*MICROGRAM_TO_GRAM;
 
 
 /*Initial zooplankton vertical shift*/
 
-static const biomassType INITIAL_ZOOPLANKTON_SHIFT=22;
+static const unsigned int INITIAL_ZOOPLANKTON_SHIFT=22;
 
-/* Threshold beyond no more food is grazed. Taken from (Luecke et al., 1992, Impacts of Variation in Planktivorous Fish on Abundance of Daphnids: A Simulation Model of the Lake Mendota Food Web, page 410, table 20-1) in grams algae/grams grazer/day.*/
+/*Maximum distance in meters for daphnia swum per hour (B.-P. Han and M. Straškraba, “Modeling patterns of zooplankton diel vertical migration,” J. Plankton Res., vol. 20, no. 8, pp. 1463–1487, 1998.)*/
+
+static const physicalType MODEL_DEPTH=23.0f;
+
+static const biomassType MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR=3.5f;
+static const int	MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_ROWS_PER_HOUR=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR*MAX_COLUMN_INDEX/MODEL_DEPTH,
+		VERTICAL_MIGRATION_BUFFER_SIZE=2*MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_ROWS_PER_HOUR+1
+		;
+
+static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
+
+/* Threshold beyond no more food is grazed. Taken from (Luecke et al., 1992, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1) in grams algae/grams grazer/day.*/
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 5.0f;
@@ -228,12 +239,12 @@ static const biomassType FEEDING_SATURATION_ADJUSTMENT = 1.0f;
 static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 
-
 static const physicalType MILLILITERS_TO_M3=1000000.0f;
-/*The average grazing proportion has been taken from the average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters) */
+/* The average grazing proportion has been taken from (Holm et al., 1983, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1 and average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters))
+ *  in grams algae/grams grazer/day.*/
 
 static const biomassType
-WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS=260.9333f,
+WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS=0.6439372f,
 		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS/MILLILITERS_TO_M3,
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=2609.333f/MILLILITERS_TO_M3,
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=6262.399f/MILLILITERS_TO_M3, // Stable algae biomass
@@ -257,8 +268,8 @@ static const biomassType K_RESP=0.05f;
 
 
 /* Animal base mortality*/
-//static const biomassType ANIMAL_BASE_MORTALITY = 0.05f;
-static const biomassType ANIMAL_BASE_MORTALITY = 0.00005f;
+//static const biomassType ANIMAL_BASE_MORTALITY = 0.025f;
+//static const biomassType ANIMAL_BASE_MORTALITY = 0.00005f;
 //static const biomassType ANIMAL_BASE_MORTALITY = 0.0f;
 
 

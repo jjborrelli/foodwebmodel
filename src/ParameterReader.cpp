@@ -93,6 +93,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.zooplanktonBiomassDepthCenter= parameterValue.c_str();
 	if(!parameterName.compare("AlgaeBiomassDifferentialScale"))
 		simArguments.algae_biomass_differential_production_scale=  atof(parameterValue.c_str());
+	if(!parameterName.compare("AnimalBaseMortality"))
+		simArguments.animal_base_mortality_proportion=  atof(parameterValue.c_str());
 }
 
 //

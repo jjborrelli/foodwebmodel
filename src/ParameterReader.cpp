@@ -77,6 +77,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.outputSloughRoute= parameterValue;
 	if(!parameterName.compare("OutputGrazerRoute"))
 		simArguments.outputGrazerRoute= parameterValue;
+	if(!parameterName.compare("OutputParameterRoute"))
+		simArguments.outputParameterRoute= parameterValue;
 	if(!parameterName.compare("InitialAlgaeBiomassRoute"))
 		simArguments.initialAlgaeBiomassRoute= parameterValue;
 	if(!parameterName.compare("InitialZooplanktonCountRoute"))
@@ -88,9 +90,9 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	if(!parameterName.compare("SimulationCycles"))
 		simArguments.simulationCycles= atoi(parameterValue.c_str());
 	if(!parameterName.compare("PhosphorusConcentrationAtBottom"))
-		simArguments.phosphorusConcentrationAtBottom= parameterValue.c_str();
+		simArguments.phosphorusConcentrationAtBottom= parameterValue;
 	if(!parameterName.compare("ZooplanktonBiomassDepthCenter"))
-		simArguments.zooplanktonBiomassDepthCenter= parameterValue.c_str();
+		simArguments.zooplanktonBiomassDepthCenter= parameterValue;
 	if(!parameterName.compare("AlgaeBiomassDifferentialScale"))
 		simArguments.algae_biomass_differential_production_scale=  atof(parameterValue.c_str());
 	if(!parameterName.compare("AnimalBaseMortality"))

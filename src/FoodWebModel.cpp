@@ -23,9 +23,10 @@ string operator+(string arg1, int arg2){
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	this->algae_biomass_differential_production_scale = simArguments.algae_biomass_differential_production_scale;
 	this->animal_base_mortality_proportion = simArguments.animal_base_mortality_proportion;
-
+	this->simulation_cycles= simArguments.simulationCycles;
 	printSimulationMode();
-	cout<<"Simulation started for "<<simArguments.simulationCycles<<" cycles."<<endl;
+	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
+	writeSimulatedParameters(simArguments.outputParameterRoute);
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
 	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
@@ -35,6 +36,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
 	cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
 	cout<<"File "<<simArguments.outputGrazerRoute<<" open for grazer register."<<endl;
+	cout<<"File "<<simArguments.outputParameterRoute<<" open for parameter register."<<endl;
 
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeType, AlgaeVerticalMigration, Time\n";
@@ -46,7 +48,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			this->previousLakeLightAtDepth[depthIndex][columnIndex]=0.0f;
 		}
 	}
-	for(current_hour=0; current_hour<simArguments.simulationCycles; current_hour++){
+	for(current_hour=0; current_hour<simulation_cycles; current_hour++){
 		/* Register standard biomass and slough to file at the given hour frequency*/
 		if(current_hour%TIME_MESSAGE_RESOLUTION==0)
 			cout<<"Simulation hour: "<<current_hour<<endl;
@@ -59,6 +61,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	}
 	outputAlgaeFile.close();
 	outputSloughFile.close();
+	outputGrazerFile.close();
 	cout<<"Simulation finished."<<endl;
 	return 0;
 }
@@ -1123,6 +1126,19 @@ void FoodWebModel::FoodWebModel::calculateDistanceToFocus(){
 		}
 	}
 
+}
+
+void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& parameterSimulationRoute){
+	ofstream parameterFileStream;
+	parameterFileStream.open(parameterSimulationRoute.c_str());
+	if (parameterFileStream.is_open()){
+		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
+		parameterFileStream<<"AnimalBaseMortality;"<<this->animal_base_mortality_proportion<<endl;
+		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
+		parameterFileStream.close();
+	} else {
+		cerr<<"File "<<parameterSimulationRoute<<" could not be opened."<<endl;
+	}
 }
 
 /* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.

@@ -103,8 +103,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 /*Parse additional arguments as a string*/
 void FoodWebModel::ParameterReader::readSimulationParametersFromLine(const std::string& parameterLine){
 	cout<<"Parsing additional parameters."<<endl;
+	/*Parameters are separated by ';'*/
 	vector<string> parameterRead = generalSplit(parameterLine, std::string(";"));
 	for (int parameterIndex = 0; parameterIndex < parameterRead.size(); ++parameterIndex) {
+		/*Parameter name and value are separated by '='*/
 		vector<string> parameterAndValue = generalSplit(parameterRead[parameterIndex], std::string("="));
 		setParameter(parameterAndValue[0], parameterAndValue[1]);
 		cout<<"Parameter "<<parameterAndValue[0]<<" read with value "<<parameterAndValue[1]<<"."<<endl;

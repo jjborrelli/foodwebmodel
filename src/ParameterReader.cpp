@@ -11,7 +11,7 @@
 #include "../headers/ParameterReader.hpp"
 
 
-
+using namespace std;
 /* A function to split strings according to a given delimiter*/
 vector<string> generalSplit(const string& str, const string& delim)
 {
@@ -40,7 +40,7 @@ FoodWebModel::ParameterReader::~ParameterReader() {
 
 
 /* Read the simulation parameters from a text file*/
-void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& parameterFileName){
+void FoodWebModel::ParameterReader::readSimulationParametersFromFile(const std::string& parameterFileName){
 
 	/* Open the parameter file*/
 	ifstream parametersFile;
@@ -62,6 +62,7 @@ void FoodWebModel::ParameterReader::readSimulationParameters(const std::string& 
 
 }
 
+/*Set pair name-value*/
 void FoodWebModel::ParameterReader::setParameter(const std::string& parameterName, const std::string& parameterValue){
 	if(!parameterName.compare("DepthRoute"))
 		simArguments.depthRoute= parameterValue;
@@ -99,6 +100,16 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.animal_base_mortality_proportion=  atof(parameterValue.c_str());
 }
 
+/*Parse additional arguments as a string*/
+void FoodWebModel::ParameterReader::readSimulationParametersFromLine(const std::string& parameterLine){
+	cout<<"Parsing additional parameters."<<endl;
+	vector<string> parameterRead = generalSplit(parameterLine, std::string(";"));
+	for (int parameterIndex = 0; parameterIndex < parameterRead.size(); ++parameterIndex) {
+		vector<string> parameterAndValue = generalSplit(parameterRead[parameterIndex], std::string("="));
+		setParameter(parameterAndValue[0], parameterAndValue[1]);
+		cout<<"Parameter "<<parameterAndValue[0]<<" read with value "<<parameterAndValue[1]<<"."<<endl;
+	}
+}
 //
 //void FoodWebModel::XMLReader::readXMLFile(const std::string& XMLFileName){
 //	xml_document<> doc;

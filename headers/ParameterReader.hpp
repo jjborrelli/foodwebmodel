@@ -24,7 +24,8 @@ public:
 	~ParameterReader();
 //	void readXMLFile(const string&);
 	void setSimulationParameters();
-	void readSimulationParameters(const string&);
+	void readSimulationParametersFromFile(const string&);
+	void readSimulationParametersFromLine(const std::string& parameterLine);
 	void setParameter(const std::string& parameterName, const std::string& parameterValue);
 };
 }

@@ -19,7 +19,11 @@ int main(int argc, char **argv) {
 
 	/* Read file containing the parameters*/
 	FoodWebModel::ParameterReader reader;
-	reader.readSimulationParameters(argv[1]);
+	reader.readSimulationParametersFromFile(argv[1]);
+	/*If existing, parse additional arguments from the command line*/
+	if(argc>2){
+		reader.readSimulationParametersFromLine(argv[2]);
+	}
 	SimulationArguments *simArguments =&reader.simArguments;
 
 	/* Initialize and run the simulator*/

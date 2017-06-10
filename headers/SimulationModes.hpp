@@ -41,6 +41,8 @@
 
 #define ADD_GRAZER_PREDATORY_PRESSURE
 
+//#define CHECK_GRAZER_LOWER_LIMIT
+
 //#define SATURATION_GRAZING
 //#define ZOOPLANKTON_ACCUMULATION
 /* End simulation modes*/

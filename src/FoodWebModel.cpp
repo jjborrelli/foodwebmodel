@@ -61,10 +61,12 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			outputSloughFile<<sloughBuffer.str();
 			outputGrazerFile<<grazerBuffer.str();
 		}
+#ifdef CHECK_GRAZER_LOWER_LIMIT
 		if(this->zooplankton_count_summing<=MINIMUM_VIABLE_GRAZER_POPULATION){
-			cout<<"Simulation halted because the grazer summing is lower than the minimum viable grazer population."<<endl;
+			cout<<"Simulation halted because the grazer summing: "<<this->zooplankton_count_summing<<" is lower than the minimum viable grazer population: "<<MINIMUM_VIABLE_GRAZER_POPULATION<<"."<<endl;
 			break;
 		}
+#endif
 	}
 	outputAlgaeFile.close();
 	outputSloughFile.close();
@@ -733,6 +735,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using sigmoidal predatory pressure on grazers."<<endl;
 #else
 	cout<<"Using no predatory pressure on grazers."<<endl;
+#endif
+#ifdef CHECK_GRAZER_LOWER_LIMIT
+	cout<<"Checking grazer lower limit."<<endl;
 #endif
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;

@@ -220,14 +220,15 @@ static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT_IN_MICROGRAMS*MI
 
 static const unsigned int INITIAL_ZOOPLANKTON_SHIFT=22;
 
+
 /*Maximum distance in meters for daphnia swum per hour (B.-P. Han and M. Straškraba, “Modeling patterns of zooplankton diel vertical migration,” J. Plankton Res., vol. 20, no. 8, pp. 1463–1487, 1998.)*/
 
-static const physicalType MODEL_DEPTH=23.0f;
 
 static const biomassType MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR=3.5f;
-static const int	MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_ROWS_PER_HOUR=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR*MAX_COLUMN_INDEX/MODEL_DEPTH,
-		VERTICAL_MIGRATION_BUFFER_SIZE=2*MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_ROWS_PER_HOUR+1
-		;
+
+/*Minimum viable grazer population*/
+
+static const zooplanktonCountType MINIMUM_VIABLE_GRAZER_POPULATION=100000000;
 
 static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
 

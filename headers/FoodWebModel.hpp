@@ -51,9 +51,15 @@ namespace FoodWebModel {
 		/* Grazer count*/
 		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX], priorZooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederCount[MAX_COLUMN_INDEX];
 		biomassType grazerPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+
+		/*Grazer count summing. The simulation halts below a given number*/
+		zooplanktonCountType zooplankton_count_summing;
 		/*A vector to reference the calculated biomass*/
 
 		physicalType fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
+
+		/*Parameters of daphnia migration*/
+		int maximum_distance_daphnia_swum_in_rows_per_hour, vertical_migration_buffer_size;
 
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;

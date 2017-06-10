@@ -21,9 +21,12 @@ string operator+(string arg1, int arg2){
 
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
+	/*Read numeric parameters*/
 	this->algae_biomass_differential_production_scale = simArguments.algae_biomass_differential_production_scale;
 	this->animal_base_mortality_proportion = simArguments.animal_base_mortality_proportion;
 	this->simulation_cycles= simArguments.simulationCycles;
+	this->maximum_distance_daphnia_swum_in_rows_per_hour=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR*MAX_COLUMN_INDEX/this->ZMax;
+	this->vertical_migration_buffer_size=2*maximum_distance_daphnia_swum_in_rows_per_hour+1;
 	printSimulationMode();
 	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
 	writeSimulatedParameters(simArguments.outputParameterRoute);
@@ -57,6 +60,10 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			outputAlgaeFile<<algaeBuffer.str();
 			outputSloughFile<<sloughBuffer.str();
 			outputGrazerFile<<grazerBuffer.str();
+		}
+		if(this->zooplankton_count_summing<=MINIMUM_VIABLE_GRAZER_POPULATION){
+			cout<<"Simulation halted because the grazer summing is lower than the minimum viable grazer population."<<endl;
+			break;
 		}
 	}
 	outputAlgaeFile.close();
@@ -739,7 +746,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 
 void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 	grazerBuffer.str("");
-
+	/* Clear zooplankton count summing. This will be compared with threshold upper number as a halting condition*/
+	this->zooplankton_count_summing=0;
 	/*Matrix to store the decision of biomass must be saved. It will be read when registering slough to output slough file*/
 	bool registerZooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	/* Clear vertical migrated phyto biomass*/
@@ -788,6 +796,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 				/* From biomass to discrete count*/
 				zooplanktonCount[depthIndex][columnIndex]+=ceil(zooplanktonBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
 				zooplanktonCount[depthIndex][columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, zooplanktonCount[depthIndex][columnIndex]);
+				this->zooplankton_count_summing+=zooplanktonCount[depthIndex][columnIndex];
 				/*If biomass must be registered, register standard phytoplankton biomass*/
 				if(registerZooplanktonBiomass[depthIndex][columnIndex]){
 					grazerBuffer<<lineBuffer.str()<<commaString<<zooplanktonCount[depthIndex][columnIndex]<<endl;
@@ -888,10 +897,10 @@ void FoodWebModel::FoodWebModel::calculateLocalPreferenceScore() {
 /* Distribute preference score and daphnia across neighboring cells. Initially, it will be distributed in the same column.*/
 void FoodWebModel::FoodWebModel::verticalMigrateZooplanktonAlgae(){
 	calculateLocalPreferenceScore();
-	biomassType neighboringPreferences[VERTICAL_MIGRATION_BUFFER_SIZE];
+	biomassType *neighboringPreferences = new biomassType[this->vertical_migration_buffer_size];
 	for (int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX; depthIndex++) {
-		int candidateLowerRowIndex = depthIndex-MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_ROWS_PER_HOUR;
-		int candidateUpperRowIndex = depthIndex+MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_ROWS_PER_HOUR;
+		int candidateLowerRowIndex = depthIndex-this->maximum_distance_daphnia_swum_in_rows_per_hour;
+		int candidateUpperRowIndex = depthIndex+this->maximum_distance_daphnia_swum_in_rows_per_hour;
 		int localeLowerRowIndex=candidateLowerRowIndex<0?0:candidateLowerRowIndex;
 		for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX;columnIndex++) {
 			/* Normalize daphnia preference in neighboring cells from the same column. First, sum preference at neighboring cells*/

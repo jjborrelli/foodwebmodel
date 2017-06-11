@@ -19,14 +19,26 @@ string operator+(string arg1, int arg2){
 	return arg1+bufferString.str();
 }
 
+void FoodWebModel::FoodWebModel::setFileParameters(
+		const SimulationArguments& simArguments) {
+	/*Read numeric parameters*/
+	this->algae_biomass_differential_production_scale =
+			simArguments.algae_biomass_differential_production_scale;
+	this->animal_base_mortality_proportion =
+			simArguments.animal_base_mortality_proportion;
+	this->simulation_cycles = simArguments.simulationCycles;
+	this->maximum_distance_daphnia_swum_in_rows_per_hour =
+			MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX
+					/ this->ZMax;
+	this->vertical_migration_buffer_size = 2
+			* maximum_distance_daphnia_swum_in_rows_per_hour + 1;
+	this->filtering_rate_per_daphnia = simArguments.filtering_rate_per_daphnia;
+	this->filtering_rate_per_daphnia_per_hour=this->filtering_rate_per_daphnia/MILLILITERS_TO_M3;
+}
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	/*Read numeric parameters*/
-	this->algae_biomass_differential_production_scale = simArguments.algae_biomass_differential_production_scale;
-	this->animal_base_mortality_proportion = simArguments.animal_base_mortality_proportion;
-	this->simulation_cycles= simArguments.simulationCycles;
-	this->maximum_distance_daphnia_swum_in_rows_per_hour=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR*MAX_COLUMN_INDEX/this->ZMax;
-	this->vertical_migration_buffer_size=2*maximum_distance_daphnia_swum_in_rows_per_hour+1;
+	setFileParameters(simArguments);
 	printSimulationMode();
 	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
 	writeSimulatedParameters(simArguments.outputParameterRoute);
@@ -741,9 +753,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
-	cout<<"Using grazer water filtering per individual "<<WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS<<" milliliters/hour."<<endl;
+	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_per_hour<<" milliliters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
-	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
 }
 
@@ -1005,9 +1016,9 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 	zooplanktonCountType localeZooplanktonCount=bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeAlgaeBiomass=bottomFeeder?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
 #ifdef SATURATION_GRAZING
-	grazing_per_individual = min<double>(FEEDING_SATURATION,WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR*localeAlgaeBiomass*stroganov_adjustment);
+	grazing_per_individual = min<double>(FEEDING_SATURATION,this->filtering_rate_per_daphnia_per_hour*localeAlgaeBiomass*stroganov_adjustment);
 #else
-	grazing_per_individual = WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR*localeAlgaeBiomass*stroganov_adjustment;
+	grazing_per_individual = this->filtering_rate_per_daphnia_per_hour*localeAlgaeBiomass*stroganov_adjustment;
 
 #endif
 	locale_grazing= grazing_per_individual*localeZooplanktonCount;

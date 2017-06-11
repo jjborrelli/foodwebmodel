@@ -244,16 +244,16 @@ static const physicalType MILLILITERS_TO_M3=1000000.0f;
 /* The average grazing proportion has been taken from (Holm et al., 1983, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1 and average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters))
  *  in grams algae/grams grazer/day.*/
 
-static const biomassType
-WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS=0.6439372f,
-		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS/MILLILITERS_TO_M3,
+//static const biomassType
+//WATER_FILTERING_RATE_PER_INDIVIDDEFECATION_COEFFICIENTUAL_HOUR_MILLILITERS=0.6439372f,
+//		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS/MILLILITERS_TO_M3,
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=2609.333f/MILLILITERS_TO_M3,
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=6262.399f/MILLILITERS_TO_M3, // Stable algae biomass
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=365.4528f/MILLILITERS_TO_M3,
 //		DEFECATION_COEFFICIENT=0.3f;
 //		DEFECATION_COEFFICIENT=0.1f;
 //		DEFECATION_COEFFICIENT=0.03f;
-DEFECATION_COEFFICIENT=0.01f;
+static const biomassType DEFECATION_COEFFICIENT=0.01f;
 
 /* Basal respiration rate. It needs to be adjusted*/
 

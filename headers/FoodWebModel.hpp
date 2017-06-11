@@ -59,7 +59,7 @@ namespace FoodWebModel {
 		physicalType fractionInEuphoticZone, ZEuphotic, ZMean, ZMax, P;
 
 		/*Parameters of daphnia migration*/
-		int maximum_distance_daphnia_swum_in_rows_per_hour, vertical_migration_buffer_size;
+		int maximum_distance_daphnia_swum_in_rows_per_hour, vertical_migration_buffer_size, filtering_rate_per_daphnia, filtering_rate_per_daphnia_per_hour;
 
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;
@@ -98,6 +98,7 @@ namespace FoodWebModel {
 		void initializePointers();
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);
+		void setFileParameters(const SimulationArguments& simArguments);
 
 		/* Physical descriptors*/
 		void lightAtDepth(int depthIndex, int columnIndex);
@@ -148,6 +149,7 @@ namespace FoodWebModel {
 		void salinityMortality(biomassType localeBiomass);
 		void stroganovApproximation(physicalType localeTemperature);
 		void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
+
 };
 }
 

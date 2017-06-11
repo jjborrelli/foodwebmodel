@@ -34,7 +34,7 @@ typedef struct {
 	phosphorusConcentrationAtBottom,
 	zooplanktonBiomassDepthCenter;
 	unsigned int simulationCycles;
-	biomassType algae_biomass_differential_production_scale, animal_base_mortality_proportion;
+	biomassType algae_biomass_differential_production_scale, animal_base_mortality_proportion, filtering_rate_per_daphnia;
 } SimulationArguments;
 
 #endif /* TYPEDEFINITIONS_HPP_ */

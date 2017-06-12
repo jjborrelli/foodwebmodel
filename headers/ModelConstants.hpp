@@ -244,6 +244,8 @@ static const physicalType MILLILITERS_TO_LITER=1000.0f;
 /* The average grazing proportion has been taken from (Holm et al., 1983, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1 and average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters))
  *  in grams algae/grams grazer/day.*/
 
+/* Lenght assumed to be about 22mm from (H. J. Dumont, I. Van De Velde, and S. Dumont, “The Dry Weight Estimate of Biomass in a Selection of Cladocera, Copepoda and Rotifera from the Plankton, Periphyton and Benthos of Continental Waters,” vol. 19, pp. 75–97, 1975.)*/
+
 //static const biomassType
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS=0.6439372f,
 //		WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR=WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS/MILLILITERS_TO_M3,

@@ -33,7 +33,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->vertical_migration_buffer_size = 2
 			* maximum_distance_daphnia_swum_in_rows_per_hour + 1;
 	this->filtering_rate_per_daphnia = simArguments.filtering_rate_per_daphnia;
-	this->filtering_rate_per_daphnia_per_hour=this->filtering_rate_per_daphnia/MILLILITERS_TO_M3;
+	this->filtering_rate_per_daphnia_in_m3=this->filtering_rate_per_daphnia/MILLILITERS_TO_M3;
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -753,7 +753,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
-	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_per_hour<<" milliliters/hour."<<endl;
+	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_m3<<" milliliters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
 }
@@ -1016,9 +1016,9 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 	zooplanktonCountType localeZooplanktonCount=bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeAlgaeBiomass=bottomFeeder?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
 #ifdef SATURATION_GRAZING
-	grazing_per_individual = min<double>(FEEDING_SATURATION,this->filtering_rate_per_daphnia_per_hour*localeAlgaeBiomass*stroganov_adjustment);
+	grazing_per_individual = min<double>(FEEDING_SATURATION,this->filtering_rate_per_daphnia_in_m3*localeAlgaeBiomass*stroganov_adjustment);
 #else
-	grazing_per_individual = this->filtering_rate_per_daphnia_per_hour*localeAlgaeBiomass*stroganov_adjustment;
+	grazing_per_individual = this->filtering_rate_per_daphnia_in_m3*localeAlgaeBiomass*stroganov_adjustment;
 
 #endif
 	locale_grazing= grazing_per_individual*localeZooplanktonCount;

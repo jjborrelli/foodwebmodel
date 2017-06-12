@@ -240,7 +240,7 @@ static const biomassType FEEDING_SATURATION_ADJUSTMENT = 1.0f;
 static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 
-static const physicalType MILLILITERS_TO_M3=1000000.0f;
+static const physicalType MILLILITERS_TO_LITER=1000.0f;
 /* The average grazing proportion has been taken from (Holm et al., 1983, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1 and average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters))
  *  in grams algae/grams grazer/day.*/
 

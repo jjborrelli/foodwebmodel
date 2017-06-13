@@ -786,11 +786,12 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 		lineBuffer.str("");
 		lineBuffer.clear();
 		bool registerBottomFeederBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-		/*Register previous biomass*/
+		/*Transform grazer count to biomass*/
+		bottomFeederBiomass[columnIndex]=((biomassType)bottomFeederCount[columnIndex])*DAPHNIA_WEIGHT_IN_GRAMS;
 		/*Update biomass and output new biomass*/
-		bottomFeederBiomass[columnIndex] = grazerBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+		bottomFeederBiomass[columnIndex]+=grazerBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 		/* From biomass to discrete count*/
-		bottomFeederCount[columnIndex]+=ceil(bottomFeederBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
+		bottomFeederCount[columnIndex]=ceil(bottomFeederBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
 		bottomFeederCount[columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, bottomFeederCount[columnIndex]);
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerBottomFeederBiomass){
@@ -807,10 +808,12 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 			} else{
 				/*Set if biomass must be registered*/
 				registerZooplanktonBiomass[depthIndex][columnIndex]=depthIndex%DEPTH_OUTPUT_RESOLUTION==0&&columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+				/*Transform zooplankton count to biomass*/
+				zooplanktonBiomass[depthIndex][columnIndex]=((biomassType)zooplanktonCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_GRAMS;
 				/*Update biomass and output new biomass*/
-				zooplanktonBiomass[depthIndex][columnIndex] = grazerBiomassDifferential(depthIndex, columnIndex, false);
+				zooplanktonBiomass[depthIndex][columnIndex]+=grazerBiomassDifferential(depthIndex, columnIndex, false);
 				/* From biomass to discrete count*/
-				zooplanktonCount[depthIndex][columnIndex]+=ceil(zooplanktonBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
+				zooplanktonCount[depthIndex][columnIndex]=ceil(zooplanktonBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
 				zooplanktonCount[depthIndex][columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, zooplanktonCount[depthIndex][columnIndex]);
 				this->zooplankton_count_summing+=zooplanktonCount[depthIndex][columnIndex];
 				/*If biomass must be registered, register standard phytoplankton biomass*/
@@ -953,8 +956,9 @@ void FoodWebModel::FoodWebModel::verticalMigrateZooplanktonAlgae(){
 biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder){
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 
+	/* Get zooplankton count and biomass*/
 	zooplanktonCountType localeZooplanktonCount = bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
-	biomassType localeZooplanktonBiomass = localeZooplanktonCount*DAPHNIA_WEIGHT_IN_GRAMS;
+	biomassType localeZooplanktonBiomass = bottomFeeder?bottomFeederBiomass[columnIndex]:zooplanktonBiomass[depthIndex][columnIndex];
 	biomassType localeAlgaeBiomass = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];
 
 	stroganovApproximation(localeTemperature);

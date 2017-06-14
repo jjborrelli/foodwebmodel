@@ -1160,7 +1160,7 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 #else
 	used_grazing=locale_grazing;
 #endif
-	used_grazing=min<biomassType>(localeAlgaeBiomass, used_grazing);
+	 used_grazing=min<biomassType>(localeAlgaeBiomass, used_grazing);
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottomFeeder){
 		periBiomass[columnIndex]= periBiomass[columnIndex] - used_grazing;
@@ -1293,6 +1293,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
 		parameterFileStream<<"AnimalBaseMortality;"<<this->animal_base_mortality_proportion<<endl;
 		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
+		parameterFileStream<<"FilteringRatePerDaphnia;"<<this->filtering_rate_per_daphnia<<endl;
 		parameterFileStream.close();
 	} else {
 		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;

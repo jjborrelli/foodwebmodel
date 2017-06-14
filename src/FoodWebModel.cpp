@@ -128,6 +128,25 @@ void FoodWebModel::FoodWebModel::step(){
 }
 
 void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
+// All algae biomass must be a well-formed number greater than 0
+#ifdef CHECK_ASSERTIONS
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+		if(isnan(periBiomass[columnIndex])||isinf(periBiomass[columnIndex])){
+			assertionViolationBuffer<<"NanInfPeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+		}
+		if(periBiomass[columnIndex]<0.0f){
+			assertionViolationBuffer<<"NegativePeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+		}
+		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+			if(isnan(phytoBiomass[depthIndex][columnIndex])||isinf(phytoBiomass[depthIndex][columnIndex])){
+				assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+			}
+			if(phytoBiomass[depthIndex][columnIndex]<0.0f){
+				assertionViolationBuffer<<"NegativePhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+			}
+		}
+	}
+#endif
 	/*Use different algae biomass differential weights for burn-in and production*/
 	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:this->algae_biomass_differential_production_scale;
 	algaeBuffer.str("");
@@ -151,6 +170,11 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		/*Update biomass and output new biomass*/
 		biomassType previousPeriBiomass=periBiomass[columnIndex];
 		periBiomassDifferential[columnIndex] = algaeBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+#ifdef CHECK_ASSERTIONS
+		if(isnan(periBiomassDifferential[columnIndex])||isinf(periBiomassDifferential[columnIndex])){
+			assertionViolationBuffer<<"NanInfPeriDiff; Peri: "<<periBiomassDifferential[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+		}
+#endif
 		/* Save periphyton biomass for later registering in file*/
 		std::ostringstream copyBuffer;
 		copyBuffer.str("");
@@ -160,7 +184,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 			lineBuffer.str("");
 			lineBuffer.clear();
 			/* Do not register biomass for empty cells. Since this is the bottom of the lake, do not register biomass below it*/
-			if(depthVector[columnIndex]<indexToDepth[depthIndex]){
+			if(depthIndex>maxDepthIndex[columnIndex]){
 				phytoBiomass[depthIndex][columnIndex]=0.0f;
 				registerPhytoBiomass[depthIndex][columnIndex]=false;
 				break;
@@ -174,12 +198,15 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 				phytoBiomassDifferential[depthIndex][columnIndex]*=algae_biomass_differential_scale;
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
 #ifdef CHECK_ASSERTIONS
-		if(phytoBiomass[depthIndex][columnIndex]<0.0f){
-			assertionViolationBuffer<<"NegativePhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
-		}
-		if(phytoBiomass[depthIndex][columnIndex]!=0.0f&&(phytoBiomass[depthIndex][columnIndex]!=previousPhytoBiomass+phytoBiomassDifferential[depthIndex][columnIndex])){
-			assertionViolationBuffer<<"UpdatePhyto; Phyto: "<<phytoBiomass[depthIndex][columnIndex]<<", PreviousPhyto: "<<previousPhytoBiomass<<", PhytoDiff: "<<phytoBiomassDifferential[depthIndex][columnIndex]<<", PhytoError: "<<phytoBiomass[depthIndex][columnIndex]-(previousPhytoBiomass+phytoBiomassDifferential[depthIndex][columnIndex])<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
-		}
+				if(isnan(phytoBiomass[depthIndex][columnIndex])||isinf(phytoBiomass[depthIndex][columnIndex])){
+					assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+				}
+				if(phytoBiomass[depthIndex][columnIndex]<0.0f){
+					assertionViolationBuffer<<"NegativePhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+				}
+				if(phytoBiomass[depthIndex][columnIndex]!=0.0f&&(phytoBiomass[depthIndex][columnIndex]!=previousPhytoBiomass+phytoBiomassDifferential[depthIndex][columnIndex])){
+					assertionViolationBuffer<<"UpdatePhyto; Phyto: "<<phytoBiomass[depthIndex][columnIndex]<<", PreviousPhyto: "<<previousPhytoBiomass<<", PhytoDiff: "<<phytoBiomassDifferential[depthIndex][columnIndex]<<", PhytoError: "<<phytoBiomass[depthIndex][columnIndex]-(previousPhytoBiomass+phytoBiomassDifferential[depthIndex][columnIndex])<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+				}
 #endif
 
 				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<commaString<<current_hour<<endl;
@@ -200,6 +227,9 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		periBiomassDifferential[columnIndex]*=algae_biomass_differential_scale;
 		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
 #ifdef CHECK_ASSERTIONS
+		if(isnan(periBiomass[columnIndex])||isinf(periBiomass[columnIndex])){
+			assertionViolationBuffer<<"NanInfPeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+		}
 		if(periBiomass[columnIndex]<0.0f){
 			assertionViolationBuffer<<"NegativePeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 		}
@@ -219,8 +249,18 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 			phytoBiomass[depthIndex][columnIndex]=max((double)0.0f,phytoBiomass[depthIndex][columnIndex]+sloughPhytoBiomass[depthIndex][columnIndex]);
 			phytoBiomassDifferential[depthIndex][columnIndex]+=sloughPhytoBiomass[depthIndex][columnIndex];
+#ifdef CHECK_ASSERTIONS
+				if(isnan(phytoBiomass[depthIndex][columnIndex])||isinf(phytoBiomass[depthIndex][columnIndex])){
+					assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+				}
+				if(phytoBiomass[depthIndex][columnIndex]<0.0f){
+					assertionViolationBuffer<<"NegativePhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+				}
+
+#endif
+
 			/*If biomass must be registered and the bottom of the lake has not been reached yet, register slough biomass*/
-			if(registerPhytoBiomass[depthIndex][columnIndex]&&depthVector[columnIndex]>=indexToDepth[depthIndex]){
+			if(registerPhytoBiomass[depthIndex][columnIndex]&&depthIndex<=maxDepthIndex[columnIndex]){
 				sloughBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<0<<commaString<<current_hour<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex]<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
 
 			}
@@ -393,6 +433,14 @@ biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, i
 	for(int i=0; i<depthIndex; i++){
 		sumPhytoBiomass+=phytoBiomass[i][columnIndex];
 	}
+#ifdef CHECK_ASSERTIONS
+	if(isnan(sumPhytoBiomass)||isinf(sumPhytoBiomass)){
+		assertionViolationBuffer<<"NanInfPhytoSum; PhytoSum: "<<sumPhytoBiomass<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+	}
+	if(sumPhytoBiomass<0.0f){
+		assertionViolationBuffer<<"NegativePhytoSum; PhytoSum: "<<sumPhytoBiomass<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+	}
+#endif
 	return sumPhytoBiomass;
 }
 
@@ -466,7 +514,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
 			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
 			this->phytoDifferential[j][i]=0.0f;
-			if(depthVector[i]<indexToDepth[j]||maxDepthIndex[i]==j){
+			if(j==maxDepthIndex[i]){
 				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
 				this->phytoBiomass[j][i]=0.0f;
 				this->zooplanktonCount[j][i]=0;
@@ -843,9 +891,13 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 		bottomFeederBiomass[columnIndex]=((biomassType)bottomFeederCount[columnIndex])*DAPHNIA_WEIGHT_IN_GRAMS;
 		biomassType previousBottomFeederBiomass = bottomFeederBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
+		biomassType periBiomassBeforeDifferential=periBiomass[columnIndex];
 		biomassType bottomFeederBiomassDifferential = grazerBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 		bottomFeederBiomass[columnIndex]+=bottomFeederBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
+		if(isnan(bottomFeederBiomass[columnIndex])||isinf(bottomFeederBiomass[columnIndex])){
+			assertionViolationBuffer<<"NanInfBottomFeeder; BottomFeeder: "<<bottomFeederBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
+		}
 		if(bottomFeederBiomass[columnIndex]<0.0f){
 			assertionViolationBuffer<<"NegativeBottomFeeder; BottomFeeder: "<<bottomFeederBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 		}
@@ -864,7 +916,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 			lineBuffer.str("");
 			lineBuffer.clear();
 			/* Do not register biomass for empty cells. Since this is the bottom of the lake, do not register biomass below it*/
-			if(depthVector[columnIndex]<indexToDepth[depthIndex]){
+			if(depthIndex>maxDepthIndex[depthIndex]){
 				zooplanktonBiomass[depthIndex][columnIndex]=0.0f;
 				registerZooplanktonBiomass[depthIndex][columnIndex]=false;
 				break;
@@ -878,12 +930,15 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 				biomassType zooplanktonBiomassDifferential = grazerBiomassDifferential(depthIndex, columnIndex, false);
 				zooplanktonBiomass[depthIndex][columnIndex]+=zooplanktonBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
-		if(zooplanktonBiomass[depthIndex][columnIndex]<0.0f){
-			assertionViolationBuffer<<"NegativeZooplankton; Zooplankton: "<<zooplanktonBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<current_hour<<endl;
-		}
-			if(zooplanktonBiomass[depthIndex][columnIndex]!=previousZooplanktonBiomass+zooplanktonBiomassDifferential){
-			assertionViolationBuffer<<"UpdateZooplankton; Zooplankton: "<<zooplanktonBiomass[depthIndex][columnIndex]<<", PreviousZooplanktonBiomass: "<<previousZooplanktonBiomass<<", ZooplanktonDiff: "<<zooplanktonBiomassDifferential<<", ZooplanktonError: "<<zooplanktonBiomass[depthIndex][columnIndex]-(previousZooplanktonBiomass+zooplanktonBiomassDifferential)<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<current_hour<<endl;
-		}
+				if(isnan(zooplanktonBiomass[depthIndex][columnIndex])||isinf(zooplanktonBiomass[depthIndex][columnIndex])){
+					assertionViolationBuffer<<"NanInfZooplankton; Zooplankton: "<<zooplanktonBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<current_hour<<endl;
+				}
+				if(zooplanktonBiomass[depthIndex][columnIndex]<0.0f){
+					assertionViolationBuffer<<"NegativeZooplankton; Zooplankton: "<<zooplanktonBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<current_hour<<endl;
+				}
+				if(zooplanktonBiomass[depthIndex][columnIndex]!=previousZooplanktonBiomass+zooplanktonBiomassDifferential){
+					assertionViolationBuffer<<"UpdateZooplankton; Zooplankton: "<<zooplanktonBiomass[depthIndex][columnIndex]<<", PreviousZooplanktonBiomass: "<<previousZooplanktonBiomass<<", ZooplanktonDiff: "<<zooplanktonBiomassDifferential<<", ZooplanktonError: "<<zooplanktonBiomass[depthIndex][columnIndex]-(previousZooplanktonBiomass+zooplanktonBiomassDifferential)<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<current_hour<<endl;
+				}
 #endif
 				/* From biomass to discrete count*/
 				zooplanktonCount[depthIndex][columnIndex]=ceil(zooplanktonBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
@@ -1092,11 +1147,10 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder){
 	zooplanktonCountType localeZooplanktonCount=bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeAlgaeBiomass=bottomFeeder?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
-#ifdef SATURATION_GRAZING
-	grazing_per_individual = min<double>(FEEDING_SATURATION,this->filtering_rate_per_daphnia_in_liter*localeAlgaeBiomass*stroganov_adjustment);
-#else
-	grazing_per_individual = this->filtering_rate_per_daphnia_in_liter*localeAlgaeBiomass*stroganov_adjustment;
 
+	grazing_per_individual = this->filtering_rate_per_daphnia_in_liter*localeAlgaeBiomass*stroganov_adjustment;
+#ifdef SATURATION_GRAZING
+	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);
 #endif
 	locale_grazing= grazing_per_individual*localeZooplanktonCount;
 	locale_grazing_salt_adjusted=locale_grazing*salinity_effect;
@@ -1106,6 +1160,7 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 #else
 	used_grazing=locale_grazing;
 #endif
+	used_grazing=min<biomassType>(localeAlgaeBiomass, used_grazing);
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottomFeeder){
 		periBiomass[columnIndex]= periBiomass[columnIndex] - used_grazing;

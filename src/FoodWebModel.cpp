@@ -40,7 +40,6 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	/*Read numeric parameters*/
 	setFileParameters(simArguments);
 	printSimulationMode();
-	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
 	writeSimulatedParameters(simArguments.outputParameterRoute);
 	/*CSV file to write the output. Useful for calibration*/
 	ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
@@ -53,16 +52,39 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 #ifdef CHECK_ASSERTIONS
 	outputAssertionViolationFile.open(simArguments.ouputAssertionViolationRoute.c_str());
 #endif
-	/*Report successful open files*/
-	cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
-	cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
-	cout<<"File "<<simArguments.outputGrazerRoute<<" open for grazer register."<<endl;
-	cout<<"File "<<simArguments.outputParameterRoute<<" open for parameter register."<<endl;
+	/*Report successfully or not successfully open files*/
+	if (outputAlgaeFile.is_open()){
+		cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputAlgaeRoute<<" could not be opened for algae biomass output."<<endl;
+	}
+	if (outputSloughFile.is_open()){
+		cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputSloughRoute<<" could not be opened for slough register."<<endl;
+	}
+	if (outputGrazerFile.is_open()){
+		cout<<"File "<<simArguments.outputGrazerRoute<<" open for grazer register."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for grazer register."<<endl;
+	}
+
+#ifdef CHECK_ASSERTIONS
+	if (outputAssertionViolationFile.is_open()){
+		cout<<"File "<<simArguments.ouputAssertionViolationRoute<<" open for violated assertions register."<<endl;
+	} else{
+		cout<<"File "<<simArguments.ouputAssertionViolationRoute<<" could not be opened for violated assertions register."<<endl;
+	}
+
+#endif
+
 
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeType, AlgaeVerticalMigration, Time"<<endl;
 	outputSloughFile<<"Depth, Column, AlgaeType, Time, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, PredatoryPressure, BottomFeeder, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount"<<endl;
+	// Report start of the simulation
+	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
 	/*Clear lake light the day before*/
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
@@ -1212,12 +1234,13 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 	ofstream parameterFileStream;
 	parameterFileStream.open(parameterSimulationRoute.c_str());
 	if (parameterFileStream.is_open()){
+		cout<<"File "<<parameterSimulationRoute<<" open for simulation parameter register."<<endl;
 		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
 		parameterFileStream<<"AnimalBaseMortality;"<<this->animal_base_mortality_proportion<<endl;
 		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
 		parameterFileStream.close();
 	} else {
-		cerr<<"File "<<parameterSimulationRoute<<" could not be opened."<<endl;
+		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;
 	}
 }
 

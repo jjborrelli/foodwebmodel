@@ -67,6 +67,9 @@ namespace FoodWebModel {
 
 		/*Buffer line to write simulation results*/
 		std::ostringstream lineBuffer, algaeBuffer, sloughBuffer, grazerBuffer;
+#ifdef CHECK_ASSERTIONS
+		std::ostringstream assertionViolationBuffer;
+#endif
 		string commaString = string(", ");
 		/*Class methods*/
 	private:

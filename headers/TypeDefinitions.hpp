@@ -27,6 +27,7 @@ typedef struct {
 	outputSloughRoute,
 	outputGrazerRoute,
 	outputParameterRoute,
+	ouputAssertionViolationRoute,
 	initialAlgaeBiomassRoute,
 	initialZooplanktonCountRoute,
 	lightAtSurfaceRoute,

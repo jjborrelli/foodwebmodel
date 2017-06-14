@@ -80,6 +80,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.outputGrazerRoute= parameterValue;
 	if(!parameterName.compare("OutputParameterRoute"))
 		simArguments.outputParameterRoute= parameterValue;
+	if(!parameterName.compare("OutputAssertionViolationRoute"))
+		simArguments.ouputAssertionViolationRoute=  parameterValue;
 	if(!parameterName.compare("InitialAlgaeBiomassRoute"))
 		simArguments.initialAlgaeBiomassRoute= parameterValue;
 	if(!parameterName.compare("InitialZooplanktonCountRoute"))

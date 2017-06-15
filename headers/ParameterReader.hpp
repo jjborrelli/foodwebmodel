@@ -10,6 +10,7 @@
 
 #include <string>
 #include "TypeDefinitions.hpp"
+#include "SimulationModes.hpp"
 
 using namespace std;
 

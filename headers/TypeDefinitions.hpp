@@ -27,13 +27,13 @@ typedef struct {
 	outputSloughRoute,
 	outputGrazerRoute,
 	outputParameterRoute,
-	ouputAssertionViolationRoute,
+	outputAssertionViolationRoute,
 	initialAlgaeBiomassRoute,
 	initialZooplanktonCountRoute,
 	lightAtSurfaceRoute,
-	biomassBaseDifferential,
-	phosphorusConcentrationAtBottom,
-	zooplanktonBiomassDepthCenter;
+	biomassBaseDifferentialRoute,
+	phosphorusConcentrationAtBottomRoute,
+	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 	biomassType algae_biomass_differential_production_scale, animal_base_mortality_proportion, filtering_rate_per_daphnia;
 } SimulationArguments;

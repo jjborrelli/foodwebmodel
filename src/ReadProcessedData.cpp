@@ -128,10 +128,10 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readTemperatureRange(simArguments.temperatureRangeRoute);
 	readInitialAlgaeBiomass(simArguments.initialAlgaeBiomassRoute);
 	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
-	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferential);
+	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferentialRoute);
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
-	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottom);
-	readZooplanktonBiomassCenterDifferencePerDepth(simArguments.zooplanktonBiomassDepthCenter);
+	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottomRoute);
+	readZooplanktonBiomassCenterDifferencePerDepth(simArguments.zooplanktonBiomassDepthCenterRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
 void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRoute){

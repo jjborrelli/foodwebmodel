@@ -64,44 +64,86 @@ void FoodWebModel::ParameterReader::readSimulationParametersFromFile(const std::
 
 /*Set pair name-value*/
 void FoodWebModel::ParameterReader::setParameter(const std::string& parameterName, const std::string& parameterValue){
-	if(!parameterName.compare("DepthRoute"))
+	if(!parameterName.compare("DepthRoute")){
 		simArguments.depthRoute= parameterValue;
-	if(!parameterName.compare("DepthScaleRoute"))
+		return;
+	}
+	if(!parameterName.compare("DepthScaleRoute")){
 		simArguments.depthScaleRoute= parameterValue;
-	if(!parameterName.compare("InitialTemperatureRoute"))
+		return;
+	}
+	if(!parameterName.compare("InitialTemperatureRoute")){
 		simArguments.initialTemperatureRoute= parameterValue;
-	if(!parameterName.compare("TemperatureRangeRoute"))
-		simArguments.temperatureRangeRoute= parameterValue;
-	if(!parameterName.compare("OutputAlgaeRoute"))
+		return;
+	}
+	if(!parameterName.compare("TemperatureRangeRoute")){
+			simArguments.temperatureRangeRoute= parameterValue;
+			return;
+		}
+	if(!parameterName.compare("OutputAlgaeRoute")){
 		simArguments.outputAlgaeRoute= parameterValue;
-	if(!parameterName.compare("OutputSloughRoute"))
+		return;
+	}
+	if(!parameterName.compare("OutputSloughRoute")){
 		simArguments.outputSloughRoute= parameterValue;
-	if(!parameterName.compare("OutputGrazerRoute"))
+		return;
+	}
+	if(!parameterName.compare("OutputGrazerRoute")){
 		simArguments.outputGrazerRoute= parameterValue;
-	if(!parameterName.compare("OutputParameterRoute"))
+		return;
+	}
+	if(!parameterName.compare("OutputParameterRoute")){
 		simArguments.outputParameterRoute= parameterValue;
-	if(!parameterName.compare("OutputAssertionViolationRoute"))
-		simArguments.ouputAssertionViolationRoute=  parameterValue;
-	if(!parameterName.compare("InitialAlgaeBiomassRoute"))
+		return;
+	}
+	if(!parameterName.compare("OutputAssertionViolationRoute")){
+		simArguments.outputAssertionViolationRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("InitialAlgaeBiomassRoute")){
 		simArguments.initialAlgaeBiomassRoute= parameterValue;
-	if(!parameterName.compare("InitialZooplanktonCountRoute"))
+		return;
+	}
+	if(!parameterName.compare("InitialZooplanktonCountRoute")){
 		simArguments.initialZooplanktonCountRoute= parameterValue;
-	if(!parameterName.compare("LightAtSurfaceRoute"))
+		return;
+	}
+	if(!parameterName.compare("LightAtSurfaceRoute")){
 		simArguments.lightAtSurfaceRoute= parameterValue;
-	if(!parameterName.compare("BiomassBaseDifferential"))
-		simArguments.biomassBaseDifferential= parameterValue;
-	if(!parameterName.compare("SimulationCycles"))
+		return;
+	}
+
+	if(!parameterName.compare("BiomassBaseDifferential")){
+		simArguments.biomassBaseDifferentialRoute= parameterValue;
+		return;
+	}
+
+	if(!parameterName.compare("SimulationCycles")){
 		simArguments.simulationCycles= atoi(parameterValue.c_str());
-	if(!parameterName.compare("PhosphorusConcentrationAtBottom"))
-		simArguments.phosphorusConcentrationAtBottom= parameterValue;
-	if(!parameterName.compare("ZooplanktonBiomassDepthCenter"))
-		simArguments.zooplanktonBiomassDepthCenter= parameterValue;
-	if(!parameterName.compare("AlgaeBiomassDifferentialScale"))
-		simArguments.algae_biomass_differential_production_scale=  atof(parameterValue.c_str());
-	if(!parameterName.compare("AnimalBaseMortality"))
-		simArguments.animal_base_mortality_proportion=  atof(parameterValue.c_str());
-	if(!parameterName.compare("FilteringRatePerDaphnia"))
-		simArguments.filtering_rate_per_daphnia=  atof(parameterValue.c_str());
+		return;
+	}
+
+	if(!parameterName.compare("PhosphorusConcentrationAtBottomRoute")){
+		simArguments.phosphorusConcentrationAtBottomRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("ZooplanktonBiomassDepthCenterRoute")){
+		simArguments.zooplanktonBiomassDepthCenterRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("AlgaeBiomassDifferentialScale")){
+		simArguments.algae_biomass_differential_production_scale= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("AnimalBaseMortality")){
+			simArguments.animal_base_mortality_proportion= atof(parameterValue.c_str());
+			return;
+		}
+	if(!parameterName.compare("FilteringRatePerDaphnia")){
+			simArguments.filtering_rate_per_daphnia= atof(parameterValue.c_str());
+			return;
+		}
+	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 
 /*Parse additional arguments as a string*/

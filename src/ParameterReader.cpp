@@ -113,7 +113,7 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		return;
 	}
 
-	if(!parameterName.compare("BiomassBaseDifferential")){
+	if(!parameterName.compare("BiomassBaseDifferentialRoute")){
 		simArguments.biomassBaseDifferentialRoute= parameterValue;
 		return;
 	}

@@ -60,7 +60,7 @@ namespace FoodWebModel {
 
 		/*Parameters of daphnia migration*/
 		int maximum_distance_daphnia_swum_in_rows_per_hour, vertical_migration_buffer_size;
-		biomassType filtering_rate_per_daphnia, filtering_rate_per_daphnia_in_liter;
+		biomassType filtering_rate_per_daphnia, filtering_rate_per_daphnia_in_cell_volume;
 
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;
@@ -139,7 +139,7 @@ namespace FoodWebModel {
 		void calculateLocalPreferenceScore();
 		biomassType grazerBiomassDifferential(int depthIndex, int columnIndex, bool bottomFeeder);
 
-		void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder);
+		void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, biomassType algaeBiomassInMicrograms);
 		void defecation();
 		void animalRespiration(biomassType zooBiomass, physicalType localeTemperature);
 		biomassType basalRespiration(biomassType zooBiomass);

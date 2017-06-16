@@ -209,11 +209,11 @@ static const unsigned int STABLE_STATE_HOUR=10;
 
 /* Individual Daphnia dry weight. Taken from (Baudouin and Ravera, 1972, Weight, size and chemical composition of some freshwater zooplankters: Daphnia hyalina (Leydig)) (in milligrams) */
 
-static const biomassType MICROGRAM_TO_GRAM=1.0f/1000000.0f;
+static const physicalType MICROGRAM_TO_MILLIGRAM=1.0f/1000.0f, M3_TO_LITER=1000.0f, VOLUME_PER_CELL_IN_M3=3.55579f, LITER_TO_M3=1/M3_TO_LITER, MILLILITER_TO_LITER=0.001f, LITER_TO_CELL_VOLUME=LITER_TO_M3/VOLUME_PER_CELL_IN_M3, MILLILITER_TO_VOLUME_PER_CELL=MILLILITER_TO_LITER*LITER_TO_CELL_VOLUME, CELL_VOLUME_IN_LITER=1/LITER_TO_CELL_VOLUME;
 
 static const biomassType DAPHNIA_WEIGHT_IN_MICROGRAMS=47.41f;
 
-static const biomassType DAPHNIA_WEIGHT_IN_GRAMS=DAPHNIA_WEIGHT_IN_MICROGRAMS*MICROGRAM_TO_GRAM;
+static const biomassType DAPHNIA_WEIGHT_IN_MILLIGRAMS=DAPHNIA_WEIGHT_IN_MICROGRAMS*MICROGRAM_TO_MILLIGRAM;
 
 
 /*Initial zooplankton vertical shift*/
@@ -237,10 +237,9 @@ static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 5.0f;
 static const biomassType FEEDING_SATURATION_ADJUSTMENT = 1.0f;
-static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_GRAMS/((double)HOURS_PER_DAY);
+static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_MILLIGRAMS/((double)HOURS_PER_DAY);
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 
-static const physicalType MILLILITERS_TO_LITER=1000.0f;
 /* The average grazing proportion has been taken from (Holm et al., 1983, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1 and average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters))
  *  in grams algae/grams grazer/day.*/
 
@@ -259,7 +258,10 @@ static const biomassType DEFECATION_COEFFICIENT=0.01f;
 
 /* Basal respiration rate. It needs to be adjusted*/
 
-static const biomassType BASAL_RESPIRATION_RATE=0.2f;
+/* Calculated using the formula from (https://www.geol.umd.edu/~jmerck/bsci393/lab5/allometry.html) and the data from (H. J. Dumont, I. Van De Velde, and S. Dumont, “The Dry Weight Estimate of Biomass in a Selection of Cladocera, Copepoda and Rotifera from the Plankton, Periphyton and Benthos of Continental Waters,” vol. 19, pp. 75–97, 1975.)*/
+static const biomassType BASAL_RESPIRATION_RATE=0.1125f,
+		/*Weight factor (AquaTox Documentation, page 107, equation 103)*/
+		BASAL_RESPIRATION_WEIGHT=1.5f;
 
 /* Rate of respiration change for each 10 degrees Celsius (AquaTox Documentation, page 107, equation 105)*/
 static const biomassType RATE_RESPIRATION_CHANGE_10DEG=-1.0f;
@@ -291,7 +293,8 @@ static const biomassType STROGANOV_ADJUSTMENT = 2.0f;
 #endif
 
 //static const biomassType RESPIRATION_ADJUSTMENT = 0.2f;
-static const biomassType RESPIRATION_ADJUSTMENT = 0.02f;
+//static const biomassType RESPIRATION_ADJUSTMENT = 0.02f;
+static const biomassType RESPIRATION_ADJUSTMENT = 1.0f;
 
 /* Temperature sigmoid constants*/
 

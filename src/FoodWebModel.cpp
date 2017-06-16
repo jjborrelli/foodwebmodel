@@ -33,7 +33,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->vertical_migration_buffer_size = 2
 			* maximum_distance_daphnia_swum_in_rows_per_hour + 1;
 	this->filtering_rate_per_daphnia = simArguments.filtering_rate_per_daphnia;
-	this->filtering_rate_per_daphnia_in_liter=this->filtering_rate_per_daphnia/MILLILITERS_TO_LITER;
+	this->filtering_rate_per_daphnia_in_cell_volume=this->filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -861,7 +861,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
-	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_liter<<" liters/hour."<<endl;
+	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
 }
@@ -895,7 +895,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 		lineBuffer.clear();
 		bool registerBottomFeederBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
 		/*Transform grazer count to biomass*/
-		bottomFeederBiomass[columnIndex]=((biomassType)bottomFeederCount[columnIndex])*DAPHNIA_WEIGHT_IN_GRAMS;
+		bottomFeederBiomass[columnIndex]=((biomassType)bottomFeederCount[columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 		biomassType previousBottomFeederBiomass = bottomFeederBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
 		biomassType periBiomassBeforeDifferential=periBiomass[columnIndex];
@@ -913,7 +913,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 		}
 #endif
 		/* From biomass to discrete count*/
-		bottomFeederCount[columnIndex]=ceil(bottomFeederBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
+		bottomFeederCount[columnIndex]=ceil(bottomFeederBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
 		bottomFeederCount[columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, bottomFeederCount[columnIndex]);
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerBottomFeederBiomass){
@@ -931,7 +931,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 				/*Set if biomass must be registered*/
 				registerZooplanktonBiomass[depthIndex][columnIndex]=depthIndex%DEPTH_OUTPUT_RESOLUTION==0&&columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
 				/*Transform zooplankton count to biomass*/
-				zooplanktonBiomass[depthIndex][columnIndex]=((biomassType)zooplanktonCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_GRAMS;
+				zooplanktonBiomass[depthIndex][columnIndex]=((biomassType)zooplanktonCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 				biomassType previousZooplanktonBiomass = zooplanktonBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
 				biomassType zooplanktonBiomassDifferential = grazerBiomassDifferential(depthIndex, columnIndex, false);
@@ -948,7 +948,7 @@ void FoodWebModel::FoodWebModel::updateZooplanktonBiomass(){
 				}
 #endif
 				/* From biomass to discrete count*/
-				zooplanktonCount[depthIndex][columnIndex]=ceil(zooplanktonBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_GRAMS);
+				zooplanktonCount[depthIndex][columnIndex]=ceil(zooplanktonBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
 				zooplanktonCount[depthIndex][columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, zooplanktonCount[depthIndex][columnIndex]);
 				this->zooplankton_count_summing+=zooplanktonCount[depthIndex][columnIndex];
 				/*If biomass must be registered, register standard phytoplankton biomass*/
@@ -1094,12 +1094,13 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	/* Get zooplankton count and biomass*/
 	zooplanktonCountType localeZooplanktonCount = bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
 	biomassType localeZooplanktonBiomass = bottomFeeder?bottomFeederBiomass[columnIndex]:zooplanktonBiomass[depthIndex][columnIndex];
-	biomassType localeAlgaeBiomass = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];
+	biomassType localeAlgaeBiomassConcentration = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];
+	biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassConcentration*CELL_VOLUME_IN_LITER;
 
 	stroganovApproximation(localeTemperature);
 	saltConcentrationAtDepth(depthIndex, columnIndex);
 	salinityEffect();
-	foodConsumptionRate(depthIndex,columnIndex,bottomFeeder);
+	foodConsumptionRate(depthIndex,columnIndex,bottomFeeder, localeAlgaeBiomassInMicrograms);
 	biomassType localeAlgaeBiomassAfterGrazing = bottomFeeder?this->periBiomass[columnIndex]:this->phytoBiomass[depthIndex][columnIndex];
 
 	defecation();
@@ -1118,8 +1119,8 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	lineBuffer<<commaString<<bottomFeeder?1:0;
 	lineBuffer<<commaString<<localeTemperature;
 	lineBuffer<<commaString<<grazing_per_individual;
-	lineBuffer<<commaString<<grazing_per_individual/localeAlgaeBiomass;
-	lineBuffer<<commaString<<used_grazing/localeAlgaeBiomass;
+	lineBuffer<<commaString<<grazing_per_individual/localeAlgaeBiomassConcentration;
+	lineBuffer<<commaString<<used_grazing/localeAlgaeBiomassConcentration;
 	lineBuffer<<commaString<<stroganov_adjustment;
 	lineBuffer<<commaString<<chemical_at_depth_exponent;
 	lineBuffer<<commaString<<chemical_concentration;
@@ -1144,18 +1145,17 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	lineBuffer<<commaString<<grazer_predatory_pressure;
 	lineBuffer<<commaString<<localeBiomassDifferential;
 	lineBuffer<<commaString<<localeZooplanktonBiomass;
-	lineBuffer<<commaString<<localeAlgaeBiomass;
+	lineBuffer<<commaString<<localeAlgaeBiomassConcentration;
 	lineBuffer<<commaString<<localeAlgaeBiomassAfterGrazing;
 	return localeBiomassDifferential;
 }
 
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
-void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder){
+void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, biomassType algaeBiomassInMicrograms){
 	zooplanktonCountType localeZooplanktonCount=bottomFeeder?bottomFeederCount[columnIndex]:zooplanktonCount[depthIndex][columnIndex];
-	biomassType localeAlgaeBiomass=bottomFeeder?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
 
-	grazing_per_individual = this->filtering_rate_per_daphnia_in_liter*localeAlgaeBiomass*stroganov_adjustment;
+	grazing_per_individual = this->filtering_rate_per_daphnia_in_cell_volume*algaeBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
 	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);
 #endif
@@ -1167,12 +1167,14 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 #else
 	used_grazing=locale_grazing;
 #endif
-	 used_grazing=min<biomassType>(localeAlgaeBiomass, used_grazing);
+	 used_grazing=min<biomassType>(algaeBiomassInMicrograms, used_grazing);
+	 biomassType updatedAlgaeBiomassInMicrograms = algaeBiomassInMicrograms - used_grazing;
+	 biomassType updatedConcentration = updatedAlgaeBiomassInMicrograms/CELL_VOLUME_IN_LITER;
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottomFeeder){
-		periBiomass[columnIndex]= periBiomass[columnIndex] - used_grazing;
+		periBiomass[columnIndex]= updatedConcentration;
 	} else{
-		phytoBiomass[depthIndex][columnIndex] = phytoBiomass[depthIndex][columnIndex] - used_grazing;
+		phytoBiomass[depthIndex][columnIndex] = updatedConcentration;
 	}
 #endif
 }
@@ -1184,14 +1186,14 @@ void FoodWebModel::FoodWebModel::defecation(){
 
 /* Zooplankton respiration (AquaTox Documentation, page 106, equation 100)*/
 void FoodWebModel::FoodWebModel::animalRespiration(biomassType zooBiomass, physicalType localeTemperature){
-	base_zooplankton_respiration = RESPIRATION_ADJUSTMENT*(basalRespiration(zooBiomass) + activeRespiration(zooBiomass, localeTemperature) + metabolicFoodConsumption());
+	base_zooplankton_respiration = RESPIRATION_ADJUSTMENT*(basalRespiration(zooBiomass) + metabolicFoodConsumption());
 	salinity_corrected_zooplankton_respiration = base_zooplankton_respiration*salinity_effect;
 }
 
 
 /* Basal respiration (AquaTox Documentation, page 106, equation 101)*/
 biomassType FoodWebModel::FoodWebModel::basalRespiration(biomassType zooBiomass){
-	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE*stroganov_adjustment;
+	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE*BASAL_RESPIRATION_WEIGHT*stroganov_adjustment;
 	return basal_respiration;
 
 }

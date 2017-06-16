@@ -268,8 +268,6 @@ static const biomassType RATE_RESPIRATION_CHANGE_10DEG=-1.0f;
 
 
 /* Proportion of energy lost to respiration activity*/
-//static const double K_RESP=1.0f;
-static const biomassType K_RESP=0.05f;
 
 
 /* Animal base mortality*/

@@ -143,6 +143,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 			simArguments.filtering_rate_per_daphnia= atof(parameterValue.c_str());
 			return;
 		}
+	if(!parameterName.compare("BasalRespirationWeight")){
+			simArguments.basal_respiration_weight= atof(parameterValue.c_str());
+			return;
+		}
+	if(!parameterName.compare("KValueRespiration")){
+			simArguments.k_value_respiration= atof(parameterValue.c_str());
+			return;
+		}
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 

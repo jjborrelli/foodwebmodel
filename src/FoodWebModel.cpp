@@ -34,6 +34,8 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 			* maximum_distance_daphnia_swum_in_rows_per_hour + 1;
 	this->filtering_rate_per_daphnia = simArguments.filtering_rate_per_daphnia;
 	this->filtering_rate_per_daphnia_in_cell_volume=this->filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
+	this->basal_respiration_weight = simArguments.basal_respiration_weight;
+	this->k_value_respiration = simArguments.k_value_respiration;
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -864,6 +866,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
+	cout<<"Using basal respiration weight "<<this->basal_respiration_weight<<"."<<endl;
+	cout<<"Using respiration K value "<<this->k_value_respiration<<"."<<endl;
+
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
@@ -1193,7 +1198,7 @@ void FoodWebModel::FoodWebModel::animalRespiration(biomassType zooBiomass, physi
 
 /* Basal respiration (AquaTox Documentation, page 106, equation 101)*/
 biomassType FoodWebModel::FoodWebModel::basalRespiration(biomassType zooBiomass){
-	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE*BASAL_RESPIRATION_WEIGHT*stroganov_adjustment;
+	basal_respiration =zooBiomass*BASAL_RESPIRATION_RATE*this->basal_respiration_weight*stroganov_adjustment;
 	return basal_respiration;
 
 }
@@ -1214,7 +1219,7 @@ biomassType FoodWebModel::FoodWebModel::activeRespiration(biomassType zooBiomass
 
 /* Specific dynamic action respiration (AquaTox Documentation, page 109, equation 110)*/
 biomassType FoodWebModel::FoodWebModel::metabolicFoodConsumption(){
-	metabolic_respiration= K_RESP*(used_grazing-locale_defecation);
+	metabolic_respiration= this->k_value_respiration*(used_grazing-locale_defecation);
 	return metabolic_respiration;
 }
 

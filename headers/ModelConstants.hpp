@@ -237,6 +237,9 @@ static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 5.0f;
 static const biomassType FEEDING_SATURATION_ADJUSTMENT = 1.0f;
+/* Saturation concentration taken from (N. P. Holm, G. G. Ganf, and J. Shapiro, “Feeding and assimilation rates of Daphnia pulex fed Aphanizomenon flos-aquae1,” Limnol. Oceanogr., vol. 28, no. 4, pp. 677–687, Jul. 1983.) */
+/* The concentration is adjusted assuming that 20000 phyotplankton cells = 0.86 ug/ml, so 15000 cells = 0.645 ug/ml = 645 ug/l*/
+static const biomassType MAXIMUM_GRAZING_ABSORBED = 645.0f;
 static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_MILLIGRAMS/((double)HOURS_PER_DAY);
 static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 

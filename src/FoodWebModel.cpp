@@ -1162,7 +1162,8 @@ void FoodWebModel::FoodWebModel::foodConsumptionRate(int depthIndex, int columnI
 
 	grazing_per_individual = this->filtering_rate_per_daphnia_in_cell_volume*algaeBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
-	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);
+	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,MAXIMUM_GRAZING_ABSORBED);
+//	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);
 #endif
 	locale_grazing= grazing_per_individual*localeZooplanktonCount;
 	locale_grazing_salt_adjusted=locale_grazing*salinity_effect;

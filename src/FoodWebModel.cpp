@@ -863,6 +863,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not checking assertions."<<endl;
 #endif
+#ifdef CARRYING_CAPACITY_MORTALITY
+	cout<<"Using carryng-capacity dependent grazer mortality."<<endl;
+#else
+	cout<<"Using constant grazer mortality."<<endl;
+#endif
 
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
@@ -1247,9 +1252,9 @@ void FoodWebModel::FoodWebModel::animalBaseMortality(physicalType
 	animalTemperatureMortality(localeTemperature, localeBiomass);
 	calculateCarryingCapacity(localeBiomass);
 #ifdef CARRYING_CAPACITY_MORTALITY
-	animal_temp_independent_mortality = this->animal_base_mortality_proportion*localeBiomass;
+	animal_temp_independent_mortality = this->grazer_carrying_capacity*localeBiomass;
 #else
-	animal_temp_independent_mortality = grazer_carrying_capacity*localeBiomass;
+	animal_temp_independent_mortality = this->animal_base_mortality_proportion*localeBiomass;
 #endif
 	animal_base_mortality= animal_temperature_mortality+animal_temp_independent_mortality;
 }
@@ -1265,7 +1270,7 @@ void FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType localeT
 }
 
 void FoodWebModel::FoodWebModel::calculateCarryingCapacity(biomassType inputBiomass){
-	grazer_carrying_capacity =  1/(1/exp(-inputBiomass/(MAXIMUM_FOUND_GRAZER_BIOMASS*this->grazer_carrying_capacity_coefficient)+this->grazer_carrying_capacity_intercept));
+	grazer_carrying_capacity =  1/(1+exp(-inputBiomass/(MAXIMUM_FOUND_GRAZER_BIOMASS*this->grazer_carrying_capacity_coefficient)+this->grazer_carrying_capacity_intercept));
 }
 
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/

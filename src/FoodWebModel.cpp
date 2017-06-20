@@ -36,6 +36,8 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->filtering_rate_per_daphnia_in_cell_volume=this->filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
 	this->basal_respiration_weight = simArguments.basal_respiration_weight;
 	this->k_value_respiration = simArguments.k_value_respiration;
+	this->grazer_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
+	this->grazer_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -84,7 +86,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeVerticalMigration"<<endl;
 	outputSloughFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
-	outputGrazerFile<<"Depth, Column, Time, AlgaeType, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, PredatoryPressure, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount"<<endl;
+	outputGrazerFile<<"Depth, Column, Time, AlgaeType, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount"<<endl;
 	// Report start of the simulation
 	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
 	/*Clear lake light the day before*/
@@ -868,7 +870,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
 	cout<<"Using basal respiration weight "<<this->basal_respiration_weight<<"."<<endl;
 	cout<<"Using respiration K value "<<this->k_value_respiration<<"."<<endl;
-
+	cout<<"Using grazer carrying capacity coefficient "<<this->grazer_carrying_capacity_coefficient<<"."<<endl;
+	cout<<"Using grazer carrying capacity intercept "<<this->grazer_carrying_capacity_intercept<<"."<<endl;
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
@@ -1148,6 +1151,7 @@ biomassType FoodWebModel::FoodWebModel::grazerBiomassDifferential(int depthIndex
 	lineBuffer<<commaString<<salinity_mortality;
 	lineBuffer<<commaString<<animal_mortality;
 	lineBuffer<<commaString<<grazer_predatory_pressure;
+	lineBuffer<<commaString<<grazer_carrying_capacity;
 	lineBuffer<<commaString<<localeBiomassDifferential;
 	lineBuffer<<commaString<<localeZooplanktonBiomass;
 	lineBuffer<<commaString<<localeAlgaeBiomassConcentration;
@@ -1238,9 +1242,15 @@ void FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, phys
 }
 
 /* Grazer base mortality (AquaTox Documentation, page 110, equation 113)*/
-void FoodWebModel::FoodWebModel::animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass){
+void FoodWebModel::FoodWebModel::animalBaseMortality(physicalType
+		localeTemperature, biomassType localeBiomass){
 	animalTemperatureMortality(localeTemperature, localeBiomass);
+	calculateCarryingCapacity(localeBiomass);
+#ifdef CARRYING_CAPACITY_MORTALITY
 	animal_temp_independent_mortality = this->animal_base_mortality_proportion*localeBiomass;
+#else
+	animal_temp_independent_mortality = grazer_carrying_capacity*localeBiomass;
+#endif
 	animal_base_mortality= animal_temperature_mortality+animal_temp_independent_mortality;
 }
 
@@ -1252,6 +1262,10 @@ void FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType localeT
 		animal_temperature_mortality = localeBiomass*exp(MAXIMUM_TOLERABLE_TEMPERATURE-localeTemperature)/2.0f;
 	}
 
+}
+
+void FoodWebModel::FoodWebModel::calculateCarryingCapacity(biomassType inputBiomass){
+	grazer_carrying_capacity =  1/(1/exp(-inputBiomass/(MAXIMUM_FOUND_GRAZER_BIOMASS*this->grazer_carrying_capacity_coefficient)+this->grazer_carrying_capacity_intercept));
 }
 
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
@@ -1290,6 +1304,9 @@ void FoodWebModel::FoodWebModel::calculatePredationPressure(zooplanktonCountType
 	grazer_predatory_pressure = 0.0f;
 #endif
 }
+
+
+
 
 void FoodWebModel::FoodWebModel::calculateDistanceToFocus(){
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){

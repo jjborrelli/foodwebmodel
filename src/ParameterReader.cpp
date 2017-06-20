@@ -151,6 +151,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 			simArguments.k_value_respiration= atof(parameterValue.c_str());
 			return;
 		}
+	if(!parameterName.compare("GrazerCarryingCapacityCoefficient")){
+			simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
+			return;
+		}
+	if(!parameterName.compare("GrazerCarryingCapacityIntercept")){
+			simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
+			return;
+		}
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 

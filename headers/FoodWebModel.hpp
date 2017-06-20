@@ -63,6 +63,9 @@ namespace FoodWebModel {
 		biomassType filtering_rate_per_daphnia, filtering_rate_per_daphnia_in_cell_volume;
 		biomassType basal_respiration_weight, k_value_respiration;
 
+		/*Parameters for grazer carrying capacity*/
+		biomassType grazer_carrying_capacity_coefficient, grazer_carrying_capacity_intercept, grazer_carrying_capacity;
+
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;
 
@@ -72,8 +75,6 @@ namespace FoodWebModel {
 		std::ostringstream assertionViolationBuffer;
 #endif
 		string commaString = string(", ");
-		/*Class methods*/
-	private:
 
 		/* Physical attributes*/
 		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom;
@@ -90,6 +91,8 @@ namespace FoodWebModel {
 
 		/* Zooplankton parameter weights*/
 		biomassType animal_base_mortality_proportion;
+
+		/*Class methods*/
 
 	public:
 		FoodWebModel(const SimulationArguments& simArguments);
@@ -154,7 +157,7 @@ namespace FoodWebModel {
 		void salinityMortality(biomassType localeBiomass);
 		void stroganovApproximation(physicalType localeTemperature);
 		void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
-
+		void calculateCarryingCapacity(biomassType inputBiomass);
 };
 }
 

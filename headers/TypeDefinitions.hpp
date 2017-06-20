@@ -38,7 +38,9 @@ typedef struct {
 	biomassType algae_biomass_differential_production_scale,
 	animal_base_mortality_proportion, filtering_rate_per_daphnia,
 	basal_respiration_weight,
-	k_value_respiration;
+	k_value_respiration,
+	grazer_carrying_capacity_coefficient,
+	grazer_carrying_capacity_intercept;
 } SimulationArguments;
 
 #endif /* TYPEDEFINITIONS_HPP_ */

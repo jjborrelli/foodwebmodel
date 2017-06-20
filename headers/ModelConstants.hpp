@@ -232,6 +232,9 @@ static const zooplanktonCountType MINIMUM_VIABLE_GRAZER_POPULATION=100000000;
 
 static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
 
+/*Maximum grazer biomass per cell found in experimental data*/
+
+static const biomassType MAXIMUM_FOUND_GRAZER_BIOMASS = 51.30214f;
 /* Threshold beyond no more food is grazed. Taken from (Luecke et al., 1992, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1) in grams algae/grams grazer/day.*/
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;

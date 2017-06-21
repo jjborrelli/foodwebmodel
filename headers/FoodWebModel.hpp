@@ -15,6 +15,7 @@
 #include <math.h>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 #include "ReadProcessedData.hpp"
@@ -69,12 +70,7 @@ namespace FoodWebModel {
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;
 
-		/*Buffer line to write simulation results*/
-		std::ostringstream lineBuffer, algaeBuffer, sloughBuffer, grazerBuffer;
-#ifdef CHECK_ASSERTIONS
-		std::ostringstream assertionViolationBuffer;
-#endif
-		string commaString = string(", ");
+
 
 		/* Physical attributes*/
 		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom;
@@ -92,6 +88,19 @@ namespace FoodWebModel {
 		/* Zooplankton parameter weights*/
 		biomassType animal_base_mortality_proportion;
 
+		/*Buffer line to write simulation results*/
+		std::ostringstream lineBuffer, algaeBuffer, sloughBuffer, grazerBuffer;
+#ifdef CHECK_ASSERTIONS
+		std::ostringstream assertionViolationBuffer;
+#endif
+		string commaString = string(", ");
+
+		/*Output files*/
+		std::ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
+		#ifdef CHECK_ASSERTIONS
+		std::ofstream outputAssertionViolationFile;
+		#endif
+
 		/*Class methods*/
 
 	public:
@@ -107,7 +116,8 @@ namespace FoodWebModel {
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);
 		void setFileParameters(const SimulationArguments& simArguments);
-
+		void openSimulationFiles(const SimulationArguments& simArguments);
+		void closeSimulationFiles();
 		/* Physical descriptors*/
 		void lightAtDepth(int depthIndex, int columnIndex);
 		void calculateTemperature(int depthIndex, int columnIndex);

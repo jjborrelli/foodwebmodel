@@ -9,7 +9,6 @@
 #include "../headers/FoodWebModel.hpp"
 #include <string>
 #include <iostream>
-#include <fstream>
 
 using namespace std;
 
@@ -46,42 +45,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	printSimulationMode();
 	writeSimulatedParameters(simArguments.outputParameterRoute);
 	/*CSV file to write the output. Useful for calibration*/
-	ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
-#ifdef CHECK_ASSERTIONS
-	ofstream outputAssertionViolationFile;
-#endif
-	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
-	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
-	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
-#ifdef CHECK_ASSERTIONS
-	outputAssertionViolationFile.open(simArguments.outputAssertionViolationRoute.c_str());
-#endif
-	/*Report successfully or not successfully open files*/
-	if (outputAlgaeFile.is_open()){
-		cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
-	} else{
-		cout<<"File "<<simArguments.outputAlgaeRoute<<" could not be opened for algae biomass output."<<endl;
-	}
-	if (outputSloughFile.is_open()){
-		cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
-	} else{
-		cout<<"File "<<simArguments.outputSloughRoute<<" could not be opened for slough register."<<endl;
-	}
-	if (outputGrazerFile.is_open()){
-		cout<<"File "<<simArguments.outputGrazerRoute<<" open for grazer register."<<endl;
-	} else{
-		cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for grazer register."<<endl;
-	}
-
-#ifdef CHECK_ASSERTIONS
-	if (outputAssertionViolationFile.is_open()){
-		cout<<"File "<<simArguments.outputAssertionViolationRoute<<" open for violated assertions register."<<endl;
-	} else{
-		cout<<"File "<<simArguments.outputAssertionViolationRoute<<" could not be opened for violated assertions register."<<endl;
-	}
-
-#endif
-
+	openSimulationFiles(simArguments);
 
 	/*Write file headers*/
 	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeVerticalMigration"<<endl;
@@ -116,16 +80,56 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 		}
 #endif
 	}
+	closeSimulationFiles();
+	cout<<"Simulation finished."<<endl;
+	return 0;
+}
+
+
+void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& simArguments){
+
+	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
+	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
+	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
+#ifdef CHECK_ASSERTIONS
+	outputAssertionViolationFile.open(simArguments.outputAssertionViolationRoute.c_str());
+#endif
+	/*Report successfully or not successfully open files*/
+	if (outputAlgaeFile.is_open()){
+		cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputAlgaeRoute<<" could not be opened for algae biomass output."<<endl;
+	}
+	if (outputSloughFile.is_open()){
+		cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputSloughRoute<<" could not be opened for slough register."<<endl;
+	}
+	if (outputGrazerFile.is_open()){
+		cout<<"File "<<simArguments.outputGrazerRoute<<" open for grazer register."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for grazer register."<<endl;
+	}
+
+#ifdef CHECK_ASSERTIONS
+	if (outputAssertionViolationFile.is_open()){
+		cout<<"File "<<simArguments.outputAssertionViolationRoute<<" open for violated assertions register."<<endl;
+	} else{
+		cout<<"File "<<simArguments.outputAssertionViolationRoute<<" could not be opened for violated assertions register."<<endl;
+	}
+
+#endif
+
+}
+
+void FoodWebModel::FoodWebModel::closeSimulationFiles(){
 	outputAlgaeFile.close();
 	outputSloughFile.close();
 	outputGrazerFile.close();
 #ifdef CHECK_ASSERTIONS
 	outputAssertionViolationFile.close();
 #endif
-	cout<<"Simulation finished."<<endl;
-	return 0;
 }
-
 void FoodWebModel::FoodWebModel::step(){
 	updateAlgaeBiomass();
 	updateZooplanktonBiomass();
@@ -415,7 +419,7 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	depthInMeters= indexToDepth[depthIndex];
-	algae_biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex);
+	algae_biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex)*MICROGRAM_TO_GRAM;
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+algae_biomass_to_depth);
 #ifdef ADDITIVE_TURBIDITY
@@ -464,7 +468,7 @@ physicalType FoodWebModel::FoodWebModel::productionLimit(physicalType localeLimi
 	/*
 	 * We will also use the fraction of littoral zone for periphyton
 	 */
-	physicalType productionLimit= localeLimitationProduct*1.0f;
+	physicalType productionLimit= localeLimitationProduct;
 	if(periPhyton){
 		productionLimit*=fractionInEuphoticZone;
 	}

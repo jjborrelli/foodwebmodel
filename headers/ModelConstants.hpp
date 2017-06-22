@@ -9,9 +9,9 @@
 #define MODELCONSTANTS_HPP_
 #include "TypeDefinitions.hpp"
 
-//#if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
-//	#define DEBUG_MODE
-//#endif
+#if defined(_WIN64) || defined(WIN64) || defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__)
+	#define DEBUG_MODE
+#endif
 
 #include "SimulationModes.hpp"
 /*
@@ -91,9 +91,6 @@ static const biomassType PROPORTION_EXCRETION_PHOTOSYNTHESIS=0.04f;
  * The intrinsic phytoplankton mortality rate (AquaTox Documentation, page 87, figure 63)
  */
 
-static const biomassType INTRINSIC_ALGAE_MORTALITY_RATE=0.019f;
-//static const double INTRINSIC_ALGAE_MORTALITY_RATE=0.0019f;
-
 /*
  * The maximum tolerable temperature (AquaTox Documentation, page 87, figure 64)
  */
@@ -103,7 +100,6 @@ static const biomassType MAXIMUM_TOLERABLE_TEMPERATURE=38.0f;
 /*
  * Maximum biomass loss due to resource limitation is yet to be defined
  */
-static const biomassType MAXIMUM_RESOURCE_LIMITATION_LOSS=1.0f;
 
 /*
  * Intrinsic settling rate (AquaTox Documentation, page 88, figure 65)

@@ -41,6 +41,9 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->light_allowance_weight = simArguments.light_allowance_weight;
 	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
 	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
+	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
+	this->maximum_algae_resources_death = simArguments.maximum_algae_resources_death;
+
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -597,7 +600,7 @@ void FoodWebModel::FoodWebModel::algaeExcretion(){
 void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
 	algaeHighTemperatureMortality(localeTemperature);
 	resourceLimitationStress(localeLimitationProduct);
-	algae_natural_mortality = -(INTRINSIC_ALGAE_MORTALITY_RATE+high_temperature_mortality+weighted_resource_limitation_stress)*localPointBiomass;
+	algae_natural_mortality = -(this->intrinsic_algae_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress)*localPointBiomass;
 }
 
 /*
@@ -612,7 +615,7 @@ void FoodWebModel::FoodWebModel::algaeHighTemperatureMortality(physicalType loca
  * Biomass lost to stress related to resource limitation (AquaTox Documentation, page 86, equation 68)
  */
 void FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLimitationProduct){
-	resource_limitation_exponent = -MAXIMUM_RESOURCE_LIMITATION_LOSS*(1-localeLimitationProduct);
+	resource_limitation_exponent = -this->maximum_algae_resources_death*(1-localeLimitationProduct);
 	resource_limitation_stress= 1.0f-exp(resource_limitation_exponent);
 	weighted_resource_limitation_stress = RESOURCE_LIMITATION_WEIGHT*resource_limitation_stress;
 }
@@ -923,6 +926,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
 	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
+	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
+	cout<<"Using maximum algae death to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
+
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/

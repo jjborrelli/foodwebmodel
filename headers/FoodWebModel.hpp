@@ -87,6 +87,7 @@ namespace FoodWebModel {
 		/* Algae attributes*/
 		biomassType algae_biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate, algae_biomass_differential_scale;
 
+		biomassType intrinsic_algae_mortality_rate, maximum_algae_resources_death;
 		/* Algae biomass components*/
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;

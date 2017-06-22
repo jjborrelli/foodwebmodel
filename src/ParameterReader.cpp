@@ -77,9 +77,9 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		return;
 	}
 	if(!parameterName.compare("TemperatureRangeRoute")){
-			simArguments.temperatureRangeRoute= parameterValue;
-			return;
-		}
+		simArguments.temperatureRangeRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("OutputAlgaeRoute")){
 		simArguments.outputAlgaeRoute= parameterValue;
 		return;
@@ -136,46 +136,53 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		return;
 	}
 	if(!parameterName.compare("AnimalBaseMortality")){
-			simArguments.animal_base_mortality_proportion= atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.animal_base_mortality_proportion= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("FilteringRatePerDaphnia")){
-			simArguments.filtering_rate_per_daphnia= atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.filtering_rate_per_daphnia= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("BasalRespirationWeight")){
-			simArguments.basal_respiration_weight= atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.basal_respiration_weight= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("KValueRespiration")){
-			simArguments.k_value_respiration= atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.k_value_respiration= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerCarryingCapacityCoefficient")){
-			simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerCarryingCapacityIntercept")){
-			simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PhosphorusHalfSaturation")){
-				simArguments.phosphorus_half_saturation = atof(parameterValue.c_str());
-				return;
-			}
+		simArguments.phosphorus_half_saturation = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("LightAllowanceWeight")){
-				simArguments.light_allowance_weight = atof(parameterValue.c_str());
-				return;
-			}
+		simArguments.light_allowance_weight = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("Respiration20Degrees")){
-					simArguments.algal_respiration_at_20_degrees = atof(parameterValue.c_str());
-					return;
-				}
+		simArguments.algal_respiration_at_20_degrees = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("AlgalRespirationExponentialTemperatureCoefficient")){
-						simArguments.exponential_temperature_algal_respiration_coefficient = atof(parameterValue.c_str());
-						return;
-					}
-
+		simArguments.exponential_temperature_algal_respiration_coefficient = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("IntrinsicAlgaeMortalityRate")){
+		simArguments.intrinsic_algae_mortality_rate = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("MaximumAlgaeDeathResources")){
+		simArguments.maximum_algae_resources_death = atof(parameterValue.c_str());
+		return;
+	}
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 

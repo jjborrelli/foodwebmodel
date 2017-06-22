@@ -37,6 +37,10 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->k_value_respiration = simArguments.k_value_respiration;
 	this->grazer_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
 	this->grazer_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
+	this->phosphorus_half_saturation = simArguments.phosphorus_half_saturation;
+	this->light_allowance_weight = simArguments.light_allowance_weight;
+	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
+	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -156,7 +160,8 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 	}
 #endif
 	/*Use different algae biomass differential weights for burn-in and production*/
-	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:this->algae_biomass_differential_production_scale;
+//	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:this->algae_biomass_differential_production_scale;
+	algae_biomass_differential_scale=algae_biomass_differential_production_scale;
 	algaeBuffer.str("");
 	sloughBuffer.str("");
 	/* Clear vertical migrated phyto biomass*/
@@ -287,9 +292,13 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	biomassType localPointBiomass=periPhyton?periBiomass[columnIndex]:phytoBiomass[depthIndex][columnIndex];
 
 	/* Calculate nutrient limitations*/
-	lightAllowance(depthIndex, columnIndex);
+	photoPeriod();
+	calculateLightAtTop();
+	lightAtDepth(depthIndex, columnIndex);
+	normalizeLight(columnIndex);
+	lightAllowance(localPointBiomass);
 	phosphorusConcentrationAtDepth(depthIndex, columnIndex);
-	calculateNutrientLimitation();
+	calculateNutrientLimitation(localPointBiomass);
 #ifdef LIMITATION_MINIMUM
 	physicalType localeLimitationProduct = min<physicalType>(light_allowance,nutrient_limitation);
 #else
@@ -419,7 +428,7 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	depthInMeters= indexToDepth[depthIndex];
-	algae_biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex)*MICROGRAM_TO_GRAM;
+	algae_biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex)*MICROGRAM_TO_GRAM/M3_TO_LITER;
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+algae_biomass_to_depth);
 #ifdef ADDITIVE_TURBIDITY
@@ -571,7 +580,7 @@ void FoodWebModel::FoodWebModel::setBathymetricParameters(){
  * Biomass lost to respiration (AquaTox Documentation, page 84, equation 63)
  */
 void FoodWebModel::FoodWebModel::algaeRespiration(biomassType localPointBiomass, physicalType localTemperature){
-	algae_respiration_value = -RESP20*pow(EXPONENTIAL_TEMPERATURE_COEFFICIENT, localTemperature-20)*localPointBiomass;
+	algae_respiration_value = -min(photosynthesis_value*MAX_RESPIRATION_PHOTOSYNTHESIS_RATE,this->algal_respiration_at_20_degrees*pow(this->exponential_temperature_algal_respiration_coefficient, localTemperature-20)*localPointBiomass);
 }
 
 /*
@@ -686,28 +695,34 @@ void FoodWebModel::FoodWebModel::calculatePhysicalLakeDescriptors(){
 
 /* Calculation of algae biomass*/
 
-/*
- * Amount of light that is allowed into the biomass depth
- * Adapted from (AquaTox Documentation, page 70, equation 39)
- * */
-void FoodWebModel::FoodWebModel::lightAllowance(int depthIndex, int columnIndex){
-	photoPeriod();
-	calculateLightAtTop();
-	lightAtDepth(depthIndex, columnIndex);
+void FoodWebModel::FoodWebModel::normalizeLight(int columnIndex){
 #ifndef HOMOGENEOUS_DEPTH
 	light_normalizer = algae_biomass_to_depth*depthVector[columnIndex];
 #else
 	light_normalizer = algae_biomass_to_depth*ZMax;
 #endif
-#ifdef EXPONENTIAL_LIGHT
+}
+
+/*
+ * Amount of light that is allowed into the biomass depth
+ * Adapted from (AquaTox Documentation, page 70, equation 39)
+ * */
+void FoodWebModel::FoodWebModel::lightAllowance(biomassType localeAlgaeBiomass){
+
+light_difference=light_at_depth-light_at_top;
+#ifdef PROPORTIONAL_LIGHT
 	/* Use a simplistic model of light decreasing exponentially with depth*/
-	light_difference=light_at_depth-light_at_top;
 	light_allowance = light_at_depth/light_at_top;
+#elif defined(LINEAR_LIGHT)
+	light_allowance = (physicalType)LIGHT_ALLOWANCE_INTERCEPT+ALGAE_BIOMASS_COEFFICIENT_LIGHT_ALLOWANCE*localeAlgaeBiomass+RADIATION_COEFFICIENT_LIGHT_ALLOWANCE*light_at_depth;
+#elif defined(AQUATOX_LIGHT_ALLOWANCE)
+	light_allowance = 1-min((double)1.0f,(physicalType)this->light_allowance_weight*light_difference/(this->light_at_depth_exponent*ZMax));
 #else
-	light_difference=Math_E*(localeLightAtDepth-light_at_top);
+	light_difference=Math_E*light_difference;
 	light_allowance=1/(1+exp(-1.0f*light_difference));
 	//sigmoid_light_difference=1;
 #endif
+	light_allowance=min((double)1.0f,max(light_allowance, (double)0.0f));
 	/* Uncomment this line to make the model equivalent to AquaTox*/
 	//normalized_light_difference =light_difference/(light_normalizer+light_difference);
 	//return localePhotoPeriod*normalized_light_difference;
@@ -759,7 +774,7 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 	physicalType localeNutrientAtBottom = concentrationAtBottom;
 #ifdef HOMOGENEOUS_DEPTH
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-ZMax));
-#elif defined (RADIATED_CHEMICAL)
+#elif defined(RADIATED_CHEMICAL)
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(-this->distance_to_focus[depthIndex][columnIndex]));
 #else
 	chemical_at_depth_exponent = (double)(NUTRIENT_DERIVATIVE*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
@@ -769,12 +784,21 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 
 /* Nutrient biomass growth limitation based on nutrient concentration */
 
-void FoodWebModel::FoodWebModel::calculateNutrientLimitation(){
+void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPointBiomass){
 	nutrient_limitation=0.0f;
 	if(chemical_concentration>=PHOSPHORUS_LINEAR_THRESHOLD)
 		nutrient_limitation=1.0f;
-	else
+	else{
+#ifdef NUTRIENT_LIMITATION_GLM
+		nutrient_limitation=max((double)0.0f,(chemical_concentration*PHOSPHORUS_LIMITATION_LINEAR_COEFFICIENT_TFP+localPointBiomass*PHOSPHORUS_LIMITATION_LINEAR_COEFFICIENT_ALGAE_BIOMASS+PHOSPHORUS_INTERCEPT_GLM));
+#elif defined(NUTRIENT_LIMITATION_QUOTIENT)
+		biomassType chemical_concentration_in_grams=chemical_concentration*MICROGRAM_TO_GRAM*M3_TO_LITER;
+		nutrient_limitation=chemical_concentration_in_grams/(chemical_concentration_in_grams+this->phosphorus_half_saturation);
+#else
 		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(chemical_concentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
+
+#endif
+	}
 	//returnedValue=1.0f;
 }
 
@@ -872,7 +896,22 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Using constant grazer mortality."<<endl;
 #endif
-
+#ifdef PROPORTIONAL_LIGHT
+	cout<<"Using proportional light limitation."<<endl;
+#elif defined(LINEAR_LIGHT)
+	cout<<"Using linear light limitation."<<endl;
+#elif defined(AQUATOX_LIGHT_ALLOWANCE)
+	cout<<"Using AquaTox light limitation."<<endl;
+#else
+	cout<<"Using sigmoid light limitation."<<endl;
+#endif
+#ifdef NUTRIENT_LIMITATION_GLM
+	cout<<"Using GLM nutrient limitation."<<endl;
+#elif defined(NUTRIENT_LIMITATION_QUOTIENT)
+	cout<<"Using quotient-based nutrient limitation."<<endl;
+#else
+	cout<<"Using simple linear nutrient limitation."<<endl;
+#endif
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
@@ -880,7 +919,10 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using basal respiration weight "<<this->basal_respiration_weight<<"."<<endl;
 	cout<<"Using respiration K value "<<this->k_value_respiration<<"."<<endl;
 	cout<<"Using grazer carrying capacity coefficient "<<this->grazer_carrying_capacity_coefficient<<"."<<endl;
-	cout<<"Using grazer carrying capacity intercept "<<this->grazer_carrying_capacity_intercept<<"."<<endl;
+	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
+	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
+	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
+	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/

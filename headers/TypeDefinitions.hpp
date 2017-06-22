@@ -40,7 +40,11 @@ typedef struct {
 	basal_respiration_weight,
 	k_value_respiration,
 	grazer_carrying_capacity_coefficient,
-	grazer_carrying_capacity_intercept;
+	grazer_carrying_capacity_intercept,
+	phosphorus_half_saturation,
+	light_allowance_weight,
+	algal_respiration_at_20_degrees,
+	exponential_temperature_algal_respiration_coefficient;
 } SimulationArguments;
 
 #endif /* TYPEDEFINITIONS_HPP_ */

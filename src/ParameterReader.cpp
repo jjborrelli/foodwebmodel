@@ -159,6 +159,23 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 			simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
 			return;
 		}
+	if(!parameterName.compare("PhosphorusHalfSaturation")){
+				simArguments.phosphorus_half_saturation = atof(parameterValue.c_str());
+				return;
+			}
+	if(!parameterName.compare("LightAllowanceWeight")){
+				simArguments.light_allowance_weight = atof(parameterValue.c_str());
+				return;
+			}
+	if(!parameterName.compare("Respiration20Degrees")){
+					simArguments.algal_respiration_at_20_degrees = atof(parameterValue.c_str());
+					return;
+				}
+	if(!parameterName.compare("AlgalRespirationExponentialTemperatureCoefficient")){
+						simArguments.exponential_temperature_algal_respiration_coefficient = atof(parameterValue.c_str());
+						return;
+					}
+
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 

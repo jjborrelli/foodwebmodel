@@ -46,7 +46,10 @@ static const physicalType  ATTENUATION_COEFFICIENT=0.000102f;
 
 /* Outliers removed*/
 #ifdef USE_LITERATURE_AND_DATA_CONSTANTS
-static const physicalType TURBIDITY=5.426461f;
+//static const physicalType TURBIDITY=5.426461f;
+
+/* Taken from the real-time probe data from the lake*/
+static const physicalType TURBIDITY=0.2472382f;
 //static const double TURBIDITY=5.426461f/5.0f;
 static const physicalType TURBIDITY_PROPORTION = 0.5f;
 static const biomassType ALGAE_ATTENUATION_PROPORTION = 1-TURBIDITY_PROPORTION;
@@ -65,7 +68,7 @@ static const physicalType TURBIDITY=5.426461f/300.0f;
 
 static const biomassType CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL=0.00085f;
 static const biomassType LOW_DEPTH_CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL=CONSTANT_ALGAE_BIOMASS_DIFFERENTIAL;///5.0f;
-static const biomassType VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT=0.0002f;
+static const biomassType VARIABLE_ALGAE_BIOMASS_DIFFERELIGHT_STEEPNESSNTIAL_WEIGHT=0.0002f;
 //static const unsigned int GRAZERS_LIMIT=5;
 static const unsigned int GRAZERS_LIMIT=99;
 //static const unsigned int GRAZERS_LIMIT=22;
@@ -73,15 +76,12 @@ static const unsigned int GRAZERS_LIMIT=99;
 /*
  * The respiration rate at 20 degrees (AquaTox Documentation, page 85, figure 61)
  */
-static const biomassType RESP20=0.3f;
 //static const double RESP20=0.1f;
 //static const double RESP20=0.01f;
 
 /*
  * The exponential temperature coefficient (AquaTox Documentation, page 84, equation 63)
  */
-static const physicalType EXPONENTIAL_TEMPERATURE_COEFFICIENT=1.045;
-
 /*
  * The coefficient of proportionality between excretion and photosynthesis (AquaTox Documentation, page 86, figure 62)
  */
@@ -149,9 +149,13 @@ static const physicalType Math_PI = 3.141593f;
 
 static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
-static const physicalType LIGHT_STEEPNESS = 0.0005f;
+static const physicalType LIGHT_STEEPNESS = 1.0f;
 
-static const biomassType PHOTOSYNTHESIS_FACTOR = 8.0f;
+//static const physicalType LIGHT_STEEPNESS = 0.0005f;
+
+//static const biomassType PHOTOSYNTHESIS_FACTOR = 8.0f;
+static const biomassType PHOTOSYNTHESIS_FACTOR = 1.0f;
+
 
 static const unsigned int HOURS_PER_DAY = 24;
 
@@ -172,12 +176,23 @@ static const physicalType PHOSPHORUS_LINEAR_THRESHOLD = 2.5f;
 
 //static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.018f;
 static const physicalType PHOSPHORUS_LINEAR_COEFFICIENT =  2.664f;
+static const physicalType PHOSPHORUS_LIMITATION_LINEAR_COEFFICIENT_TFP =  4.17f/1000.0f;
+static const physicalType PHOSPHORUS_LIMITATION_LINEAR_COEFFICIENT_ALGAE_BIOMASS =  -2.611f/100000.0f;
+
+
 //static const double PHOSPHORUS_LINEAR_COEFFICIENT =  1.518f;
 
 //static const double PHOSPHORUS_INTERCEPT = -2.618f;
 static const physicalType PHOSPHORUS_INTERCEPT = -2.118f;
+static const physicalType PHOSPHORUS_INTERCEPT_GLM = 8.505f/1000.0f;
 
 static const biomassType PHOSPHORUS_GROWTH_LIMIT = 2.5f;
+
+/*Light allowance linear model constants*/
+
+static const biomassType LIGHT_ALLOWANCE_INTERCEPT=-0.4704241f,
+		ALGAE_BIOMASS_COEFFICIENT_LIGHT_ALLOWANCE=0.0001267f,
+		RADIATION_COEFFICIENT_LIGHT_ALLOWANCE =0.0003799f;
 
 /* Added a weight factor to control resource limitation weight*/
 
@@ -192,6 +207,9 @@ static const biomassType SINKING_DEPTH_WEIGHT = 0.3f;
 /* Added factor to increase convergence of biomass*/
 
 static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE=1.0f;
+
+/*Maximum ratio respiration/photosynthesis (AquaTox Documentation, page 84, equation 63)*/
+static const biomassType MAX_RESPIRATION_PHOTOSYNTHESIS_RATE=0.6f;
 //static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=1.0f;
 //static const physicalType ALGAE_BIOMASS_DIFFERENTIAL_PRODUCTION_SCALE=0.0006594164f; //Using data without grazers removal
 

@@ -42,6 +42,15 @@ namespace FoodWebModel {
 		/*Phytoplankton biomass concentration in micrograms/l, periphyton biomass micrograms/l and temperature in Celsius degrees*/
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phytoBiomassDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomassDifferential[MAX_COLUMN_INDEX], baseAlgaeBiomassDifferential[MAX_DEPTH_INDEX];
 
+		/*Nutrient parameters*/
+		biomassType phosphorus_half_saturation;
+
+		/*Light parameters*/
+		biomassType light_allowance_weight;
+
+		/*Algal respiration parameters*/
+		biomassType algal_respiration_at_20_degrees, exponential_temperature_algal_respiration_coefficient;
+
 		/*Algae differential growth*/
 		biomassType algae_biomass_differential_production_scale;
 		/* Grazer biomass in micrograms*/
@@ -121,13 +130,14 @@ namespace FoodWebModel {
 		/* Physical descriptors*/
 		void lightAtDepth(int depthIndex, int columnIndex);
 		void calculateTemperature(int depthIndex, int columnIndex);
-		void lightAllowance(int depthIndex, int columnIndex);
+		void lightAllowance(biomassType localeAlgaeBiomass);
+		void normalizeLight(int depthIndex);
 		void photoPeriod();
 		void calculateLightAtTop();
 		void phosphorusConcentrationAtDepth(int depthIndex, int columnIndex);
 		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
 		void chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom);
-		void calculateNutrientLimitation();
+		void calculateNutrientLimitation(biomassType localPointBiomass);
 		void calculatePhysicalLakeDescriptors();
 		void setBathymetricParameters();
 		void calculateDistanceToFocus();

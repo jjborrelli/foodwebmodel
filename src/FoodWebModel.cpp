@@ -43,6 +43,9 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
 	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
 	this->maximum_algae_resources_death = simArguments.maximum_algae_resources_death;
+	this->light_steepness = simArguments.light_steepness;
+	this->diatom_attenuation_coefficient = simArguments.diatom_attenuation_coefficient;
+	this->limitation_scale_weight = simArguments.limitation_scale_weight;
 
 }
 
@@ -308,6 +311,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
 #endif
 	/* Calculate biomass differential components*/
+	localeLimitationProduct*=this->limitation_scale_weight;
 	photoSynthesis(localPointBiomass, localeLimitationProduct, periPhyton);
 	algaeSinking(depthIndex, columnIndex);
     algaeSlough(columnIndex);
@@ -431,14 +435,14 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	 * Transform depth from an integer index to a real value in ms
 	 */
 	depthInMeters= indexToDepth[depthIndex];
-	algae_biomass_to_depth = ATTENUATION_COEFFICIENT*sumPhytoBiomassToDepth(depthIndex, columnIndex)*MICROGRAM_TO_GRAM/M3_TO_LITER;
+	algae_biomass_to_depth = this->diatom_attenuation_coefficient*sumPhytoBiomassToDepth(depthIndex, columnIndex)*MICROGRAM_TO_GRAM*M3_TO_LITER;
 	turbidity_at_depth=TURBIDITY*depthInMeters;
 	light_at_depth_exponent = -(turbidity_at_depth+algae_biomass_to_depth);
 #ifdef ADDITIVE_TURBIDITY
 	light_at_depth =  light_at_top*ALGAE_ATTENUATION_WEIGHT*(ALGAE_ATTENUATION_PROPORTION*exp(-algae_biomass_to_depth)+TURBIDITY_PROPORTION*exp(-turbidity_at_depth));
 
 #else
-	light_at_depth =  light_at_top*exp(LIGHT_STEEPNESS*light_at_depth_exponent);
+	light_at_depth =  light_at_top*exp(this->light_steepness*light_at_depth_exponent);
 
 #endif
 	previousLakeLightAtDepth[depthIndex][columnIndex] = lakeLightAtDepth[depthIndex][columnIndex];
@@ -719,7 +723,7 @@ light_difference=light_at_depth-light_at_top;
 #elif defined(LINEAR_LIGHT)
 	light_allowance = (physicalType)LIGHT_ALLOWANCE_INTERCEPT+ALGAE_BIOMASS_COEFFICIENT_LIGHT_ALLOWANCE*localeAlgaeBiomass+RADIATION_COEFFICIENT_LIGHT_ALLOWANCE*light_at_depth;
 #elif defined(AQUATOX_LIGHT_ALLOWANCE)
-	light_allowance = 1-min((double)1.0f,(physicalType)this->light_allowance_weight*light_difference/(this->light_at_depth_exponent*ZMax));
+	light_allowance = min((double)1.0f,(physicalType)this->light_allowance_weight*light_difference/(this->light_at_depth_exponent*ZMax));
 #else
 	light_difference=Math_E*light_difference;
 	light_allowance=1/(1+exp(-1.0f*light_difference));
@@ -928,6 +932,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
 	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
 	cout<<"Using maximum algae death to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
+	cout<<"Using light steepness "<<this->light_steepness<<"."<<endl;
+	cout<<"Using diatom attenuation coefficient "<<this->diatom_attenuation_coefficient<<"."<<endl;
+	cout<<"Using limitation product scale weight "<<this->limitation_scale_weight<<"."<<endl;
 
 }
 

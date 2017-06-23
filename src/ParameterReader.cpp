@@ -183,6 +183,20 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.maximum_algae_resources_death = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("LightSteepness")){
+		simArguments.light_steepness = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("DiatomAttenuationCoefficient")){
+		simArguments.diatom_attenuation_coefficient = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("LimitationScaleWeight")){
+		simArguments.limitation_scale_weight = atof(parameterValue.c_str());
+		return;
+	}
+
+
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 

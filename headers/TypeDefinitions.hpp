@@ -46,6 +46,7 @@ typedef struct {
 	algal_respiration_at_20_degrees,
 	exponential_temperature_algal_respiration_coefficient,
 	intrinsic_algae_mortality_rate, maximum_algae_resources_death;
+	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight;
 } SimulationArguments;
 
 #endif /* TYPEDEFINITIONS_HPP_ */

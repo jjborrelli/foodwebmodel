@@ -23,12 +23,7 @@ static const physicalType EXTINCTION=0.02;
 /*
  * We consider that virtually all phytoplankton has the light attenuation coefficient of diatom algae
  */
-static const physicalType  DIATOM_ATTENUATION=0.14f;
-#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
-static const physicalType  ATTENUATION_COEFFICIENT=DIATOM_ATTENUATION;
-#else
-static const physicalType  ATTENUATION_COEFFICIENT=0.000102f;
-#endif
+
 //static const double  ATTENUATION_COEFFICIENT=0.14f;
 //static const double  ATTENUATION_COEFFICIENT=0.0f;
 
@@ -145,7 +140,6 @@ static const physicalType Math_PI = 3.141593f;
 
 static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
-static const physicalType LIGHT_STEEPNESS = 1.0f;
 
 //static const physicalType LIGHT_STEEPNESS = 0.0005f;
 
@@ -158,7 +152,7 @@ static const unsigned int HOURS_PER_DAY = 24;
 /* Nutrient derivative taken as the average difference between consecutive points*/
 //static const physicalType NUTRIENT_DERIVATIVE = 0.02527915f;
 //static const double NUTRIENT_DERIVATIVE = 0.02527915f*1.3f;
-static const double NUTRIENT_DERIVATIVE = 0.02527915f*2.4f;
+static const double NUTRIENT_DERIVATIVE = 0.02527915f;
 
 /* Phosphorus concentration at bottom taken from lake data*/
 static const physicalType PHOSPHORUS_CONCENTRATION_AT_BOTTOM = 2.507143f;

@@ -43,10 +43,10 @@ namespace FoodWebModel {
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phytoBiomassDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomassDifferential[MAX_COLUMN_INDEX], baseAlgaeBiomassDifferential[MAX_DEPTH_INDEX];
 
 		/*Nutrient parameters*/
-		biomassType phosphorus_half_saturation;
+		biomassType phosphorus_half_saturation, limitation_scale_weight;
 
 		/*Light parameters*/
-		biomassType light_allowance_weight;
+		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient;
 
 		/*Algal respiration parameters*/
 		biomassType algal_respiration_at_20_degrees, exponential_temperature_algal_respiration_coefficient;

@@ -1392,6 +1392,18 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"AnimalBaseMortality;"<<this->animal_base_mortality_proportion<<endl;
 		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
 		parameterFileStream<<"FilteringRatePerDaphnia;"<<this->filtering_rate_per_daphnia<<endl;
+		parameterFileStream<<"BasalRespirationWeight;"<<this->basal_respiration_weight<<endl;
+		parameterFileStream<<"KValueRespiration;"<<this->k_value_respiration<<endl;
+		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<this->grazer_carrying_capacity_coefficient<<endl;
+		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<this->grazer_carrying_capacity_intercept<<endl;
+		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
+		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
+		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
+		parameterFileStream<<"AlgalRespirationExponentialTemperatureCoefficient;"<<this->exponential_temperature_algal_respiration_coefficient<<endl;
+		parameterFileStream<<"MaximumAlgaeDeathResources;"<<this->maximum_algae_resources_death<<endl;
+		parameterFileStream<<"LightSteepness;"<<this->light_steepness<<endl;
+		parameterFileStream<<"IntrinsicAlgaeMortalityRate;"<<this->intrinsic_algae_mortality_rate<<endl;
+		parameterFileStream<<"LimitationScaleWeight;"<<this->limitation_scale_weight<<endl;
 		parameterFileStream.close();
 	} else {
 		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;

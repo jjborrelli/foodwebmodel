@@ -58,7 +58,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	openSimulationFiles(simArguments);
 
 	/*Write file headers*/
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeVerticalMigration"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgaeVerticalMigration"<<endl;
 	outputSloughFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount"<<endl;
 	// Report start of the simulation
@@ -413,6 +413,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	lineBuffer<<commaString<<high_temperature_mortality;
 	lineBuffer<<commaString<<resource_limitation_stress;
 	lineBuffer<<commaString<<weighted_resource_limitation_stress;
+	lineBuffer<<commaString<<algae_natural_mortality_factor;
 	#ifdef STABLE_CHLOROPHYLL
 		if(current_hour>=STABLE_STATE_HOUR){
 			if(periPhyton){
@@ -604,7 +605,8 @@ void FoodWebModel::FoodWebModel::algaeExcretion(){
 void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
 	algaeHighTemperatureMortality(localeTemperature);
 	resourceLimitationStress(localeLimitationProduct);
-	algae_natural_mortality = -(this->intrinsic_algae_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress)*localPointBiomass;
+	algae_natural_mortality_factor = this->intrinsic_algae_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress;
+	algae_natural_mortality = -algae_natural_mortality_factor*localPointBiomass;
 }
 
 /*
@@ -621,7 +623,7 @@ void FoodWebModel::FoodWebModel::algaeHighTemperatureMortality(physicalType loca
 void FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLimitationProduct){
 	resource_limitation_exponent = -this->maximum_algae_resources_death*(1-localeLimitationProduct);
 	resource_limitation_stress= 1.0f-exp(resource_limitation_exponent);
-	weighted_resource_limitation_stress = RESOURCE_LIMITATION_WEIGHT*resource_limitation_stress;
+	weighted_resource_limitation_stress = resource_limitation_stress;
 }
 
 /*
@@ -931,7 +933,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
 	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
 	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
-	cout<<"Using maximum algae death to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
+	cout<<"Using maximum algae dead to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
 	cout<<"Using light steepness "<<this->light_steepness<<"."<<endl;
 	cout<<"Using diatom attenuation coefficient "<<this->diatom_attenuation_coefficient<<"."<<endl;
 	cout<<"Using limitation product scale weight "<<this->limitation_scale_weight<<"."<<endl;

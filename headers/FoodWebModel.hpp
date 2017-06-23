@@ -48,8 +48,8 @@ namespace FoodWebModel {
 		/*Light parameters*/
 		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient;
 
-		/*Algal respiration parameters*/
-		biomassType algal_respiration_at_20_degrees, exponential_temperature_algal_respiration_coefficient;
+		/*Algal respiration and mortality parameters*/
+		biomassType algal_respiration_at_20_degrees, exponential_temperature_algal_respiration_coefficient, algae_natural_mortality_factor;
 
 		/*Algae differential growth*/
 		biomassType algae_biomass_differential_production_scale;

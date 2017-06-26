@@ -928,6 +928,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using basal respiration weight "<<this->basal_respiration_weight<<"."<<endl;
 	cout<<"Using respiration K value "<<this->k_value_respiration<<"."<<endl;
 	cout<<"Using grazer carrying capacity coefficient "<<this->grazer_carrying_capacity_coefficient<<"."<<endl;
+	cout<<"Using grazer carrying capacity intercept "<<this->grazer_carrying_capacity_intercept<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;

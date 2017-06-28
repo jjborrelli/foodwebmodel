@@ -786,7 +786,7 @@ void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemper
 #else
 	this->used_algal_mortality_rate=this->intrinsic_algae_mortality_rate;
 #endif
-	algae_natural_mortality_factor = this->used_algal_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress;
+	algae_natural_mortality_factor = min(this->used_algal_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress,(double)1.0f);
 	algae_natural_mortality = -algae_natural_mortality_factor*localPointBiomass;
 }
 

@@ -219,7 +219,7 @@ static const unsigned int STABLE_STATE_HOUR=10;
 
 static const physicalType MICROGRAM_TO_MILLIGRAM=1.0f/1000.0f, MICROGRAM_TO_GRAM=MICROGRAM_TO_MILLIGRAM/1000.0f, M3_TO_LITER=1000.0f, VOLUME_PER_CELL_IN_M3=3.55579f, LITER_TO_M3=1/M3_TO_LITER, MILLILITER_TO_LITER=0.001f, LITER_TO_CELL_VOLUME=LITER_TO_M3/VOLUME_PER_CELL_IN_M3, MILLILITER_TO_VOLUME_PER_CELL=MILLILITER_TO_LITER*LITER_TO_CELL_VOLUME, CELL_VOLUME_IN_LITER=1/LITER_TO_CELL_VOLUME;
 
-static const biomassType DAPHNIA_WEIGHT_IN_MICROGRAMS=47.41f;
+static const biomassType DAPHNIA_WEIGHT_IN_MICROGRAMS=15.0f;
 
 static const biomassType DAPHNIA_WEIGHT_IN_MILLIGRAMS=DAPHNIA_WEIGHT_IN_MICROGRAMS*MICROGRAM_TO_MILLIGRAM;
 
@@ -240,9 +240,11 @@ static const zooplanktonCountType MINIMUM_VIABLE_GRAZER_POPULATION=100000000;
 
 static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
 
-/*Maximum grazer biomass per cell found in experimental data*/
+/*Maximum number of grazers per cell found in experimental data*/
 
-static const biomassType MAXIMUM_FOUND_GRAZER_BIOMASS = 51316774.0f;
+static const biomassType MAXIMUM_NUMBER_OF_GRAZERS_FOUND = 2234133.0f;
+
+static const biomassType MAXIMUM_FOUND_GRAZER_BIOMASS = MAXIMUM_NUMBER_OF_GRAZERS_FOUND*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 /* Threshold beyond no more food is grazed. Taken from (Luecke et al., 1992, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1) in grams algae/grams grazer/day.*/
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 100.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;

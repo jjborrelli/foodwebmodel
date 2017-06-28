@@ -18,36 +18,6 @@ string operator+(string arg1, int arg2){
 	return arg1+bufferString.str();
 }
 
-void FoodWebModel::FoodWebModel::setFileParameters(
-		const SimulationArguments& simArguments) {
-	/*Read numeric parameters*/
-	this->algae_biomass_differential_production_scale =
-			simArguments.algae_biomass_differential_production_scale;
-	this->animal_base_mortality_proportion =
-			simArguments.animal_base_mortality_proportion;
-	this->simulation_cycles = simArguments.simulationCycles;
-	this->maximum_distance_daphnia_swum_in_rows_per_hour =
-			MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX
-					/ this->ZMax;
-	this->vertical_migration_buffer_size = 2
-			* maximum_distance_daphnia_swum_in_rows_per_hour + 1;
-	this->filtering_rate_per_daphnia = simArguments.filtering_rate_per_daphnia;
-	this->filtering_rate_per_daphnia_in_cell_volume=this->filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
-	this->basal_respiration_weight = simArguments.basal_respiration_weight;
-	this->k_value_respiration = simArguments.k_value_respiration;
-	this->grazer_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
-	this->grazer_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
-	this->phosphorus_half_saturation = simArguments.phosphorus_half_saturation;
-	this->light_allowance_weight = simArguments.light_allowance_weight;
-	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
-	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
-	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
-	this->maximum_algae_resources_death = simArguments.maximum_algae_resources_death;
-	this->light_steepness = simArguments.light_steepness;
-	this->diatom_attenuation_coefficient = simArguments.diatom_attenuation_coefficient;
-	this->limitation_scale_weight = simArguments.limitation_scale_weight;
-
-}
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	/*Read numeric parameters*/
@@ -58,7 +28,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	openSimulationFiles(simArguments);
 
 	/*Write file headers*/
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgaeVerticalMigration"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, LightAllowance, AlgaeTurbidity, PhotoPeriod, LightAtDepthExponent, LightAtDepth, Temperature, TemperatureAngularFrequency, TemperatureSine, DepthInMeters, PhosphorusConcentration, PhosphorusConcentrationAtBottom, PhosphorusLimitation, LimitationProduct, PhosphorusAtDepthExponent, LightAtTop, LightDifference, NormalizedLightDifference, SigmoidLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
 	outputSloughFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, Temperature, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, SalinityMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount"<<endl;
 	// Report start of the simulation
@@ -93,6 +63,211 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	closeSimulationFiles();
 	cout<<"Simulation finished."<<endl;
 	return 0;
+}
+
+void FoodWebModel::FoodWebModel::setFileParameters(
+		const SimulationArguments& simArguments) {
+	/*Read numeric parameters*/
+	this->algae_biomass_differential_production_scale =
+			simArguments.algae_biomass_differential_production_scale;
+	this->animal_base_mortality_proportion =
+			simArguments.animal_base_mortality_proportion;
+	this->simulation_cycles = simArguments.simulationCycles;
+	this->maximum_distance_daphnia_swum_in_rows_per_hour =
+			MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX
+					/ this->ZMax;
+	this->vertical_migration_buffer_size = 2
+			* maximum_distance_daphnia_swum_in_rows_per_hour + 1;
+	this->filtering_rate_per_daphnia = simArguments.filtering_rate_per_daphnia;
+	this->filtering_rate_per_daphnia_in_cell_volume=this->filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
+	this->basal_respiration_weight = simArguments.basal_respiration_weight;
+	this->k_value_respiration = simArguments.k_value_respiration;
+	this->grazer_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
+	this->grazer_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
+	this->maximum_found_grazer_biomass=simArguments.maximum_found_grazer_biomass;
+	this->phosphorus_half_saturation = simArguments.phosphorus_half_saturation;
+	this->light_allowance_weight = simArguments.light_allowance_weight;
+	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
+	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
+	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
+	this->maximum_algae_resources_death = simArguments.maximum_algae_resources_death;
+	this->light_steepness = simArguments.light_steepness;
+	this->diatom_attenuation_coefficient = simArguments.diatom_attenuation_coefficient;
+	this->limitation_scale_weight = simArguments.limitation_scale_weight;
+	this->algal_carrying_capacity_coefficient = simArguments.algal_carrying_capacity_coefficient;
+	this->algal_carrying_capacity_intercept = simArguments.algal_carrying_capacity_intercept;
+	this->maximum_found_algal_biomass=simArguments.maximum_found_algal_biomass;
+}
+
+
+/* A method to print the simulation mode in function of the defined flags*/
+void FoodWebModel::FoodWebModel::printSimulationMode(){
+#ifdef DEBUG_MODE
+	cout<<"Running in debug mode."<<endl;
+#else
+	cout<<"Running in production mode."<<endl;
+#endif
+#ifdef HOMOGENEOUS_DEPTH
+	cout<<"Considering homogeneous depth"<<endl;
+#else
+	cout<<"Considering non-homogeneous depth"<<endl;
+#endif
+#ifdef RADIATED_CHEMICAL
+	cout<<"Modeling chemical concentration as radiated"<<endl;
+#else
+	cout<<"Modeling chemical concentration as non-radiated with depth distance to column bottom"<<endl;
+#endif
+#ifdef STABLE_CHLOROPHYLL
+	cout<<"Running with static biomass differential."<<endl;
+#else
+	cout<<"Running with dynamic biomass differential."<<endl;
+#endif
+#ifdef USE_PHOTOPERIOD
+	cout<<"Using sinusoidal photoperiod."<<endl;
+#else
+	cout<<"Using table-based photoperiod."<<endl;
+#endif
+#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
+	cout<<"Using literature constants."<<endl;
+#else
+	cout<<"Using model-tuned constants."<<endl;
+#endif
+#ifdef ADDITIVE_TURBIDITY
+	cout<<"Using additive turbidity."<<endl;
+#else
+	cout<<"Using multiplicative turbidity."<<endl;
+#endif
+#ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+	cout<<"Using constant base biomass differential."<<endl;
+#elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
+	cout<<"Using depth-dependent base biomass differential."<<endl;
+#else
+	cout<<"Using no base biomass differential."<<endl;
+#endif
+#ifdef LIMITATION_MINIMUM
+	cout<<"Calculating resource limitation as minimum."<<endl;
+#else
+	cout<<"Calculating resource limitation as product."<<endl;
+#endif
+#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
+	cout<<"Using time-variable phosphorous concentration at bottom."<<endl;
+#else
+	cout<<"Using constant phosphorous concentration at bottom."<<endl;
+#endif
+#ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
+	cout<<"Grazing removed from algae biomass."<<endl;
+#else
+	cout<<"Grazing kept in algae biomass."<<endl;
+#endif
+#ifdef MIGRATE_ZOOPLANKTON_AT_HOUR
+	cout<<"Migrating zooplankton vertically at each hour of the day."<<endl;
+#ifdef ZOOPLANKTON_ACCUMULATION
+	cout<<"Accumulating zooplankton count at extreme depth values."<<endl;
+#else
+	cout<<"Discarding zooplankton excess from vertical migration."<<endl;
+#endif
+#elif defined(LOCALE_SEARCH_ZOOPLANKTON_MIGRATION)
+	cout<<"Using locale search zooplankton migration."<<endl;
+#else
+	cout<<"Maintaining zooplankton at each depth at each hour of the day."<<endl;
+#endif
+#ifdef SATURATION_GRAZING
+	cout<<"Using saturation grazing."<<endl;
+#else
+	cout<<"Using linear grazing."<<endl;
+#endif
+#ifdef ADD_GRAZER_PREDATORY_PRESSURE
+	cout<<"Using sigmoidal predatory pressure on grazers."<<endl;
+#else
+	cout<<"Using no predatory pressure on grazers."<<endl;
+#endif
+#ifdef CHECK_GRAZER_LOWER_LIMIT
+	cout<<"Checking grazer lower limit."<<endl;
+#endif
+#ifdef CHECK_ASSERTIONS
+	cout<<"Checking assertions."<<endl;
+#else
+	cout<<"Not checking assertions."<<endl;
+#endif
+#ifdef GRAZER_CARRYING_CAPACITY_MORTALITY
+	cout<<"Using carrying-capacity dependent grazer mortality."<<endl;
+#else
+	cout<<"Using constant grazer mortality."<<endl;
+#endif
+#ifdef ALGAL_CARRYING_CAPACITY_MORTALITY
+	cout<<"Using carrying-capacity dependent algal mortality."<<endl;
+#else
+	cout<<"Using constant algal mortality."<<endl;
+#endif
+#ifdef PROPORTIONAL_LIGHT
+	cout<<"Using proportional light limitation."<<endl;
+#elif defined(LINEAR_LIGHT)
+	cout<<"Using linear light limitation."<<endl;
+#elif defined(AQUATOX_LIGHT_ALLOWANCE)
+	cout<<"Using AquaTox light limitation."<<endl;
+#else
+	cout<<"Using sigmoid light limitation."<<endl;
+#endif
+#ifdef NUTRIENT_LIMITATION_GLM
+	cout<<"Using GLM nutrient limitation."<<endl;
+#elif defined(NUTRIENT_LIMITATION_QUOTIENT)
+	cout<<"Using quotient-based nutrient limitation."<<endl;
+#else
+	cout<<"Using simple linear nutrient limitation."<<endl;
+#endif
+	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
+	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
+	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
+	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
+	cout<<"Using basal respiration weight "<<this->basal_respiration_weight<<"."<<endl;
+	cout<<"Using respiration K value "<<this->k_value_respiration<<"."<<endl;
+	cout<<"Using grazer carrying capacity coefficient "<<this->grazer_carrying_capacity_coefficient<<"."<<endl;
+	cout<<"Using grazer carrying capacity intercept "<<this->grazer_carrying_capacity_intercept<<"."<<endl;
+	cout<<"Using maximum found grazer biomass "<<this->maximum_found_grazer_biomass<<"."<<endl;
+	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
+	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
+	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
+	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
+	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
+	cout<<"Using maximum algae dead to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
+	cout<<"Using light steepness "<<this->light_steepness<<"."<<endl;
+	cout<<"Using diatom attenuation coefficient "<<this->diatom_attenuation_coefficient<<"."<<endl;
+	cout<<"Using limitation product scale weight "<<this->limitation_scale_weight<<"."<<endl;
+	cout<<"Using algal carrying capacity coefficient "<<this->algal_carrying_capacity_coefficient<<"."<<endl;
+	cout<<"Using algal carrying capacity intercept "<<this->algal_carrying_capacity_intercept<<"."<<endl;
+	cout<<"Using maximum found algal biomass "<<this->maximum_found_algal_biomass<<"."<<endl;
+}
+
+
+void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& parameterSimulationRoute){
+	ofstream parameterFileStream;
+	parameterFileStream.open(parameterSimulationRoute.c_str());
+	if (parameterFileStream.is_open()){
+		cout<<"File "<<parameterSimulationRoute<<" open for simulation parameter register."<<endl;
+		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
+		parameterFileStream<<"AnimalBaseMortality;"<<this->animal_base_mortality_proportion<<endl;
+		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
+		parameterFileStream<<"FilteringRatePerDaphnia;"<<this->filtering_rate_per_daphnia<<endl;
+		parameterFileStream<<"BasalRespirationWeight;"<<this->basal_respiration_weight<<endl;
+		parameterFileStream<<"KValueRespiration;"<<this->k_value_respiration<<endl;
+		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<this->grazer_carrying_capacity_coefficient<<endl;
+		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<this->grazer_carrying_capacity_intercept<<endl;
+		parameterFileStream<<"MaximumFoundGrazerBiomass;"<<this->maximum_found_grazer_biomass<<endl;
+		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
+		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;
+		parameterFileStream<<"MaximumFoundAlgalBiomass;"<<this->maximum_found_algal_biomass<<endl;
+		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
+		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
+		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
+		parameterFileStream<<"AlgalRespirationExponentialTemperatureCoefficient;"<<this->exponential_temperature_algal_respiration_coefficient<<endl;
+		parameterFileStream<<"MaximumAlgaeDeathResources;"<<this->maximum_algae_resources_death<<endl;
+		parameterFileStream<<"LightSteepness;"<<this->light_steepness<<endl;
+		parameterFileStream<<"IntrinsicAlgaeMortalityRate;"<<this->intrinsic_algae_mortality_rate<<endl;
+		parameterFileStream<<"LimitationScaleWeight;"<<this->limitation_scale_weight<<endl;
+		parameterFileStream.close();
+	} else {
+		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;
+	}
 }
 
 
@@ -414,6 +589,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	lineBuffer<<commaString<<resource_limitation_stress;
 	lineBuffer<<commaString<<weighted_resource_limitation_stress;
 	lineBuffer<<commaString<<algae_natural_mortality_factor;
+	lineBuffer<<commaString<<used_algal_mortality_rate;
 	#ifdef STABLE_CHLOROPHYLL
 		if(current_hour>=STABLE_STATE_HOUR){
 			if(periPhyton){
@@ -605,7 +781,12 @@ void FoodWebModel::FoodWebModel::algaeExcretion(){
 void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
 	algaeHighTemperatureMortality(localeTemperature);
 	resourceLimitationStress(localeLimitationProduct);
-	algae_natural_mortality_factor = this->intrinsic_algae_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress;
+#ifdef ALGAL_CARRYING_CAPACITY_MORTALITY
+	calculateAlgalCarryingCapacityMortality(localPointBiomass);
+#else
+	this->used_algal_mortality_rate=this->intrinsic_algae_mortality_rate;
+#endif
+	algae_natural_mortality_factor = this->used_algal_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress;
 	algae_natural_mortality = -algae_natural_mortality_factor*localPointBiomass;
 }
 
@@ -624,6 +805,13 @@ void FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLim
 	resource_limitation_exponent = -this->maximum_algae_resources_death*(1-localeLimitationProduct);
 	resource_limitation_stress= 1.0f-exp(resource_limitation_exponent);
 	weighted_resource_limitation_stress = resource_limitation_stress;
+}
+
+/*
+ * Carrying capacity algal mortality. Introduce to control base mortality as a function of algal biomass
+ */
+void FoodWebModel::FoodWebModel::calculateAlgalCarryingCapacityMortality(biomassType localPointBiomass){
+	 this->used_algal_mortality_rate = 1/(1+exp(-localPointBiomass/(this->maximum_found_algal_biomass*this->algal_carrying_capacity_coefficient)+this->algal_carrying_capacity_intercept));
 }
 
 /*
@@ -811,135 +999,6 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 	//returnedValue=1.0f;
 }
 
-/* A method to print the simulation mode in function of the defined flags*/
-void FoodWebModel::FoodWebModel::printSimulationMode(){
-#ifdef DEBUG_MODE
-	cout<<"Running in debug mode."<<endl;
-#else
-	cout<<"Running in production mode."<<endl;
-#endif
-#ifdef HOMOGENEOUS_DEPTH
-	cout<<"Considering homogeneous depth"<<endl;
-#else
-	cout<<"Considering non-homogeneous depth"<<endl;
-#endif
-#ifdef RADIATED_CHEMICAL
-	cout<<"Modeling chemical concentration as radiated"<<endl;
-#else
-	cout<<"Modeling chemical concentration as non-radiated with depth distance to column bottom"<<endl;
-#endif
-#ifdef STABLE_CHLOROPHYLL
-	cout<<"Running with static biomass differential."<<endl;
-#else
-	cout<<"Running with dynamic biomass differential."<<endl;
-#endif
-#ifdef USE_PHOTOPERIOD
-	cout<<"Using sinusoidal photoperiod."<<endl;
-#else
-	cout<<"Using table-based photoperiod."<<endl;
-#endif
-#ifdef USE_LITERATURE_AND_DATA_CONSTANTS
-	cout<<"Using literature constants."<<endl;
-#else
-	cout<<"Using model-tuned constants."<<endl;
-#endif
-#ifdef ADDITIVE_TURBIDITY
-	cout<<"Using additive turbidity."<<endl;
-#else
-	cout<<"Using multiplicative turbidity."<<endl;
-#endif
-#ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
-	cout<<"Using constant base biomass differential."<<endl;
-#elif defined(ADD_VARIABLE_BIOMASS_DIFFERENTIAL)
-	cout<<"Using depth-dependent base biomass differential."<<endl;
-#else
-	cout<<"Using no base biomass differential."<<endl;
-#endif
-#ifdef LIMITATION_MINIMUM
-	cout<<"Calculating resource limitation as minimum."<<endl;
-#else
-	cout<<"Calculating resource limitation as product."<<endl;
-#endif
-#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
-	cout<<"Using time-variable phosphorous concentration at bottom."<<endl;
-#else
-	cout<<"Using constant phosphorous concentration at bottom."<<endl;
-#endif
-#ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
-	cout<<"Grazing removed from algae biomass."<<endl;
-#else
-	cout<<"Grazing kept in algae biomass."<<endl;
-#endif
-#ifdef MIGRATE_ZOOPLANKTON_AT_HOUR
-	cout<<"Migrating zooplankton vertically at each hour of the day."<<endl;
-#ifdef ZOOPLANKTON_ACCUMULATION
-	cout<<"Accumulating zooplankton count at extreme depth values."<<endl;
-#else
-	cout<<"Discarding zooplankton excess from vertical migration."<<endl;
-#endif
-#elif defined(LOCALE_SEARCH_ZOOPLANKTON_MIGRATION)
-	cout<<"Using locale search zooplankton migration."<<endl;
-#else
-	cout<<"Maintaining zooplankton at each depth at each hour of the day."<<endl;
-#endif
-#ifdef SATURATION_GRAZING
-	cout<<"Using saturation grazing."<<endl;
-#else
-	cout<<"Using linear grazing."<<endl;
-#endif
-#ifdef ADD_GRAZER_PREDATORY_PRESSURE
-	cout<<"Using sigmoidal predatory pressure on grazers."<<endl;
-#else
-	cout<<"Using no predatory pressure on grazers."<<endl;
-#endif
-#ifdef CHECK_GRAZER_LOWER_LIMIT
-	cout<<"Checking grazer lower limit."<<endl;
-#endif
-#ifdef CHECK_ASSERTIONS
-	cout<<"Checking assertions."<<endl;
-#else
-	cout<<"Not checking assertions."<<endl;
-#endif
-#ifdef CARRYING_CAPACITY_MORTALITY
-	cout<<"Using carryng-capacity dependent grazer mortality."<<endl;
-#else
-	cout<<"Using constant grazer mortality."<<endl;
-#endif
-#ifdef PROPORTIONAL_LIGHT
-	cout<<"Using proportional light limitation."<<endl;
-#elif defined(LINEAR_LIGHT)
-	cout<<"Using linear light limitation."<<endl;
-#elif defined(AQUATOX_LIGHT_ALLOWANCE)
-	cout<<"Using AquaTox light limitation."<<endl;
-#else
-	cout<<"Using sigmoid light limitation."<<endl;
-#endif
-#ifdef NUTRIENT_LIMITATION_GLM
-	cout<<"Using GLM nutrient limitation."<<endl;
-#elif defined(NUTRIENT_LIMITATION_QUOTIENT)
-	cout<<"Using quotient-based nutrient limitation."<<endl;
-#else
-	cout<<"Using simple linear nutrient limitation."<<endl;
-#endif
-	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
-	cout<<"Using grazer water filtering per individual "<<this->filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
-	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
-	cout<<"Using base grazer mortality factor "<<this->animal_base_mortality_proportion<<"."<<endl;
-	cout<<"Using basal respiration weight "<<this->basal_respiration_weight<<"."<<endl;
-	cout<<"Using respiration K value "<<this->k_value_respiration<<"."<<endl;
-	cout<<"Using grazer carrying capacity coefficient "<<this->grazer_carrying_capacity_coefficient<<"."<<endl;
-	cout<<"Using grazer carrying capacity intercept "<<this->grazer_carrying_capacity_intercept<<"."<<endl;
-	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
-	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
-	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
-	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
-	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
-	cout<<"Using maximum algae dead to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
-	cout<<"Using light steepness "<<this->light_steepness<<"."<<endl;
-	cout<<"Using diatom attenuation coefficient "<<this->diatom_attenuation_coefficient<<"."<<endl;
-	cout<<"Using limitation product scale weight "<<this->limitation_scale_weight<<"."<<endl;
-
-}
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
 
@@ -1312,8 +1371,8 @@ void FoodWebModel::FoodWebModel::animalMortality(biomassType localeBiomass, phys
 void FoodWebModel::FoodWebModel::animalBaseMortality(physicalType
 		localeTemperature, biomassType localeBiomass){
 	animalTemperatureMortality(localeTemperature, localeBiomass);
-	calculateCarryingCapacity(localeBiomass);
-#ifdef CARRYING_CAPACITY_MORTALITY
+	calculateGrazerCarryingCapacityMortality(localeBiomass);
+#ifdef GRAZER_CARRYING_CAPACITY_MORTALITY
 	animal_temp_independent_mortality = this->grazer_carrying_capacity*localeBiomass;
 #else
 	animal_temp_independent_mortality = this->animal_base_mortality_proportion*localeBiomass;
@@ -1331,8 +1390,8 @@ void FoodWebModel::FoodWebModel::animalTemperatureMortality(physicalType localeT
 
 }
 
-void FoodWebModel::FoodWebModel::calculateCarryingCapacity(biomassType inputBiomass){
-	grazer_carrying_capacity =  1/(1+exp(-inputBiomass/(MAXIMUM_FOUND_GRAZER_BIOMASS*this->grazer_carrying_capacity_coefficient)+this->grazer_carrying_capacity_intercept));
+void FoodWebModel::FoodWebModel::calculateGrazerCarryingCapacityMortality(biomassType inputBiomass){
+	grazer_carrying_capacity =  1/(1+exp(-inputBiomass/(this->maximum_found_grazer_biomass*this->grazer_carrying_capacity_coefficient)+this->grazer_carrying_capacity_intercept));
 }
 
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
@@ -1382,33 +1441,6 @@ void FoodWebModel::FoodWebModel::calculateDistanceToFocus(){
 		}
 	}
 
-}
-
-void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& parameterSimulationRoute){
-	ofstream parameterFileStream;
-	parameterFileStream.open(parameterSimulationRoute.c_str());
-	if (parameterFileStream.is_open()){
-		cout<<"File "<<parameterSimulationRoute<<" open for simulation parameter register."<<endl;
-		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
-		parameterFileStream<<"AnimalBaseMortality;"<<this->animal_base_mortality_proportion<<endl;
-		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
-		parameterFileStream<<"FilteringRatePerDaphnia;"<<this->filtering_rate_per_daphnia<<endl;
-		parameterFileStream<<"BasalRespirationWeight;"<<this->basal_respiration_weight<<endl;
-		parameterFileStream<<"KValueRespiration;"<<this->k_value_respiration<<endl;
-		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<this->grazer_carrying_capacity_coefficient<<endl;
-		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<this->grazer_carrying_capacity_intercept<<endl;
-		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
-		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
-		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
-		parameterFileStream<<"AlgalRespirationExponentialTemperatureCoefficient;"<<this->exponential_temperature_algal_respiration_coefficient<<endl;
-		parameterFileStream<<"MaximumAlgaeDeathResources;"<<this->maximum_algae_resources_death<<endl;
-		parameterFileStream<<"LightSteepness;"<<this->light_steepness<<endl;
-		parameterFileStream<<"IntrinsicAlgaeMortalityRate;"<<this->intrinsic_algae_mortality_rate<<endl;
-		parameterFileStream<<"LimitationScaleWeight;"<<this->limitation_scale_weight<<endl;
-		parameterFileStream.close();
-	} else {
-		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;
-	}
 }
 
 /* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.

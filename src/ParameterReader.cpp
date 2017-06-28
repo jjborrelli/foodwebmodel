@@ -159,6 +159,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("MaximumFoundGrazerBiomass")){
+		simArguments.maximum_found_grazer_biomass = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PhosphorusHalfSaturation")){
 		simArguments.phosphorus_half_saturation = atof(parameterValue.c_str());
 		return;
@@ -195,6 +199,19 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.limitation_scale_weight = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("AlgalCarryingCapacityCoefficient")){
+		simArguments.algal_carrying_capacity_coefficient= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("AlgalCarryingCapacityIntercept")){
+		simArguments.algal_carrying_capacity_intercept = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("MaximumFoundAlgalBiomass")){
+		simArguments.maximum_found_algal_biomass = atof(parameterValue.c_str());
+		return;
+	}
+
 
 
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";

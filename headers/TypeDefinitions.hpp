@@ -36,11 +36,15 @@ typedef struct {
 	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 	biomassType algae_biomass_differential_production_scale,
+	algal_carrying_capacity_coefficient,
+	algal_carrying_capacity_intercept,
+	maximum_found_algal_biomass,
 	animal_base_mortality_proportion, filtering_rate_per_daphnia,
 	basal_respiration_weight,
 	k_value_respiration,
 	grazer_carrying_capacity_coefficient,
 	grazer_carrying_capacity_intercept,
+	maximum_found_grazer_biomass,
 	phosphorus_half_saturation,
 	light_allowance_weight,
 	algal_respiration_at_20_degrees,

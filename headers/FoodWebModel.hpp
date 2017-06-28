@@ -74,7 +74,7 @@ namespace FoodWebModel {
 		biomassType basal_respiration_weight, k_value_respiration;
 
 		/*Parameters for grazer carrying capacity*/
-		biomassType grazer_carrying_capacity_coefficient, grazer_carrying_capacity_intercept, grazer_carrying_capacity;
+		biomassType grazer_carrying_capacity_coefficient, grazer_carrying_capacity_intercept, grazer_carrying_capacity, maximum_found_grazer_biomass;
 
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;
@@ -87,7 +87,8 @@ namespace FoodWebModel {
 		/* Algae attributes*/
 		biomassType algae_biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate, algae_biomass_differential_scale;
 
-		biomassType intrinsic_algae_mortality_rate, maximum_algae_resources_death;
+		/* Algal mortality attributes*/
+		biomassType intrinsic_algae_mortality_rate, maximum_algae_resources_death, used_algal_mortality_rate, algal_carrying_capacity_coefficient, algal_carrying_capacity_intercept, maximum_found_algal_biomass;
 		/* Algae biomass components*/
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
@@ -154,6 +155,7 @@ namespace FoodWebModel {
 		void algaeNaturalMortality(physicalType localTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass);
 		void algaeHighTemperatureMortality(physicalType localeTemperature);
 		void resourceLimitationStress(physicalType localeLimitationProduct);
+		void calculateAlgalCarryingCapacityMortality(biomassType localPointBiomass);
 		void algaeSinking(int depthIndex, int columnIndex);
 		void algaeSlough(int columnIndex);
 
@@ -178,7 +180,7 @@ namespace FoodWebModel {
 		void salinityMortality(biomassType localeBiomass);
 		void stroganovApproximation(physicalType localeTemperature);
 		void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
-		void calculateCarryingCapacity(biomassType inputBiomass);
+		void calculateGrazerCarryingCapacityMortality(biomassType inputBiomass);
 };
 }
 

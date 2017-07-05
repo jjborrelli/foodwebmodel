@@ -93,7 +93,7 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
-		biomassType grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality, grazer_predatory_pressure;
+		biomassType grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality, grazer_predatory_pressure, low_oxigen_animal_mortality;
 		physicalType salinity_exponent, stroganov_adjustment;
 
 		/* Zooplankton parameter weights*/
@@ -181,6 +181,7 @@ namespace FoodWebModel {
 		void stroganovApproximation(physicalType localeTemperature);
 		void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
 		void calculateGrazerCarryingCapacityMortality(biomassType inputBiomass);
+		void calculateLowOxigenMortality(biomassType inputBiomass);
 };
 }
 

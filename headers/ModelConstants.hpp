@@ -14,6 +14,7 @@
 #endif
 
 #include "SimulationModes.hpp"
+#include <string>
 /*
  * EXTINCTION constant (Wetzel, 1975, AquaTox Documentation, page 73)
  * Since we do not consider any feedback from the food water to the geophysical model, we assume that Light Extinction = Water Extinction
@@ -319,4 +320,6 @@ static const biomassType TEMPERATURE_SLOPE_PHASE = -7.0f;
 static const biomassType TEMPERATURE_UPPER_LIMIT=25, TEMPERATURE_LOWER_LIMIT=2;
 
 static const biomassType TEMPERATURE_ADDITIVE_COMPONENT=TEMPERATURE_UPPER_LIMIT-TEMPERATURE_LOWER_LIMIT;
+
+static const std::string commaString(", ");
 #endif /* MODELCONSTANTS_HPP_ */

@@ -33,7 +33,7 @@ namespace FoodWebModel {
 	protected:
 		ReadProcessedData readProcessedData;
 		unsigned int current_hour, ZMaxIndex, simulation_cycles;
-		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phosphorus_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], salinity_effect_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour;
 		unsigned int maxDepthIndex[MAX_COLUMN_INDEX];
 
@@ -57,9 +57,8 @@ namespace FoodWebModel {
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 		biomassType verticalMigrationZooplanktonBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-		biomassType used_grazing;
 		/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
-		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX], priorZooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], priorBottomFeederCount[MAX_COLUMN_INDEX];
+		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX];
 		biomassType grazerPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 		/*Grazer count summing. The simulation halts below a given number*/
@@ -93,21 +92,25 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 		/* Zooplankton attributes*/
-		biomassType grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality, grazer_predatory_pressure, low_oxigen_animal_mortality;
+		biomassType used_grazing, grazing_per_individual, locale_grazing, locale_defecation, base_zooplankton_respiration, salinity_corrected_zooplankton_respiration, basal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, grazer_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_effect, salinity_mortality, locale_grazing_salt_adjusted, animal_mortality, grazer_predatory_pressure, low_oxigen_animal_mortality;
 		physicalType salinity_exponent, stroganov_adjustment;
 
 		/* Zooplankton parameter weights*/
 		biomassType animal_base_mortality_proportion;
 
-		/*Buffer line to write simulation results*/
+		/* Buffer line to write simulation results*/
 		std::ostringstream lineBuffer, algaeBuffer, sloughBuffer, grazerBuffer;
+
+		/* Matrix for biomass registration */
+		bool registerBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream assertionViolationBuffer;
 #endif
-		string commaString = string(", ");
+
 
 		/*Output files*/
-		std::ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile;
+		std::ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile, outputPhysicalFile;
 		#ifdef CHECK_ASSERTIONS
 		std::ofstream outputAssertionViolationFile;
 		#endif
@@ -123,27 +126,37 @@ namespace FoodWebModel {
 
 		/* Main functions*/
 		void step();
+		void updateRegisterVariables();
 		void initializePointers();
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);
 		void setFileParameters(const SimulationArguments& simArguments);
 		void openSimulationFiles(const SimulationArguments& simArguments);
 		void closeSimulationFiles();
+
 		/* Physical descriptors*/
-		void lightAtDepth(int depthIndex, int columnIndex);
-		void calculateTemperature(int depthIndex, int columnIndex);
-		void lightAllowance(biomassType localeAlgaeBiomass);
-		void normalizeLight(int depthIndex);
-		void photoPeriod();
-		void calculateLightAtTop();
-		void phosphorusConcentrationAtDepth(int depthIndex, int columnIndex);
-		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
-		void chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom);
-		void calculateNutrientLimitation(biomassType localPointBiomass);
 		void calculatePhysicalLakeDescriptors();
 		void setBathymetricParameters();
 		void calculateDistanceToFocus();
 
+		/* Physical model state*/
+		void updatePhysicalState();
+		void calculateTemperature(int depthIndex, int columnIndex);
+		void photoPeriod();
+		void calculateLightAtTop();
+		void phosphorusConcentrationAtDepth(int depthIndex, int columnIndex);
+		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
+
+		/*Photosynthesis variable state*/
+		void chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom);
+		void calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration);
+
+
+
+		/*Light variables*/
+		void lightAtDepth(int depthIndex, int columnIndex);
+		void lightAllowance(biomassType localeAlgaeBiomass);
+		void normalizeLight(int depthIndex);
 		/* Algae biomass*/
 		void updateAlgaeBiomass();
 		biomassType algaeBiomassDifferential(int depthIndex, int columnIndex, bool periPhyton);
@@ -173,15 +186,16 @@ namespace FoodWebModel {
 		biomassType activeRespiration(biomassType zooBiomass, physicalType localeTemperature);
 		biomassType metabolicFoodConsumption();
 		void animalExcretion(biomassType localeRespiration);
-		void animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
-		void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
-		void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
-		void salinityEffect();
-		void salinityMortality(biomassType localeBiomass);
+		void animalMortality(biomassType localeBiomass, physicalType localeTemperature, physicalType localeSaltConcentration);
+		void animalBaseMortality(biomassType localeBiomass, physicalType localeTemperature);
+		void animalTemperatureMortality(biomassType localeBiomass, physicalType localeTemperature);
+		void salinityEffect(unsigned int depthIndex, unsigned int columnIndex, physicalType saltConcentration);
+		void salinityMortality(biomassType localeBiomass, physicalType localeSalinityEffect);
+		void calculateLowOxigenMortality(biomassType inputBiomass);
 		void stroganovApproximation(physicalType localeTemperature);
 		void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
 		void calculateGrazerCarryingCapacityMortality(biomassType inputBiomass);
-		void calculateLowOxigenMortality(biomassType inputBiomass);
+
 };
 }
 

@@ -92,6 +92,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.outputGrazerRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("OutputPhysicalRoute")){
+		simArguments.outputPhysicalRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("OutputParameterRoute")){
 		simArguments.outputParameterRoute= parameterValue;
 		return;

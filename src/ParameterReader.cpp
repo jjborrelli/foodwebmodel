@@ -92,6 +92,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.outputGrazerRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("OutputPredatorRoute")){
+		simArguments.outputPredatorRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("OutputPhysicalRoute")){
 		simArguments.outputPhysicalRoute= parameterValue;
 		return;
@@ -139,34 +143,6 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.algae_biomass_differential_production_scale= atof(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("AnimalBaseMortality")){
-		simArguments.animal_base_mortality_proportion= atof(parameterValue.c_str());
-		return;
-	}
-	if(!parameterName.compare("FilteringRatePerDaphnia")){
-		simArguments.filtering_rate_per_daphnia= atof(parameterValue.c_str());
-		return;
-	}
-	if(!parameterName.compare("BasalRespirationWeight")){
-		simArguments.basal_respiration_weight= atof(parameterValue.c_str());
-		return;
-	}
-	if(!parameterName.compare("KValueRespiration")){
-		simArguments.k_value_respiration= atof(parameterValue.c_str());
-		return;
-	}
-	if(!parameterName.compare("GrazerCarryingCapacityCoefficient")){
-		simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
-		return;
-	}
-	if(!parameterName.compare("GrazerCarryingCapacityIntercept")){
-		simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
-		return;
-	}
-	if(!parameterName.compare("MaximumFoundGrazerBiomass")){
-		simArguments.maximum_found_grazer_biomass = atof(parameterValue.c_str());
-		return;
-	}
 	if(!parameterName.compare("PhosphorusHalfSaturation")){
 		simArguments.phosphorus_half_saturation = atof(parameterValue.c_str());
 		return;
@@ -211,10 +187,38 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.algal_carrying_capacity_intercept = atof(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("MaximumFoundAlgalBiomass")){
+	if(!parameterName.compare("AlgalMaximumFoundBiomass")){
 		simArguments.maximum_found_algal_biomass = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PredatorBaseMortality")){
+			simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
+			return;
+		}
+		if(!parameterName.compare("PredatorFilteringRate")){
+			simArguments.predator_filtering_rate_per_individual= atof(parameterValue.c_str());
+			return;
+		}
+		if(!parameterName.compare("PredatorBasalRespirationWeight")){
+			simArguments.predator_basal_respiration_weight= atof(parameterValue.c_str());
+			return;
+		}
+		if(!parameterName.compare("PredatorKValueRespiration")){
+			simArguments.predator_k_value_respiration= atof(parameterValue.c_str());
+			return;
+		}
+		if(!parameterName.compare("PredatorCarryingCapacityCoefficient")){
+			simArguments.predator_carrying_capacity_coefficient= atof(parameterValue.c_str());
+			return;
+		}
+		if(!parameterName.compare("PredatorCarryingCapacityIntercept")){
+			simArguments.predator_carrying_capacity_intercept = atof(parameterValue.c_str());
+			return;
+		}
+		if(!parameterName.compare("PredatorMaximumFoundBiomass")){
+			simArguments.predator_maximum_found_biomass = atof(parameterValue.c_str());
+			return;
+		}
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
 }
 

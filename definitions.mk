@@ -1,5 +1,5 @@
 OBJS := FoodWebModel
-COMPS := FoodWebModel ReadProcessedData ParameterReader
+COMPS := FoodWebModel ReadProcessedData ParameterReader AnimalBiomassDynamics
 SRC := src/main.cpp $(foreach d, $(COMPS), src/${d}.cpp)
 HEADERS := headers/ModelConstants.hpp headers/SimulationModes.hpp $(foreach d, $(COMPS), headers/${d}.hpp)
 ifeq ($(OS),Windows_NT)

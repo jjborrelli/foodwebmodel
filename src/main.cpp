@@ -18,7 +18,7 @@ using namespace FoodWebModel;
 int main(int argc, char **argv) {
 
 	/* Read file containing the parameters*/
-	FoodWebModel::ParameterReader reader;
+	ParameterReader reader;
 	reader.readSimulationParametersFromFile(argv[1]);
 	/*If existing, parse additional arguments from the command line*/
 	if(argc>2){

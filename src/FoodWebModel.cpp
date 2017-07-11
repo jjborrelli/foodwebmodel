@@ -39,7 +39,6 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		grazerDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
 		grazerDynamics.temperature[depthIndex]=temperature[depthIndex];
 	}
-
 	predatorDynamics.assertionViolationBuffer = &assertionViolationBuffer;
 	predatorDynamics.bottomAnimalBiomass = bottomPredatorBiomass;
 	predatorDynamics.bottomAnimalCount = bottomPredatorCount;
@@ -60,7 +59,6 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		predatorDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
 		predatorDynamics.temperature[depthIndex]=temperature[depthIndex];
 	}
-
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){

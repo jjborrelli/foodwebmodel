@@ -1,4 +1,3 @@
-
 /*
  * AuxFunctions.cpp
  *

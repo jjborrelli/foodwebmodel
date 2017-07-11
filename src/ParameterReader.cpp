@@ -9,25 +9,9 @@
 #include <iostream>
 #include <vector>
 #include "../headers/ParameterReader.hpp"
-
+#include "../headers/AuxFunctions.hpp"
 
 using namespace std;
-/* A function to split strings according to a given delimiter*/
-vector<string> generalSplit(const string& str, const string& delim)
-{
-    vector<string> tokens;
-    int prev = 0, pos = 0;
-    do
-    {
-        pos = str.find(delim, prev);
-        if (pos == string::npos) pos = str.length();
-        string token = str.substr(prev, pos-prev);
-        if (!token.empty()) tokens.push_back(token);
-        prev = pos + delim.length();
-    }
-    while (pos < str.length() && prev < str.length());
-    return tokens;
-}
 
 FoodWebModel::ParameterReader::ParameterReader() {
 	// TODO Auto-generated constructor stub
@@ -44,17 +28,18 @@ void FoodWebModel::ParameterReader::readSimulationParametersFromFile(const std::
 
 	/* Open the parameter file*/
 	ifstream parametersFile;
-	string file_buffer, file_content;
+	string file_line, file_content;
 	parametersFile.open(parameterFileName);
+	unsigned int lineCounter=0;
 	if(parametersFile.is_open()){
 		/*Read while there are lines left in the file*/
 		std::cout<<"Reading parameters from file "<<parameterFileName<<"."<<endl;
-		while(!parametersFile.eof()){
-			parametersFile >> file_buffer;
-			/*Split the line and set the value associated to the name*/
-			vector<string> parameterRead = generalSplit(file_buffer, std::string(";"));
+		while(std::getline(parametersFile, file_line, '\n')){
+//			std::cout<<"Line read: "<<file_line<<"."<<endl;
+			vector<string> parameterRead = generalSplit(file_line, std::string(";"));
 			setParameter(parameterRead[0], parameterRead[1]);
-
+			std::cout<<"Parameter pair with name: "<<parameterRead[0]<<" and value: "<<parameterRead[1]<<" read."<<endl;
+			lineCounter++;
 		}
 		parametersFile.close();
 		std::cout<<"Closed parameter file "<<parameterFileName<<"."<<endl;
@@ -191,6 +176,34 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.maximum_found_algal_biomass = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerBaseMortality")){
+				simArguments.grazer_base_mortality_proportion= atof(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerFilteringRate")){
+				simArguments.grazer_filtering_rate_per_individual= atof(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerBasalRespirationWeight")){
+				simArguments.grazer_basal_respiration_weight= atof(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerKValueRespiration")){
+				simArguments.grazer_k_value_respiration= atof(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerCarryingCapacityCoefficient")){
+				simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerCarryingCapacityIntercept")){
+				simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerMaximumFoundBiomass")){
+				simArguments.grazer_maximum_found_biomass = atof(parameterValue.c_str());
+				return;
+			}
 	if(!parameterName.compare("PredatorBaseMortality")){
 			simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
 			return;

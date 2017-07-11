@@ -16,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <stdio.h>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 #include "ReadProcessedData.hpp"
@@ -74,7 +75,7 @@ namespace FoodWebModel {
 		biomassType verticalMigrationfloatingPredatorBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 
-		/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
+		/* Predator individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 		zooplanktonCountType floatingPredatorCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomPredatorCount[MAX_COLUMN_INDEX];
 		biomassType preadtorPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 

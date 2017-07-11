@@ -7,11 +7,11 @@
 
 
 #include "../headers/ReadProcessedData.hpp"
+#include "../headers/AuxFunctions.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include <vector>
 
 /*
  * Read the file encoding for the lake depth
@@ -19,17 +19,6 @@
 
 /* An auxiliary function to split a string*/
 
-template<typename T>
-vector<T> split(string &str){
-	    string buf; // Have a buffer string
-	    stringstream ss(str); // Insert the string into a stream
-
-	    vector<T> tokens; // Create vector to hold our words
-
-	    while (ss >> buf)
-	        tokens.push_back(atof(buf.c_str()));
-	 return tokens;
-}
 
 
 void FoodWebModel::ReadProcessedData::readInitialTemperature(const string& initialTemperatureRoute){
@@ -51,11 +40,10 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 	  if (dataFile.is_open())
 	  {
 		  int depth_index=0;
-		  while ( getline (dataFile,readLine) )
+		  while ( getline (dataFile,readLine,'\n') )
 		     {
 			  /* The temperature range is the fourth column*/
-			  this->temperature_range[depth_index++] = split<physicalType>(readLine)[3];
-
+			  this->temperature_range[depth_index++] = atof(split(readLine)[3].c_str());
 		     }
 		  dataFile.close();
 		  cout<<"Temperature range read."<<endl;
@@ -77,7 +65,7 @@ void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* rea
 	/* Read until there are no more lines*/
 	  if (dataFile.is_open())
 	  {
-		  while ( getline (dataFile,readLine)&&(readLimit<0||arrayIndex<readLimit) )
+		  while ( getline (dataFile,readLine,'\n')&&(readLimit<0||arrayIndex<readLimit) )
 		     {
 			  if(plotReadParameter){
 				  cout<<"Reading parameter index: "<<arrayIndex<<"."<<endl;
@@ -149,12 +137,14 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, T*
 		  if (dataFile.is_open())
 		  {
 			  int depth_index=0;
-			  while ( getline (dataFile,readLine) )
+			  while ( getline (dataFile,readLine,'\n') )
 			     {
-				  /* For each line, split the string and fill in the initial temperature values*/
-				  vector<T> vector_data = split<T>(readLine);
+				  /* For each line, split the string and fill in the parsed parameters*/
+
+//				  cout<<"Reading line "<<depth_index<<" with content"<<readLine<<"."<<endl;
+				  vector<string> vector_data = split(readLine);
 				  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
-					  dataMatrix[depth_index][colIndex]=vector_data[colIndex];
+					  dataMatrix[depth_index][colIndex]=atof(vector_data[colIndex].c_str());
 				  }
 				  depth_index++;
 			     }

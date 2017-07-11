@@ -39,7 +39,7 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		grazerDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
 		grazerDynamics.temperature[depthIndex]=temperature[depthIndex];
 	}
-
+/*
 	predatorDynamics.assertionViolationBuffer = &assertionViolationBuffer;
 	predatorDynamics.bottomAnimalBiomass = bottomPredatorBiomass;
 	predatorDynamics.bottomAnimalCount = bottomPredatorCount;
@@ -60,23 +60,24 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		predatorDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
 		predatorDynamics.temperature[depthIndex]=temperature[depthIndex];
 	}
+	*/
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	/*Read numeric parameters*/
 	setFileParameters(simArguments);
 	printSimulationMode();
-	writeSimulatedParameters(simArguments.outputParameterRoute);
+
 	/*CSV file to write the output. Useful for calibration*/
 	openSimulationFiles(simArguments);
 
 	/*Write file headers*/
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, LightAllowance, AlgaeTurbidity, LightAtDepth, LimitationProduct, LightDifference, NormalizedLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
 	outputSloughFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, LightAllowance, AlgaeTurbidity, LightAtDepth, LimitationProduct, LightDifference, NormalizedLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassDifferential, GrazerBiomass, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount"<<endl;
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, PredatorBiomassDifferential, PredatorBiomass, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorCount"<<endl;
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;
-
+	writeSimulatedParameters(simArguments.outputParameterRoute);
 	// Report start of the simulation
 	cout<<"Simulation started for "<<simulation_cycles<<" cycles."<<endl;
 	/*Clear lake light the day before*/
@@ -327,7 +328,6 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 
 
 void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& simArguments){
-
 	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
 	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
 	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
@@ -337,7 +337,7 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 	outputAssertionViolationFile.open(simArguments.outputAssertionViolationRoute.c_str());
 #endif
 	/*Report successfully or not successfully open files*/
-	if (outputAlgaeFile.is_open()){
+	if (outputAlgaeFile.is_open()&&!outputAlgaeFile.fail()){
 		cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
 	} else{
 		cout<<"File "<<simArguments.outputAlgaeRoute<<" could not be opened for algae biomass output."<<endl;
@@ -388,7 +388,7 @@ void FoodWebModel::FoodWebModel::step(){
 	updatePhysicalState();
 	updateAlgaeBiomass();
 	grazerDynamics.updateAnimalBiomass();
-	predatorDynamics.updateAnimalBiomass();
+	//predatorDynamics.updateAnimalBiomass();
 }
 
 void FoodWebModel::FoodWebModel::updateRegisterVariables(){

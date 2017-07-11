@@ -2,6 +2,7 @@ OBJS := FoodWebModel
 COMPS := FoodWebModel ReadProcessedData ParameterReader AnimalBiomassDynamics AuxFunctions
 SRC := src/main.cpp $(foreach d, $(COMPS), src/${d}.cpp)
 HEADERS := headers/ModelConstants.hpp headers/SimulationModes.hpp $(foreach d, $(COMPS), headers/${d}.hpp)
+
 ifeq ($(OS),Windows_NT)
 GDAL_INCLUDE := -IC:/OSGeo4W64/include
 GDAL_LIBRARIES := -LC:/OSGeo4W64/lib

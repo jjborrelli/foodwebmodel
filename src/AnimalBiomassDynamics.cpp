@@ -228,7 +228,7 @@ void AnimalBiomassDynamics::verticalMigrateAnimalsPreference(){
 	}
 }
 
-/* Calculate neighboring preference score for daphnia migration. Inspired by ([1] B.-P. Han and M. Straškraba, “Modeling patterns of zooplankton diel vertical migration,” J. Plankton Res., vol. 20, no. 8, pp. 1463–1487, 1998., Eqn. 15)*/
+/* Calculate neighboring preference score for daphnia migration. Inspired by ([1] B.-P. Han and M. Straï¿½kraba, ï¿½Modeling patterns of zooplankton diel vertical migration,ï¿½ J. Plankton Res., vol. 20, no. 8, pp. 1463ï¿½1487, 1998., Eqn. 15)*/
 void AnimalBiomassDynamics::calculateLocalPreferenceScore() {
 	for (int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX; depthIndex++) {
 		for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX;
@@ -248,12 +248,12 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		/* Get zooplankton count and biomass*/
 		zooplanktonCountType localeZooplanktonCount = bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
 		biomassType localeZooplanktonBiomass = bottom?bottomAnimalBiomass[columnIndex]:floatingAnimalBiomass[depthIndex][columnIndex];
-		biomassType localeAlgaeBiomassConcentration = bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
-		biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassConcentration*this->food_conversion_factor;
+		biomassType localeAlgaeBiomassBeforeEating=bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
+		biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassBeforeEating*this->food_conversion_factor;
 
 		stroganovApproximation(localeTemperature);
 		foodConsumptionRate(depthIndex,columnIndex,bottom, localeAlgaeBiomassInMicrograms);
-		biomassType localeAlgaeBiomassAfterGrazing = bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
+		biomassType localeAlgaeBiomassAfterEating = bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
 
 		defecation();
 		animalRespiration(localeZooplanktonBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
@@ -271,8 +271,8 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<(*current_hour);
 		lineBuffer<<commaString<<bottom?1:0;
 		lineBuffer<<commaString<<consumption_per_individual;
-		lineBuffer<<commaString<<consumption_per_individual/localeAlgaeBiomassConcentration;
-		lineBuffer<<commaString<<used_consumption/localeAlgaeBiomassConcentration;
+		lineBuffer<<commaString<<consumption_per_individual/localeAlgaeBiomassBeforeEating;
+		lineBuffer<<commaString<<used_consumption/localeAlgaeBiomassBeforeEating;
 		lineBuffer<<commaString<<stroganov_adjustment;
 		lineBuffer<<commaString<<locale_consumption;
 		lineBuffer<<commaString<<locale_consumption_salt_adjusted;
@@ -295,8 +295,8 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<animal_carrying_capacity;
 		lineBuffer<<commaString<<localeBiomassDifferential;
 		lineBuffer<<commaString<<localeZooplanktonBiomass;
-		lineBuffer<<commaString<<localeAlgaeBiomassConcentration;
-		lineBuffer<<commaString<<localeAlgaeBiomassAfterGrazing;
+		lineBuffer<<commaString<<localeAlgaeBiomassBeforeEating;
+		lineBuffer<<commaString<<localeAlgaeBiomassAfterEating;
 		return localeBiomassDifferential;
 }
 
@@ -422,7 +422,7 @@ void AnimalBiomassDynamics::salinityMortality(biomassType localeBiomass){
 #endif
 }
 
-/* The levels of oxygen concentration found in the lake do not reflect significant D. pulex mortality according to: (L. J. Weider and W. Lampert, “Differential response of Daphnia genotypes to oxygen stress: respiration rates, hemoglobin content and low-oxygen tolerance,” Oecologia, vol. 65, no. 4, pp. 487–491, Mar. 1985.)*/
+/* The levels of oxygen concentration found in the lake do not reflect significant D. pulex mortality according to: (L. J. Weider and W. Lampert, ï¿½Differential response of Daphnia genotypes to oxygen stress: respiration rates, hemoglobin content and low-oxygen tolerance,ï¿½ Oecologia, vol. 65, no. 4, pp. 487ï¿½491, Mar. 1985.)*/
 void AnimalBiomassDynamics::calculateLowOxigenMortality(biomassType inputBiomass){
 	low_oxigen_animal_mortality=0.0f;
 }

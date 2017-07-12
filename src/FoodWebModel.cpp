@@ -386,7 +386,7 @@ void FoodWebModel::FoodWebModel::step(){
 	updatePhysicalState();
 	updateAlgaeBiomass();
 	grazerDynamics.updateAnimalBiomass();
-	predatorDynamics.updateAnimalBiomass();
+	//predatorDynamics.updateAnimalBiomass();
 }
 
 void FoodWebModel::FoodWebModel::updateRegisterVariables(){

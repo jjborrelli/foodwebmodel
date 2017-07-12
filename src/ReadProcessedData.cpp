@@ -65,6 +65,7 @@ void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* rea
 	/* Read until there are no more lines*/
 	  if (dataFile.is_open())
 	  {
+     cout<<"File "<<dataRoute<<" successfully open."<<endl;
 		  while ( getline (dataFile,readLine,'\n')&&(readLimit<0||arrayIndex<readLimit) )
 		     {
 			  if(plotReadParameter){

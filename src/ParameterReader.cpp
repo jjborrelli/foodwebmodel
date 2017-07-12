@@ -232,7 +232,7 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 			simArguments.predator_maximum_found_biomass = atof(parameterValue.c_str());
 			return;
 		}
-	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter";
+	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter."<<endl;
 }
 
 /*Parse additional arguments as a string*/

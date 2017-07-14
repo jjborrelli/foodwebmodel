@@ -20,7 +20,7 @@ namespace FoodWebModel{
 		friend class FoodWebModel;
 	protected:
 		biomassType **initial_algae_biomass;
-		zooplanktonCountType **initial_grazer_count;
+		animalCountType **initial_grazer_count, initial_grazer_distribution[MAX_CLASS_INDEX];
 		physicalType **initial_temperature;
 		biomassType baseBiomassDifferential[MAX_DEPTH_INDEX], zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom;
@@ -39,6 +39,7 @@ namespace FoodWebModel{
 		void readInitialAlgaeBiomass(const string& initialAlgaeBiomassRoute);
 		void readBaseAlgaeBiomassDifferential(const string& biomassDifferentialRoute);
 		void readInitialZooplanktonCount(const string& biomassRoute);
+		void readInitialZooplanktonDistribution(const string& grazerDistributionRoute);
 		void readPhosphorusConcentrationAtBottom(const string& phosphorusConcentrationAtBottomRoute);
 		void readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute);
 		template<typename T>

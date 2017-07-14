@@ -68,7 +68,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #endif
 		/* From biomass to discrete count*/
 		bottomAnimalCount[columnIndex]=ceil(bottomAnimalBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
-		bottomAnimalCount[columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, bottomAnimalCount[columnIndex]);
+		bottomAnimalCount[columnIndex]=max<animalCountType>((animalCountType)0.0f, bottomAnimalCount[columnIndex]);
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerBottomAnimalBiomass){
 			animalBiomassBuffer<<lineBuffer.str()<<commaString<<bottomAnimalCount[columnIndex]<<endl;
@@ -103,7 +103,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #endif
 				/* From biomass to discrete count*/
 				floatingAnimalCount[depthIndex][columnIndex]=ceil(floatingAnimalBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
-				floatingAnimalCount[depthIndex][columnIndex]=max<zooplanktonCountType>((zooplanktonCountType)0.0f, floatingAnimalCount[depthIndex][columnIndex]);
+				floatingAnimalCount[depthIndex][columnIndex]=max<animalCountType>((animalCountType)0.0f, floatingAnimalCount[depthIndex][columnIndex]);
 				this->floating_animal_count_summing+=floatingAnimalCount[depthIndex][columnIndex];
 				/*If biomass must be registered, register standard phytoplankton biomass*/
 				if(registerZooplanktonBiomass[depthIndex][columnIndex]){
@@ -246,7 +246,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 
 		/* Get zooplankton count and biomass*/
-		zooplanktonCountType localeZooplanktonCount = bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
+		animalCountType localeZooplanktonCount = bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
 		biomassType localeZooplanktonBiomass = bottom?bottomAnimalBiomass[columnIndex]:floatingAnimalBiomass[depthIndex][columnIndex];
 		biomassType localeAlgaeBiomassBeforeEating=bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
 		biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassBeforeEating*this->food_conversion_factor;
@@ -304,7 +304,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
 void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, biomassType foodBiomassInMicrograms){
-	zooplanktonCountType localeFloatingAnimalCount=bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
+	animalCountType localeFloatingAnimalCount=bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
 
 	consumption_per_individual = this->filtering_rate_per_daphnia_in_cell_volume*foodBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
@@ -428,7 +428,7 @@ void AnimalBiomassDynamics::calculateLowOxigenMortality(biomassType inputBiomass
 }
 
 /* Include predation pressure to control grazer values*/
-void AnimalBiomassDynamics::calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount){
+void AnimalBiomassDynamics::calculatePredationPressure(animalCountType zooplanktonLocaleCount){
 #ifdef ADD_GRAZER_PREDATORY_PRESSURE
 	/* Use a sigmoid function to model predatory pressure*/
 	animal_predatory_pressure = 1/(1+exp(-(biomassType)zooplanktonLocaleCount+INITIAL_PREDATORY_PRESSURE));

@@ -25,13 +25,13 @@ public:
 protected:
 	std::ostringstream lineBuffer, animalBiomassBuffer;
 	/* Animal count summing. The simulation halts below a given number*/
-	zooplanktonCountType floating_animal_count_summing;
+	animalCountType floating_animal_count_summing;
 	/* Animal biomass in micrograms*/
 	biomassType *floatingAnimalBiomass[MAX_DEPTH_INDEX], *bottomAnimalBiomass;
 	/* Food biomass in micrograms*/
 	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass, *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
 	/* Animal individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
-	zooplanktonCountType *floatingAnimalCount[MAX_DEPTH_INDEX], *bottomAnimalCount;
+	animalCountType *floatingAnimalCount[MAX_DEPTH_INDEX], *bottomAnimalCount;
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
@@ -85,7 +85,7 @@ protected:
 	void salinityMortality(biomassType localeBiomass);
 	void calculateLowOxigenMortality(biomassType inputBiomass);
 	void stroganovApproximation(physicalType localeTemperature);
-	void calculatePredationPressure(zooplanktonCountType zooplanktonLocaleCount);
+	void calculatePredationPressure(animalCountType zooplanktonLocaleCount);
 	void calculateGrazerCarryingCapacityMortality(biomassType inputBiomass);
 
 	/*Vertical animal migration*/

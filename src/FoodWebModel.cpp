@@ -826,7 +826,24 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 			} else {
 				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
 				this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+#ifdef INDIVIDUAL_BASED_ANIMALS
+				if(readProcessedData.initial_grazer_count[j][i]>0.0f){
+					Animal newborn, young, mature;
+					newborn.x=young.x=mature.x=j;
+					newborn.y=young.y=mature.y=i;
+					newborn.stage=Newborn;
+					young.stage=Young;
+					mature.stage=Mature;
+					newborn.numberOfIndividuals=readProcessedData.initial_grazer_count[j][i]*readProcessedData.initial_grazer_distribution[newborn.stage];
+					young.numberOfIndividuals=readProcessedData.initial_grazer_count[j][i]*readProcessedData.initial_grazer_distribution[young.stage];
+					mature.numberOfIndividuals=readProcessedData.initial_grazer_count[j][i]*readProcessedData.initial_grazer_distribution[mature.stage];
+					zooplankton.push_back(newborn);
+					zooplankton.push_back(young);
+					zooplankton.push_back(mature);
+				}
+#else
 				this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
+#endif
 			}
 		}
 	}

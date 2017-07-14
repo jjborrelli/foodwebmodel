@@ -56,17 +56,21 @@ namespace FoodWebModel {
 		/*Algae differential growth*/
 		biomassType algae_biomass_differential_production_scale;
 		/* Grazer biomass in micrograms*/
+#ifdef INDIVIDUAL_BASED_ANIMALS
+		vector<Animal> zooplankton, bottomGrazer;
+		vector<Animal> floatingPredator, bottomPredator;
+#else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 		biomassType verticalMigrationZooplanktonBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 
 		/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
-		zooplanktonCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX];
+		animalCountType zooplanktonCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederCount[MAX_COLUMN_INDEX];
 		biomassType grazerPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
-		/*Grazer count summing. The simulation halts below a given number*/
-		zooplanktonCountType zooplankton_count_summing;
+
+
 
 
 		/* Predator biomass in micrograms*/
@@ -76,11 +80,14 @@ namespace FoodWebModel {
 
 
 		/* Predator individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
-		zooplanktonCountType floatingPredatorCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomPredatorCount[MAX_COLUMN_INDEX];
+		animalCountType floatingPredatorCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomPredatorCount[MAX_COLUMN_INDEX];
 		biomassType preadtorPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+#endif
+		/*Grazer count summing. The simulation halts below a given number*/
+		animalCountType zooplankton_count_summing;
 
 		/*Grazer count summing. The simulation halts below a given number*/
-		zooplanktonCountType floating_predator_count_summing;
+		animalCountType floating_predator_count_summing;
 
 		/*A vector to reference the calculated biomass*/
 

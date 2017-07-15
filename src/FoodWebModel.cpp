@@ -20,17 +20,25 @@ string operator+(string arg1, int arg2){
 
 void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	grazerDynamics.assertionViolationBuffer = &assertionViolationBuffer;
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	grazerDynamics.floatingAnimals=this->zooplankton;
+	grazerDynamics.bottomAnimals=this->bottomGrazers;
+#else
 	grazerDynamics.bottomAnimalBiomass = bottomFeederBiomass;
 	grazerDynamics.bottomAnimalCount = bottomFeederCount;
+	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
+				depthIndex++) {
+			grazerDynamics.floatingAnimalBiomass[depthIndex] =
+					zooplanktonBiomass[depthIndex];
+			grazerDynamics.floatingAnimalCount[depthIndex] =
+					zooplanktonCount[depthIndex];
+	}
+#endif
 	grazerDynamics.bottomFoodBiomass = periBiomass;
 	grazerDynamics.maxDepthIndex = maxDepthIndex;
 	grazerDynamics.current_hour = &current_hour;
 	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
 			depthIndex++) {
-		grazerDynamics.floatingAnimalBiomass[depthIndex] =
-				zooplanktonBiomass[depthIndex];
-		grazerDynamics.floatingAnimalCount[depthIndex] =
-				zooplanktonCount[depthIndex];
 		grazerDynamics.floatingFoodBiomass[depthIndex] =
 				phytoBiomass[depthIndex];
 		grazerDynamics.salinity_effect_matrix[depthIndex] =
@@ -39,26 +47,26 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		grazerDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
 		grazerDynamics.temperature[depthIndex]=temperature[depthIndex];
 	}
-	predatorDynamics.assertionViolationBuffer = &assertionViolationBuffer;
-	predatorDynamics.bottomAnimalBiomass = bottomPredatorBiomass;
-	predatorDynamics.bottomAnimalCount = bottomPredatorCount;
-	predatorDynamics.bottomFoodBiomass = bottomFeederBiomass;
-	predatorDynamics.maxDepthIndex = maxDepthIndex;
-	predatorDynamics.current_hour = &current_hour;
-	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
-			depthIndex++) {
-		predatorDynamics.floatingAnimalBiomass[depthIndex] =
-				floatingPredatorBiomass[depthIndex];
-		predatorDynamics.floatingAnimalCount[depthIndex] =
-				floatingPredatorCount[depthIndex];
-		predatorDynamics.floatingFoodBiomass[depthIndex] =
-				zooplanktonBiomass[depthIndex];
-		predatorDynamics.salinity_effect_matrix[depthIndex] =
-				salinity_effect_matrix[depthIndex];
-		predatorDynamics.lakeLightAtDepth[depthIndex]=lakeLightAtDepth[depthIndex];
-		predatorDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
-		predatorDynamics.temperature[depthIndex]=temperature[depthIndex];
-	}
+//	predatorDynamics.assertionViolationBuffer = &assertionViolationBuffer;
+//	predatorDynamics.bottomAnimalBiomass = bottomPredatorBiomass;
+//	predatorDynamics.bottomAnimalCount = bottomPredatorCount;
+//	predatorDynamics.bottomFoodBiomass = bottomFeederBiomass;
+//	predatorDynamics.maxDepthIndex = maxDepthIndex;
+//	predatorDynamics.current_hour = &current_hour;
+//	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
+//			depthIndex++) {
+//		predatorDynamics.floatingAnimalBiomass[depthIndex] =
+//				floatingPredatorBiomass[depthIndex];
+//		predatorDynamics.floatingAnimalCount[depthIndex] =
+//				floatingPredatorCount[depthIndex];
+//		predatorDynamics.floatingFoodBiomass[depthIndex] =
+//				zooplanktonBiomass[depthIndex];
+//		predatorDynamics.salinity_effect_matrix[depthIndex] =
+//				salinity_effect_matrix[depthIndex];
+//		predatorDynamics.lakeLightAtDepth[depthIndex]=lakeLightAtDepth[depthIndex];
+//		predatorDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
+//		predatorDynamics.temperature[depthIndex]=temperature[depthIndex];
+//	}
 }
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
@@ -812,44 +820,54 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		/* Initialize periphyton and bottom feeder biomass*/
 		this->periDifferential[i] = 0;
 		this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
+#ifdef  INDIVIDUAL_BASED_ANIMALS
+		addAnimals([maxDepthIndex[i],i,readProcessedData.initial_grazer_count[[maxDepthIndex[i]][i], bottomGrazers);
+#else
 		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
-
+#endif
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
 			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
 			this->phytoDifferential[j][i]=0.0f;
-			if(j==maxDepthIndex[i]){
+			if(j>=maxDepthIndex[i]){
 				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
 				this->phytoBiomass[j][i]=0.0f;
+#ifndef INDIVIDUAL_BASED_ANIMALS
 				this->zooplanktonCount[j][i]=0;
+#endif
 
 				break;
 			} else {
 				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
-				this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
-#ifdef INDIVIDUAL_BASED_ANIMALS
-				if(readProcessedData.initial_grazer_count[j][i]>0.0f){
-					Animal newborn, young, mature;
-					newborn.x=young.x=mature.x=j;
-					newborn.y=young.y=mature.y=i;
-					newborn.stage=Newborn;
-					young.stage=Young;
-					mature.stage=Mature;
-					newborn.numberOfIndividuals=readProcessedData.initial_grazer_count[j][i]*readProcessedData.initial_grazer_distribution[newborn.stage];
-					young.numberOfIndividuals=readProcessedData.initial_grazer_count[j][i]*readProcessedData.initial_grazer_distribution[young.stage];
-					mature.numberOfIndividuals=readProcessedData.initial_grazer_count[j][i]*readProcessedData.initial_grazer_distribution[mature.stage];
-					zooplankton.push_back(newborn);
-					zooplankton.push_back(young);
-					zooplankton.push_back(mature);
-				}
-#else
-				this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
-#endif
+					this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+	#ifdef INDIVIDUAL_BASED_ANIMALS
+					if(readProcessedData.initial_grazer_count[j][i]>0.0f){
+						addAnimals(i,j,readProcessedData.initial_grazer_count[j][i], zooplankton);
+					}
+	#else
+					this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
+	#endif
 			}
 		}
 	}
 	setBathymetricParameters();
 	calculateDistanceToFocus();
 }
+#ifdef INDIVIDUAL_BASED_ANIMALS
+void FoodWebModel::FoodWebModel::addAnimals(unsigned int i, unsigned int j, animalCountType count, vector<Animal> animals){
+	Animal newborn, young, mature;
+	newborn.x=young.x=mature.x=j;
+	newborn.y=young.y=mature.y=i;
+	newborn.stage=Newborn;
+	young.stage=Young;
+	mature.stage=Mature;
+	newborn.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[newborn.stage];
+	young.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[young.stage];
+	mature.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[mature.stage];
+	animals.push_back(newborn);
+	animals.push_back(young);
+	animals.push_back(mature);
+}
+#endif
 
 FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments){
 /* Read the geophysical parameters from the lake, including depth and temperature at water surface

@@ -26,12 +26,17 @@ protected:
 	std::ostringstream lineBuffer, animalBiomassBuffer;
 	/* Animal count summing. The simulation halts below a given number*/
 	animalCountType floating_animal_count_summing;
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	vector<Animal> *floatingAnimals, *bottomAnimals;
+#else
 	/* Animal biomass in micrograms*/
 	biomassType *floatingAnimalBiomass[MAX_DEPTH_INDEX], *bottomAnimalBiomass;
 	/* Food biomass in micrograms*/
-	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass, *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
+	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
 	/* Animal individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	animalCountType *floatingAnimalCount[MAX_DEPTH_INDEX], *bottomAnimalCount;
+#endif
+	biomassType *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];

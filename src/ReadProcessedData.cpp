@@ -117,6 +117,8 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readTemperatureRange(simArguments.temperatureRangeRoute);
 	readInitialAlgaeBiomass(simArguments.initialAlgaeBiomassRoute);
 	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
+	readInitialZooplanktonDistribution(simArguments.initialZooplanktonDistributionRoute);
+	readInitialZooplanktonWeight(simArguments.initialZooplanktonWeightRoute);
 	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferentialRoute);
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
 	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottomRoute);
@@ -193,9 +195,15 @@ void FoodWebModel::ReadProcessedData::readInitialZooplanktonCount(const string& 
 }
 
 void FoodWebModel::ReadProcessedData::readInitialZooplanktonDistribution(const string& grazerDistributionRoute){
-	cout<<"Reading initial grazer count from file: "<<grazerDistributionRoute<<endl;
-	readValues<animalCountType>(grazerDistributionRoute, initial_grazer_distribution, MAX_CLASS_INDEX);
-	cout<<"Initial grazer count read."<<endl;
+	cout<<"Reading initial grazer distribution from file: "<<grazerDistributionRoute<<endl;
+	readValues<double>(grazerDistributionRoute, initial_grazer_distribution, MAX_CLASS_INDEX);
+	cout<<"Initial grazer distribution read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readInitialZooplanktonWeight(const string& grazerWeightRoute){
+	cout<<"Reading initial grazer weight from file: "<<grazerWeightRoute<<endl;
+	readValues<double>(grazerWeightRoute, initial_grazer_weight, MAX_CLASS_INDEX);
+	cout<<"Initial grazer weight read."<<endl;
 }
 
 void FoodWebModel::ReadProcessedData::readBaseAlgaeBiomassDifferential(const string& biomassDifferentialRoute){

@@ -57,8 +57,8 @@ namespace FoodWebModel {
 		biomassType algae_biomass_differential_production_scale;
 		/* Grazer biomass in micrograms*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		vector<Animal> zooplankton, bottomGrazers;
-		vector<Animal> floatingPredator, bottomPredator;
+		vector<AnimalCohort> zooplankton, bottomGrazers;
+		vector<AnimalCohort> floatingPredator, bottomPredator;
 #else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
@@ -145,7 +145,8 @@ namespace FoodWebModel {
 		void updateRegisterVariables();
 		void initializePointers();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		void addAnimals(unsigned int i, unsigned int j, animalCountType count, vector<Animal> animals);
+		void addAnimalCohorts(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals);
+		void addAnimalCohort(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage);
 #endif
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);

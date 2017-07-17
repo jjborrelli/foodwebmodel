@@ -71,26 +71,26 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
-		Animal* animal=&(bottomAnimals[animalIndex]);
+		AnimalCohort* animal=&((*bottomAnimals)[animalIndex]);
 		unsigned int depthIndex=animal->x, columnIndex=animal->y;
 		lineBuffer.str("");
 		lineBuffer.clear();
 		bool isBottomAnimal=true;
 		bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-		biomassType initialAnimalBiomass = animal->totalWeight;
+		biomassType initialAnimalBiomass = animal->totalBiomass;
 		animalCountType animalCount=animal->numberOfIndividuals;
 		biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, isBottomAnimal, animalCount, initialAnimalBiomass);
-		animal->totalWeight+=biomassDifferential;
+		animal->totalBiomass+=biomassDifferential;
 	#ifdef CHECK_ASSERTIONS
-		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalWeight, initialAnimalBiomass,
-				bottomAnimalBiomassDifferential, true);
+		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalBiomass, initialAnimalBiomass,
+				biomassDifferential, true);
 	#endif
-		animal->numberOfIndividuals=ceil(animal->totalWeight/DAPHNIA_WEIGHT_IN_MICROGRAMS);
+		animal->numberOfIndividuals=ceil(animal->totalBiomass/initial_grazer_weight[animal->stage]);
 		animal->numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal->numberOfIndividuals);
 		this->floating_animal_count_summing+=animal->numberOfIndividuals;
 		/*If biomass must be registered, register standard phytoplankton biomass*/
 		if(registerZooplanktonBiomass[depthIndex][columnIndex]){
-			animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<commaString<<floatingAnimalBiomass[depthIndex][columnIndex]<<endl;
+			animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
 		}
 	}
 #else
@@ -103,7 +103,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 		bottomAnimalBiomass[columnIndex]=((biomassType)bottomAnimalCount[columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 		biomassType previousBottomAnimalBiomass = bottomAnimalBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
-		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, previousBottomAnimalBiomass, bottomAnimalCount[columnIndex]);
+		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, bottomAnimalCount[columnIndex], previousBottomAnimalBiomass);
 		bottomAnimalBiomass[columnIndex]+=bottomAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, bottomAnimalBiomass[columnIndex], previousBottomAnimalBiomass,
@@ -131,7 +131,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				floatingAnimalBiomass[depthIndex][columnIndex]=((biomassType)floatingAnimalCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 				biomassType previousFloatingAnimalBiomass = floatingAnimalBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
-				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, previousFloatingAnimalBiomass, floatingAnimalCount[depthIndex][columnIndex]);
+				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, floatingAnimalCount[depthIndex][columnIndex], previousFloatingAnimalBiomass);
 				floatingAnimalBiomass[depthIndex][columnIndex]+=floatingAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 				reportAssertionError(depthIndex, columnIndex, floatingAnimalBiomass[depthIndex][columnIndex], previousFloatingAnimalBiomass,
@@ -152,118 +152,118 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #endif
 }
 
-void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
-
-
-
-
-
-	/* Migrate biomass with respect to the previous hour*/
-
-	/* First, calculate depth movement with respect to previous hour*/
-	int depth_dependent_hour_shift =(*current_hour)==0?INITIAL_ZOOPLANKTON_SHIFT:floatingAnimalBiomassCenterDifferencePerDepth[(*current_hour)%HOURS_PER_DAY];
-
-	/*If there exists a movement in zooplankton across depth*/
-	if(depth_dependent_hour_shift!=0){
-		/* Temporary store zooplankton count in a buffer*/
-		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
-			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-				verticalMigrationAnimalBiomassBuffer[depthIndex][columnIndex] =floatingAnimalCount[depthIndex][columnIndex];
-				floatingAnimalCount[depthIndex][columnIndex] = 0.0f;
-			}
-		}
-		int initial_depth_index=depth_dependent_hour_shift>0?0:-depth_dependent_hour_shift,
-				final_depth_index=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX-depth_dependent_hour_shift:MAX_DEPTH_INDEX;
-
-		for(int depthIndex=initial_depth_index; depthIndex<final_depth_index; depthIndex++){
-
-			/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
-			int depth_adjustment=depthIndex+depth_dependent_hour_shift;
-			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-				/* Move zooplankton individuals to the adjusted depth*/
-				if(depth_adjustment<=maxDepthIndex[columnIndex]&&depthIndex<=maxDepthIndex[columnIndex]){
-					floatingAnimalCount[depth_adjustment][columnIndex] =verticalMigrationAnimalBiomassBuffer[depthIndex][columnIndex];
-				}
-			}
-		}
-
-		/* Accumulate unmoved biomass to extreme shallow or deep index*/
-#ifdef ZOOPLANKTON_ACCUMULATION
-		initial_depth_index=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX-depth_dependent_hour_shift:0,
-			final_depth_index=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX:-depth_dependent_hour_shift;
-
-		for(int depthIndex=initial_depth_index; depthIndex<final_depth_index; depthIndex++){
-			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-				unsigned int receivingIndex=depth_dependent_hour_shift>0?maxDepthIndex[columnIndex]:0;
-				floatingAnimalCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
-
-			}
-		}
-#endif
-	}
-//	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+//void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
 //
-//		/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
-//		int depth_adjustment=depthIndex+depth_dependent_hour_shift;
 //
-//		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-//			if(depth_adjustment<0||depth_adjustment>=MAX_DEPTH_INDEX||depth_adjustment>maxDepthIndex[columnIndex]){
+//
+//
+//
+//	/* Migrate biomass with respect to the previous hour*/
+//
+//	/* First, calculate depth movement with respect to previous hour*/
+//	int depth_dependent_hour_shift =(*current_hour)==0?INITIAL_ZOOPLANKTON_SHIFT:floatingAnimalBiomassCenterDifferencePerDepth[(*current_hour)%HOURS_PER_DAY];
+//
+//	/*If there exists a movement in zooplankton across depth*/
+//	if(depth_dependent_hour_shift!=0){
+//		/* Temporary store zooplankton count in a buffer*/
+//		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+//			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+//				verticalMigrationAnimalBiomassBuffer[depthIndex][columnIndex] =floatingAnimalCount[depthIndex][columnIndex];
+//				floatingAnimalCount[depthIndex][columnIndex] = 0.0f;
+//			}
+//		}
+//		int initial_depth_index=depth_dependent_hour_shift>0?0:-depth_dependent_hour_shift,
+//				final_depth_index=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX-depth_dependent_hour_shift:MAX_DEPTH_INDEX;
+//
+//		for(int depthIndex=initial_depth_index; depthIndex<final_depth_index; depthIndex++){
+//
+//			/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
+//			int depth_adjustment=depthIndex+depth_dependent_hour_shift;
+//			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 //				/* Move zooplankton individuals to the adjusted depth*/
-//				unsigned int receivingIndex=depth_dependent_hour_shift>0?maxDepthIndex[columnIndex]:0;
-//#ifdef ZOOPLANKTON_ACCUMULATION
-//				bool zooplanktionAccumulationCondition = depthIndex>maxDepthIndex[columnIndex]||;
-//#else
-//				bool zooplanktionAccumulationCondition = depthIndex<=maxDepthIndex[columnIndex];
-//#endif
-//				if(zooplanktionAccumulationCondition){
-//					zooplanktonCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+//				if(depth_adjustment<=maxDepthIndex[columnIndex]&&depthIndex<=maxDepthIndex[columnIndex]){
+//					floatingAnimalCount[depth_adjustment][columnIndex] =verticalMigrationAnimalBiomassBuffer[depthIndex][columnIndex];
 //				}
 //			}
 //		}
+//
+//		/* Accumulate unmoved biomass to extreme shallow or deep index*/
+//#ifdef ZOOPLANKTON_ACCUMULATION
+//		initial_depth_index=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX-depth_dependent_hour_shift:0,
+//			final_depth_index=depth_dependent_hour_shift>0?MAX_DEPTH_INDEX:-depth_dependent_hour_shift;
+//
+//		for(int depthIndex=initial_depth_index; depthIndex<final_depth_index; depthIndex++){
+//			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+//				unsigned int receivingIndex=depth_dependent_hour_shift>0?maxDepthIndex[columnIndex]:0;
+//				floatingAnimalCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+//
+//			}
+//		}
+//#endif
 //	}
-}
-
-
-
-
-/* Distribute preference score and daphnia across neighboring cells. Initially, it will be distributed in the same column.*/
-void AnimalBiomassDynamics::verticalMigrateAnimalsPreference(){
-	calculateLocalPreferenceScore();
-	biomassType *neighboringPreferences = new biomassType[this->vertical_migration_buffer_size];
-	for (int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX; depthIndex++) {
-		int candidateLowerRowIndex = depthIndex-this->maximum_distance_daphnia_swum_in_rows_per_hour;
-		int candidateUpperRowIndex = depthIndex+this->maximum_distance_daphnia_swum_in_rows_per_hour;
-		int localeLowerRowIndex=candidateLowerRowIndex<0?0:candidateLowerRowIndex;
-		for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX;columnIndex++) {
-			/* Normalize daphnia preference in neighboring cells from the same column. First, sum preference at neighboring cells*/
-			biomassType neighboringPreferencesSum=0.0f;
-			int localeUpperRowIndex=candidateUpperRowIndex>maxDepthIndex[columnIndex]?maxDepthIndex[columnIndex]:candidateUpperRowIndex;
-			int usedMigrationBufferSize=localeUpperRowIndex-localeLowerRowIndex;
-			for (int localeDepthIndex = localeLowerRowIndex; localeDepthIndex < localeUpperRowIndex; localeDepthIndex++) {
-				neighboringPreferencesSum+=this->foodPreferenceScore[localeDepthIndex][columnIndex];
-				neighboringPreferences[localeDepthIndex-localeLowerRowIndex] = foodPreferenceScore[localeDepthIndex][columnIndex];
-			}
-			/*Find shift towards 0-based*/
-			biomassType minimumLocalePreference=neighboringPreferences[0];
-			for (int localeDepthIndex = 0; localeDepthIndex < usedMigrationBufferSize; localeDepthIndex++) {
-				minimumLocalePreference=min(neighboringPreferences[localeDepthIndex],minimumLocalePreference);
-			}
-			for (int localeDepthIndex = 0; localeDepthIndex < usedMigrationBufferSize; localeDepthIndex++) {
-				neighboringPreferences[localeDepthIndex]-=minimumLocalePreference;
-			}
-			/* Then, normalize each cell by this summing*/
-			for (int localeDepthIndex = 0; localeDepthIndex < usedMigrationBufferSize; localeDepthIndex++) {
-				neighboringPreferences[localeDepthIndex]/=neighboringPreferencesSum;
-			}
-			/* Finally, distribute grazers using this distribution*/
-			biomassType bufferedZooplanktonCount=floatingAnimalCount[depthIndex][columnIndex];
-			floatingAnimalCount[depthIndex][columnIndex]=0.0f;
-			for (int localeDepthIndex = localeLowerRowIndex; localeDepthIndex < localeUpperRowIndex; localeDepthIndex++) {
-				this->floatingAnimalCount[localeDepthIndex][columnIndex]+=bufferedZooplanktonCount*neighboringPreferences[localeDepthIndex-localeLowerRowIndex];
-			}
-		}
-	}
-}
+////	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+////
+////		/*Adjust depth movement per depth. If it is within depth range, update zooplankton count*/
+////		int depth_adjustment=depthIndex+depth_dependent_hour_shift;
+////
+////		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+////			if(depth_adjustment<0||depth_adjustment>=MAX_DEPTH_INDEX||depth_adjustment>maxDepthIndex[columnIndex]){
+////				/* Move zooplankton individuals to the adjusted depth*/
+////				unsigned int receivingIndex=depth_dependent_hour_shift>0?maxDepthIndex[columnIndex]:0;
+////#ifdef ZOOPLANKTON_ACCUMULATION
+////				bool zooplanktionAccumulationCondition = depthIndex>maxDepthIndex[columnIndex]||;
+////#else
+////				bool zooplanktionAccumulationCondition = depthIndex<=maxDepthIndex[columnIndex];
+////#endif
+////				if(zooplanktionAccumulationCondition){
+////					zooplanktonCount[receivingIndex][columnIndex]+=verticalMigrationZooplanktonBiomassBuffer[depthIndex][columnIndex];
+////				}
+////			}
+////		}
+////	}
+//}
+//
+//
+//
+//
+///* Distribute preference score and daphnia across neighboring cells. Initially, it will be distributed in the same column.*/
+//void AnimalBiomassDynamics::verticalMigrateAnimalsPreference(){
+//	calculateLocalPreferenceScore();
+//	biomassType *neighboringPreferences = new biomassType[this->vertical_migration_buffer_size];
+//	for (int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX; depthIndex++) {
+//		int candidateLowerRowIndex = depthIndex-this->maximum_distance_daphnia_swum_in_rows_per_hour;
+//		int candidateUpperRowIndex = depthIndex+this->maximum_distance_daphnia_swum_in_rows_per_hour;
+//		int localeLowerRowIndex=candidateLowerRowIndex<0?0:candidateLowerRowIndex;
+//		for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX;columnIndex++) {
+//			/* Normalize daphnia preference in neighboring cells from the same column. First, sum preference at neighboring cells*/
+//			biomassType neighboringPreferencesSum=0.0f;
+//			int localeUpperRowIndex=candidateUpperRowIndex>maxDepthIndex[columnIndex]?maxDepthIndex[columnIndex]:candidateUpperRowIndex;
+//			int usedMigrationBufferSize=localeUpperRowIndex-localeLowerRowIndex;
+//			for (int localeDepthIndex = localeLowerRowIndex; localeDepthIndex < localeUpperRowIndex; localeDepthIndex++) {
+//				neighboringPreferencesSum+=this->foodPreferenceScore[localeDepthIndex][columnIndex];
+//				neighboringPreferences[localeDepthIndex-localeLowerRowIndex] = foodPreferenceScore[localeDepthIndex][columnIndex];
+//			}
+//			/*Find shift towards 0-based*/
+//			biomassType minimumLocalePreference=neighboringPreferences[0];
+//			for (int localeDepthIndex = 0; localeDepthIndex < usedMigrationBufferSize; localeDepthIndex++) {
+//				minimumLocalePreference=min(neighboringPreferences[localeDepthIndex],minimumLocalePreference);
+//			}
+//			for (int localeDepthIndex = 0; localeDepthIndex < usedMigrationBufferSize; localeDepthIndex++) {
+//				neighboringPreferences[localeDepthIndex]-=minimumLocalePreference;
+//			}
+//			/* Then, normalize each cell by this summing*/
+//			for (int localeDepthIndex = 0; localeDepthIndex < usedMigrationBufferSize; localeDepthIndex++) {
+//				neighboringPreferences[localeDepthIndex]/=neighboringPreferencesSum;
+//			}
+//			/* Finally, distribute grazers using this distribution*/
+//			biomassType bufferedZooplanktonCount=floatingAnimalCount[depthIndex][columnIndex];
+//			floatingAnimalCount[depthIndex][columnIndex]=0.0f;
+//			for (int localeDepthIndex = localeLowerRowIndex; localeDepthIndex < localeUpperRowIndex; localeDepthIndex++) {
+//				this->floatingAnimalCount[localeDepthIndex][columnIndex]+=bufferedZooplanktonCount*neighboringPreferences[localeDepthIndex-localeLowerRowIndex];
+//			}
+//		}
+//	}
+//}
 
 /* Calculate neighboring preference score for daphnia migration. Inspired by ([1] B.-P. Han and M. Stra�kraba, �Modeling patterns of zooplankton diel vertical migration,� J. Plankton Res., vol. 20, no. 8, pp. 1463�1487, 1998., Eqn. 15)*/
 void AnimalBiomassDynamics::calculateLocalPreferenceScore() {
@@ -287,7 +287,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassBeforeEating*this->food_conversion_factor;
 
 		stroganovApproximation(localeTemperature);
-		foodConsumptionRate(depthIndex,columnIndex,bottom, localeAlgaeBiomassInMicrograms, animalCount);
+		foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeAlgaeBiomassInMicrograms);
 		biomassType localeAlgaeBiomassAfterEating = bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
 
 		defecation();

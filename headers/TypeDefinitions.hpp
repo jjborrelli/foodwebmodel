@@ -34,11 +34,12 @@ typedef struct {
 	outputAssertionViolationRoute,
 	initialAlgaeBiomassRoute,
 	initialZooplanktonCountRoute,
+	initialZooplanktonDistributionRoute,
+	initialZooplanktonWeightRoute,
 	lightAtSurfaceRoute,
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
-	zooplanktonBiomassDepthCenterRoute,
-	initialZooplanktonDistributionRoute;
+	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 
 	biomassType algae_biomass_differential_production_scale,
@@ -75,8 +76,8 @@ typedef struct {
 	unsigned int x, y, ageInDays;
 	animalStage stage;
 	animalCountType numberOfIndividuals;
-	biomassType totalWeight;
-} Animal;
+	biomassType totalBiomass;
+} AnimalCohort;
 #endif
 
 #endif /* TYPEDEFINITIONS_HPP_ */

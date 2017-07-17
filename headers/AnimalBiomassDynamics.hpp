@@ -9,6 +9,7 @@
 #define ANIMALBIOMASSDYNAMICS_HPP_
 #include <sstream>
 #include <math.h>
+#include <vector>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 #include "SimulationModes.hpp"
@@ -27,16 +28,18 @@ protected:
 	/* Animal count summing. The simulation halts below a given number*/
 	animalCountType floating_animal_count_summing;
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	vector<Animal> *floatingAnimals, *bottomAnimals;
+	vector<AnimalCohort> *floatingAnimals, *bottomAnimals;
+	biomassType initial_grazer_weight[MAX_CLASS_INDEX];
 #else
 	/* Animal biomass in micrograms*/
 	biomassType *floatingAnimalBiomass[MAX_DEPTH_INDEX], *bottomAnimalBiomass;
-	/* Food biomass in micrograms*/
-	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
 	/* Animal individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	animalCountType *floatingAnimalCount[MAX_DEPTH_INDEX], *bottomAnimalCount;
 #endif
+	/* Food biomass and differential in micrograms*/
+	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
 	biomassType *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
+
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
@@ -94,8 +97,8 @@ protected:
 	void calculateGrazerCarryingCapacityMortality(biomassType inputBiomass);
 
 	/*Vertical animal migration*/
-	void verticalMigrateAnimalsNoPreference();
-	void verticalMigrateAnimalsPreference();
+//	void verticalMigrateAnimalsNoPreference();
+//	void verticalMigrateAnimalsPreference();
 	void calculateLocalPreferenceScore();
 	void reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom);
 };

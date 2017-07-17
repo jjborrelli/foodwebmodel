@@ -76,8 +76,8 @@ protected:
 		std::ostringstream *assertionViolationBuffer;
 #endif
 	void updateAnimalBiomass();
-	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom);
-	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, biomassType algaeBiomassInMicrograms);
+	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
+	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
 	biomassType basalRespiration(biomassType zooBiomass);
@@ -97,6 +97,7 @@ protected:
 	void verticalMigrateAnimalsNoPreference();
 	void verticalMigrateAnimalsPreference();
 	void calculateLocalPreferenceScore();
+	void reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom);
 };
 
 } /* namespace FoodWebModel */

@@ -20,6 +20,30 @@ AnimalBiomassDynamics::~AnimalBiomassDynamics() {
 	// TODO Auto-generated destructor stub
 }
 
+void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom) {
+	if (isnan(biomass)||isinf(biomass)) {
+		(*assertionViolationBuffer) << "NanInfAnimal; Biomass: " << "Biomass: "
+				<< biomass << ", Depth: "<<depthIndex<<", Column: "
+				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<(isBottom?1:0) << endl;
+	}
+	if (biomass < 0.0f) {
+		(*assertionViolationBuffer) << "NegativeAnimal; Biomass: "
+				<< biomass << ", Depth: "<<depthIndex<<", Column: "
+				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<(isBottom?1:0) << endl;
+	}
+	if (biomass
+			!= previousBiomass + differential) {
+		(*assertionViolationBuffer) << "UpdateAnimal; Biomass: "
+				<< biomass << ", PreviousBiomass: "
+				<< previousBiomass << ", BiomassDiff: "
+				<< differential << ", BiomassError: "
+				<< biomass
+						- (previousBiomass
+								+ differential)
+				<< ", Depth: "<<depthIndex<<", Column: " << columnIndex << ", Time: " << (*current_hour)
+				<< ", IsBottom: "<<(isBottom?1:0) << endl;
+	}
+}
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
 
@@ -30,12 +54,14 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 	/*Matrix to store the decision of biomass must be saved. It will be read when registering slough to output slough file*/
 	bool registerZooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	/* Clear vertical migrated phyto biomass*/
+#ifndef INDIVIDUAL_BASED_ANIMALS
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		bottomAnimalBiomass[columnIndex]=0.0f;
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 			floatingAnimalBiomass[depthIndex][columnIndex]=0.0f;
 		}
 	}
+#endif
 	/*Migrate verically zooplankton according to current time */
 #ifdef MIGRATE_ZOOPLANKTON_AT_HOUR
 	verticalMigrateAnimalCount();
@@ -43,7 +69,31 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 	verticalMigrateAnimalAlgae();
 #endif
 
-
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
+		Animal* animal=&(bottomAnimals[animalIndex]);
+		unsigned int depthIndex=animal->x, columnIndex=animal->y;
+		lineBuffer.str("");
+		lineBuffer.clear();
+		bool isBottomAnimal=true;
+		bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+		biomassType initialAnimalBiomass = animal->totalWeight;
+		animalCountType animalCount=animal->numberOfIndividuals;
+		biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, isBottomAnimal, animalCount, initialAnimalBiomass);
+		animal->totalWeight+=biomassDifferential;
+	#ifdef CHECK_ASSERTIONS
+		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalWeight, initialAnimalBiomass,
+				bottomAnimalBiomassDifferential, true);
+	#endif
+		animal->numberOfIndividuals=ceil(animal->totalWeight/DAPHNIA_WEIGHT_IN_MICROGRAMS);
+		animal->numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal->numberOfIndividuals);
+		this->floating_animal_count_summing+=animal->numberOfIndividuals;
+		/*If biomass must be registered, register standard phytoplankton biomass*/
+		if(registerZooplanktonBiomass[depthIndex][columnIndex]){
+			animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<commaString<<floatingAnimalBiomass[depthIndex][columnIndex]<<endl;
+		}
+	}
+#else
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		lineBuffer.str("");
@@ -53,25 +103,18 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 		bottomAnimalBiomass[columnIndex]=((biomassType)bottomAnimalCount[columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 		biomassType previousBottomAnimalBiomass = bottomAnimalBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
-		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
+		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, previousBottomAnimalBiomass, bottomAnimalCount[columnIndex]);
 		bottomAnimalBiomass[columnIndex]+=bottomAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
-		if(isnan(bottomAnimalBiomass[columnIndex])||isinf(bottomAnimalBiomass[columnIndex])){
-			(*assertionViolationBuffer)<<"NanInfBottomFeeder; BottomFeeder: "<<bottomAnimalBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<(*current_hour)<<endl;
-		}
-		if(bottomAnimalBiomass[columnIndex]<0.0f){
-			(*assertionViolationBuffer)<<"NegativeBottomFeeder; BottomFeeder: "<<bottomAnimalBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<(*current_hour)<<endl;
-		}
-		if(bottomAnimalBiomass[columnIndex]!=previousBottomAnimalBiomass+bottomAnimalBiomassDifferential){
-			(*assertionViolationBuffer)<<"UpdateBottomFeeder; BottomFeeder: "<<bottomAnimalBiomass[columnIndex]<<", PreviousBottomFeeder: "<<previousBottomAnimalBiomass<<", BottomFeederDiff: "<<bottomAnimalBiomassDifferential<<", BottomFeederError: "<<bottomAnimalBiomass[columnIndex]-(previousBottomAnimalBiomass+bottomAnimalBiomassDifferential)<<", Column: "<<columnIndex<<", Time: "<<(*current_hour)<<endl;
-		}
+		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, bottomAnimalBiomass[columnIndex], previousBottomAnimalBiomass,
+				bottomAnimalBiomassDifferential, true);
 #endif
 		/* From biomass to discrete count*/
 		bottomAnimalCount[columnIndex]=ceil(bottomAnimalBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
 		bottomAnimalCount[columnIndex]=max<animalCountType>((animalCountType)0.0f, bottomAnimalCount[columnIndex]);
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerBottomAnimalBiomass){
-			animalBiomassBuffer<<lineBuffer.str()<<commaString<<bottomAnimalCount[columnIndex]<<endl;
+			animalBiomassBuffer<<lineBuffer.str()<<commaString<<bottomAnimalCount[columnIndex]<<commaString<<bottomAnimalBiomass[columnIndex]<<endl;
 		}
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 			lineBuffer.str("");
@@ -88,18 +131,11 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				floatingAnimalBiomass[depthIndex][columnIndex]=((biomassType)floatingAnimalCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 				biomassType previousFloatingAnimalBiomass = floatingAnimalBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
-				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false);
+				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, previousFloatingAnimalBiomass, floatingAnimalCount[depthIndex][columnIndex]);
 				floatingAnimalBiomass[depthIndex][columnIndex]+=floatingAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
-				if(isnan(floatingAnimalBiomass[depthIndex][columnIndex])||isinf(floatingAnimalBiomass[depthIndex][columnIndex])){
-					(*assertionViolationBuffer)<<"NanInfZooplankton; Zooplankton: "<<floatingAnimalBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<(*current_hour)<<endl;
-				}
-				if(floatingAnimalBiomass[depthIndex][columnIndex]<0.0f){
-					(*assertionViolationBuffer)<<"NegativeZooplankton; Zooplankton: "<<floatingAnimalBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<(*current_hour)<<endl;
-				}
-				if(floatingAnimalBiomass[depthIndex][columnIndex]!=previousFloatingAnimalBiomass+floatingAnimalBiomassDifferential){
-					(*assertionViolationBuffer)<<"UpdateZooplankton; Zooplankton: "<<floatingAnimalBiomass[depthIndex][columnIndex]<<", PreviousZooplanktonBiomass: "<<previousFloatingAnimalBiomass<<", ZooplanktonDiff: "<<floatingAnimalBiomassDifferential<<", ZooplanktonError: "<<floatingAnimalBiomass[depthIndex][columnIndex]-(previousFloatingAnimalBiomass+floatingAnimalBiomassDifferential)<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time"<<(*current_hour)<<endl;
-				}
+				reportAssertionError(depthIndex, columnIndex, floatingAnimalBiomass[depthIndex][columnIndex], previousFloatingAnimalBiomass,
+						floatingAnimalBiomassDifferential, false);
 #endif
 				/* From biomass to discrete count*/
 				floatingAnimalCount[depthIndex][columnIndex]=ceil(floatingAnimalBiomass[depthIndex][columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
@@ -107,12 +143,13 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				this->floating_animal_count_summing+=floatingAnimalCount[depthIndex][columnIndex];
 				/*If biomass must be registered, register standard phytoplankton biomass*/
 				if(registerZooplanktonBiomass[depthIndex][columnIndex]){
-					animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<endl;
+					animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<commaString<<floatingAnimalBiomass[depthIndex][columnIndex]<<endl;
 				}
 
 			}
 		}
 	}
+#endif
 }
 
 void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
@@ -242,24 +279,22 @@ void AnimalBiomassDynamics::calculateLocalPreferenceScore() {
 	}
 }
 
-biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom){
+biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass){
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 
 		/* Get zooplankton count and biomass*/
-		animalCountType localeZooplanktonCount = bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
-		biomassType localeZooplanktonBiomass = bottom?bottomAnimalBiomass[columnIndex]:floatingAnimalBiomass[depthIndex][columnIndex];
 		biomassType localeAlgaeBiomassBeforeEating=bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
 		biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassBeforeEating*this->food_conversion_factor;
 
 		stroganovApproximation(localeTemperature);
-		foodConsumptionRate(depthIndex,columnIndex,bottom, localeAlgaeBiomassInMicrograms);
+		foodConsumptionRate(depthIndex,columnIndex,bottom, localeAlgaeBiomassInMicrograms, animalCount);
 		biomassType localeAlgaeBiomassAfterEating = bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
 
 		defecation();
-		animalRespiration(localeZooplanktonBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
+		animalRespiration(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
 		animalExcretion(salinity_corrected_animal_respiration);
-		animalMortality(localeZooplanktonBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
-		calculatePredationPressure(localeZooplanktonCount);
+		animalMortality(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
+		calculatePredationPressure(animalCount);
 
 		biomassType localeBiomassDifferential=used_consumption-locale_defecation-salinity_corrected_animal_respiration-animal_excretion_loss-animal_mortality-animal_predatory_pressure;
 
@@ -294,7 +329,6 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<animal_predatory_pressure;
 		lineBuffer<<commaString<<animal_carrying_capacity;
 		lineBuffer<<commaString<<localeBiomassDifferential;
-		lineBuffer<<commaString<<localeZooplanktonBiomass;
 		lineBuffer<<commaString<<localeAlgaeBiomassBeforeEating;
 		lineBuffer<<commaString<<localeAlgaeBiomassAfterEating;
 		return localeBiomassDifferential;
@@ -303,15 +337,14 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
-void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, biomassType foodBiomassInMicrograms){
-	animalCountType localeFloatingAnimalCount=bottom?bottomAnimalCount[columnIndex]:floatingAnimalCount[depthIndex][columnIndex];
+void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms){
 
 	consumption_per_individual = this->filtering_rate_per_daphnia_in_cell_volume*foodBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
 	consumption_per_individual = min<biomassType>(FEEDING_SATURATION,MAXIMUM_GRAZING_ABSORBED);
 //	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);
 #endif
-	locale_consumption= consumption_per_individual*localeFloatingAnimalCount;
+	locale_consumption= consumption_per_individual*animalCount;
 	locale_consumption_salt_adjusted=locale_consumption*salinity_effect_matrix[depthIndex][columnIndex];
 	/* Grazing can be adjusted according to water salinity*/
 #ifdef ADJUST_SALINITY_GRAZERS

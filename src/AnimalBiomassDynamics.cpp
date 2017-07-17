@@ -71,12 +71,17 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
+<<<<<<< HEAD
 		AnimalCohort* animal=&((*bottomAnimals)[animalIndex]);
+=======
+		Animal* animal=&(bottomAnimals[animalIndex]);
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 		unsigned int depthIndex=animal->x, columnIndex=animal->y;
 		lineBuffer.str("");
 		lineBuffer.clear();
 		bool isBottomAnimal=true;
 		bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+<<<<<<< HEAD
 		biomassType initialAnimalBiomass = animal->totalBiomass;
 		animalCountType animalCount=animal->numberOfIndividuals;
 		biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, isBottomAnimal, animalCount, initialAnimalBiomass);
@@ -86,11 +91,26 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				biomassDifferential, true);
 	#endif
 		animal->numberOfIndividuals=ceil(animal->totalBiomass/initial_grazer_weight[animal->stage]);
+=======
+		biomassType initialAnimalBiomass = animal->totalWeight;
+		animalCountType animalCount=animal->numberOfIndividuals;
+		biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, isBottomAnimal, animalCount, initialAnimalBiomass);
+		animal->totalWeight+=biomassDifferential;
+	#ifdef CHECK_ASSERTIONS
+		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalWeight, initialAnimalBiomass,
+				bottomAnimalBiomassDifferential, true);
+	#endif
+		animal->numberOfIndividuals=ceil(animal->totalWeight/DAPHNIA_WEIGHT_IN_MICROGRAMS);
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 		animal->numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal->numberOfIndividuals);
 		this->floating_animal_count_summing+=animal->numberOfIndividuals;
 		/*If biomass must be registered, register standard phytoplankton biomass*/
 		if(registerZooplanktonBiomass[depthIndex][columnIndex]){
+<<<<<<< HEAD
 			animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
+=======
+			animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<commaString<<floatingAnimalBiomass[depthIndex][columnIndex]<<endl;
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 		}
 	}
 #else
@@ -103,7 +123,11 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 		bottomAnimalBiomass[columnIndex]=((biomassType)bottomAnimalCount[columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 		biomassType previousBottomAnimalBiomass = bottomAnimalBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
+<<<<<<< HEAD
 		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, bottomAnimalCount[columnIndex], previousBottomAnimalBiomass);
+=======
+		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, previousBottomAnimalBiomass, bottomAnimalCount[columnIndex]);
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 		bottomAnimalBiomass[columnIndex]+=bottomAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, bottomAnimalBiomass[columnIndex], previousBottomAnimalBiomass,
@@ -131,7 +155,11 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				floatingAnimalBiomass[depthIndex][columnIndex]=((biomassType)floatingAnimalCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 				biomassType previousFloatingAnimalBiomass = floatingAnimalBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
+<<<<<<< HEAD
 				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, floatingAnimalCount[depthIndex][columnIndex], previousFloatingAnimalBiomass);
+=======
+				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, previousFloatingAnimalBiomass, floatingAnimalCount[depthIndex][columnIndex]);
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 				floatingAnimalBiomass[depthIndex][columnIndex]+=floatingAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 				reportAssertionError(depthIndex, columnIndex, floatingAnimalBiomass[depthIndex][columnIndex], previousFloatingAnimalBiomass,

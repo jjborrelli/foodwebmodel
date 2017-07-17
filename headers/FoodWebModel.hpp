@@ -59,7 +59,6 @@ namespace FoodWebModel {
 #ifdef INDIVIDUAL_BASED_ANIMALS
 		vector<AnimalCohort> zooplankton, bottomGrazers;
 		vector<AnimalCohort> floatingPredator, bottomPredator;
-#else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 		biomassType verticalMigrationZooplanktonBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];

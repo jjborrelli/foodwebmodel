@@ -21,8 +21,13 @@ string operator+(string arg1, int arg2){
 void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	grazerDynamics.assertionViolationBuffer = &assertionViolationBuffer;
 #ifdef INDIVIDUAL_BASED_ANIMALS
+<<<<<<< HEAD
 	grazerDynamics.floatingAnimals=&this->zooplankton;
 	grazerDynamics.bottomAnimals=&this->bottomGrazers;
+=======
+	grazerDynamics.floatingAnimals=this->zooplankton;
+	grazerDynamics.bottomAnimals=this->bottomGrazers;
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 #else
 	grazerDynamics.bottomAnimalBiomass = bottomFeederBiomass;
 	grazerDynamics.bottomAnimalCount = bottomFeederCount;
@@ -828,7 +833,11 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		this->periDifferential[i] = 0;
 		this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
 #ifdef  INDIVIDUAL_BASED_ANIMALS
+<<<<<<< HEAD
 		addAnimalCohorts(maxDepthIndex[i],i,readProcessedData.initial_grazer_count[maxDepthIndex[i]][i], bottomGrazers);
+=======
+		addAnimals([maxDepthIndex[i],i,readProcessedData.initial_grazer_count[[maxDepthIndex[i]][i], bottomGrazers);
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 #else
 		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
 #endif
@@ -848,7 +857,11 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 					this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
 	#ifdef INDIVIDUAL_BASED_ANIMALS
 					if(readProcessedData.initial_grazer_count[j][i]>0.0f){
+<<<<<<< HEAD
 						addAnimalCohorts(i,j,readProcessedData.initial_grazer_count[j][i], zooplankton);
+=======
+						addAnimals(i,j,readProcessedData.initial_grazer_count[j][i], zooplankton);
+>>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 					}
 	#else
 					this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
@@ -878,6 +891,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int i, unsigned int j,
 		newAnimal.totalBiomass=newAnimal.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		animals.push_back(newAnimal);
 	}
+
 }
 #endif
 

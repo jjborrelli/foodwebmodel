@@ -25,8 +25,6 @@ namespace FoodWebModel{
 		/* Grazer weight and distribution taken from [1] M. F. Baudouin and O. Ravera, “Weight, size and chemical composition of some freshwater zooplankters: Daphnia Hyalina (Leydig),” Limnol. Oceanogr., vol. 17, pp. 645–649, 1972.*/
 		double initial_grazer_distribution[MAX_CLASS_INDEX];
 		biomassType initial_grazer_weight[MAX_CLASS_INDEX];
-
-
 		physicalType **initial_temperature;
 		biomassType baseBiomassDifferential[MAX_DEPTH_INDEX], zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom;

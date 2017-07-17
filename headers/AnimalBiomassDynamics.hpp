@@ -39,7 +39,6 @@ protected:
 	/* Food biomass and differential in micrograms*/
 	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
 	biomassType *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
-
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];

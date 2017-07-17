@@ -39,7 +39,8 @@ typedef struct {
 	lightAtSurfaceRoute,
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
-	zooplanktonBiomassDepthCenterRoute;
+	zooplanktonBiomassDepthCenterRoute,
+	initialZooplanktonDistributionRoute;
 	unsigned int simulationCycles;
 
 	biomassType algae_biomass_differential_production_scale,

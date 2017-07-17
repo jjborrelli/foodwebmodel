@@ -101,6 +101,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.initialZooplanktonCountRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("InitialZooplanktonDistributionRoute")){
+		simArguments.initialZooplanktonDistributionRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("InitialZooplanktonWeightRoute")){
+		simArguments.initialZooplanktonWeightRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("LightAtSurfaceRoute")){
 		simArguments.lightAtSurfaceRoute= parameterValue;
 		return;

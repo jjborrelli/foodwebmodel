@@ -12,9 +12,11 @@
 
 typedef double biomassType;
 typedef double physicalType;
-typedef unsigned int zooplanktonCountType;
+typedef unsigned int animalCountType;
 
 #include <string>
+#include "SimulationModes.hpp"
+//#include "ModelConstants.hpp"
 
 using namespace std;
 
@@ -32,6 +34,8 @@ typedef struct {
 	outputAssertionViolationRoute,
 	initialAlgaeBiomassRoute,
 	initialZooplanktonCountRoute,
+	initialZooplanktonDistributionRoute,
+	initialZooplanktonWeightRoute,
 	lightAtSurfaceRoute,
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
@@ -63,5 +67,17 @@ typedef struct {
 	phosphorus_half_saturation,
 	light_allowance_weight;
 } SimulationArguments;
+
+/* Types for individual-based dynamics of animals*/
+#ifdef INDIVIDUAL_BASED_ANIMALS
+typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
+
+typedef struct {
+	unsigned int x, y, ageInDays;
+	animalStage stage;
+	animalCountType numberOfIndividuals;
+	biomassType totalBiomass;
+} AnimalCohort;
+#endif
 
 #endif /* TYPEDEFINITIONS_HPP_ */

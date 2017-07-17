@@ -229,15 +229,18 @@ static const biomassType DAPHNIA_WEIGHT_IN_MILLIGRAMS=DAPHNIA_WEIGHT_IN_MICROGRA
 
 static const unsigned int INITIAL_ZOOPLANKTON_SHIFT=22;
 
+/* Number of possible age classes*/
 
-/*Maximum distance in meters for daphnia swum per hour (B.-P. Han and M. Straškraba, “Modeling patterns of zooplankton diel vertical migration,” J. Plankton Res., vol. 20, no. 8, pp. 1463–1487, 1998.)*/
+static const unsigned int MAX_CLASS_INDEX=4;
+
+/*Maximum distance in meters for daphnia swum per hour (B.-P. Han and M. Straï¿½kraba, ï¿½Modeling patterns of zooplankton diel vertical migration,ï¿½ J. Plankton Res., vol. 20, no. 8, pp. 1463ï¿½1487, 1998.)*/
 
 
 static const biomassType MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR=3.5f;
 
 /*Minimum viable grazer population*/
 
-static const zooplanktonCountType MINIMUM_VIABLE_GRAZER_POPULATION=100000000;
+static const animalCountType MINIMUM_VIABLE_GRAZER_POPULATION=100000000;
 
 static const biomassType INITIAL_PREDATORY_PRESSURE = 1000000.0f;
 
@@ -251,7 +254,7 @@ static const biomassType MAXIMUM_NUMBER_OF_GRAZERS_FOUND = 2234133.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 15.0f;
 //static const biomassType FEEDING_SATURATION_ADJUSTMENT = 5.0f;
 static const biomassType FEEDING_SATURATION_ADJUSTMENT = 1.0f;
-/* Saturation concentration taken from (N. P. Holm, G. G. Ganf, and J. Shapiro, “Feeding and assimilation rates of Daphnia pulex fed Aphanizomenon flos-aquae1,” Limnol. Oceanogr., vol. 28, no. 4, pp. 677–687, Jul. 1983.) */
+/* Saturation concentration taken from (N. P. Holm, G. G. Ganf, and J. Shapiro, ï¿½Feeding and assimilation rates of Daphnia pulex fed Aphanizomenon flos-aquae1,ï¿½ Limnol. Oceanogr., vol. 28, no. 4, pp. 677ï¿½687, Jul. 1983.) */
 /* The concentration is adjusted assuming that 20000 phyotplankton cells = 0.86 ug/ml, so 15000 cells = 0.645 ug/ml = 645 ug/l*/
 static const biomassType MAXIMUM_GRAZING_ABSORBED = 645.0f;
 static const biomassType FEEDING_SATURATION=FEEDING_SATURATION_ADJUSTMENT*0.4f*DAPHNIA_WEIGHT_IN_MILLIGRAMS/((double)HOURS_PER_DAY);
@@ -260,7 +263,7 @@ static const biomassType MAXIMUM_GRAZING_PROPORTION=1.0f;
 /* The average grazing proportion has been taken from (Holm et al., 1983, Feeding and assimilation rates of Daphnia pulex-fed Aphanixomenon flos-aquae, page 410, table 20-1 and average grazing rate for Daphnia longispina from the control data from (Lair, 1991, page 4, table 1) (info in milliliters))
  *  in grams algae/grams grazer/day.*/
 
-/* Lenght assumed to be about 22mm from (H. J. Dumont, I. Van De Velde, and S. Dumont, “The Dry Weight Estimate of Biomass in a Selection of Cladocera, Copepoda and Rotifera from the Plankton, Periphyton and Benthos of Continental Waters,” vol. 19, pp. 75–97, 1975.)*/
+/* Lenght assumed to be about 22mm from (H. J. Dumont, I. Van De Velde, and S. Dumont, ï¿½The Dry Weight Estimate of Biomass in a Selection of Cladocera, Copepoda and Rotifera from the Plankton, Periphyton and Benthos of Continental Waters,ï¿½ vol. 19, pp. 75ï¿½97, 1975.)*/
 
 //static const biomassType
 //WATER_FILTERING_RATE_PER_INDIVIDUAL_HOUR_MILLILITERS=0.6439372f,
@@ -275,7 +278,7 @@ static const biomassType DEFECATION_COEFFICIENT=0.01f;
 
 /* Basal respiration rate. It needs to be adjusted*/
 
-/* Calculated using the formula from (https://www.geol.umd.edu/~jmerck/bsci393/lab5/allometry.html) and the data from (H. J. Dumont, I. Van De Velde, and S. Dumont, “The Dry Weight Estimate of Biomass in a Selection of Cladocera, Copepoda and Rotifera from the Plankton, Periphyton and Benthos of Continental Waters,” vol. 19, pp. 75–97, 1975.)*/
+/* Calculated using the formula from (https://www.geol.umd.edu/~jmerck/bsci393/lab5/allometry.html) and the data from (H. J. Dumont, I. Van De Velde, and S. Dumont, ï¿½The Dry Weight Estimate of Biomass in a Selection of Cladocera, Copepoda and Rotifera from the Plankton, Periphyton and Benthos of Continental Waters,ï¿½ vol. 19, pp. 75ï¿½97, 1975.)*/
 static const biomassType BASAL_RESPIRATION_RATE=0.1125f,
 		/*Weight factor (AquaTox Documentation, page 107, equation 103)*/
 		BASAL_RESPIRATION_WEIGHT=1.5f;

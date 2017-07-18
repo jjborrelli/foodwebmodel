@@ -5,6 +5,7 @@
 $(OBJS): 
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
+	rm bin/$(OBJS) 
 	g++ -g $(SRC) $(HEADERS) $(COMPILATION_OPTIONS) -o bin/$(OBJS)
 	@echo 'Finished building target: $@'
 	
@@ -13,6 +14,7 @@ $(OBJS):
 debug:
 	@echo 'Compiling to debug target: $@'
 	@echo 'Invoking: GCC C++ Linker'
+	rm bin/$(OBJS) 
 	g++ -g $(SRC) $(HEADERS) $(COMPILATION_OPTIONS) -o bin/$(OBJS)
 	@echo 'Finished building target: $@ for debugging'
 	
@@ -22,5 +24,6 @@ all:
 run:
 	@echo 'Compiling to run target: $@'
 	@echo 'Invoking: GCC C++ Linker'
+	rm bin/$(OBJS) 
 	g++ $(SRC) $(HEADERS) $(COMPILATION_OPTIONS) -o bin/$(OBJS)
 	@echo 'Finished building target: $@ for running'

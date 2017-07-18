@@ -79,6 +79,7 @@ protected:
 		std::ostringstream *assertionViolationBuffer;
 #endif
 	void updateAnimalBiomass();
+	void updateCohortBiomass(AnimalCohort *animal);
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
 	void defecation();

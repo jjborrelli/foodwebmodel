@@ -145,8 +145,8 @@ namespace FoodWebModel {
 		void updateRegisterVariables();
 		void initializePointers();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		void addAnimalCohorts(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals);
-		void addAnimalCohort(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage);
+		void addAnimalCohorts(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal);
+		void addAnimalCohort(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal);
 #endif
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);

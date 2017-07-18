@@ -75,6 +75,7 @@ typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
 typedef struct {
 	unsigned int x, y, ageInDays;
 	animalStage stage;
+	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;
 	biomassType totalBiomass;
 } AnimalCohort;

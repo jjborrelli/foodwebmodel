@@ -136,6 +136,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #endif
 }
 
+#ifdef INDIVIDUAL_BASED_ANIMALS
 void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort *animal){
 	unsigned int depthIndex=animal->x, columnIndex=animal->y;
 	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
@@ -160,6 +161,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort *animal){
 		animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
 	}
 }
+#endif
 //void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
 //
 //

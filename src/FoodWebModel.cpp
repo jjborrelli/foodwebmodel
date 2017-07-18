@@ -860,6 +860,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	calculateDistanceToFocus();
 }
 #ifdef INDIVIDUAL_BASED_ANIMALS
+
 void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal){
 	if(count>0){
 		addAnimalCohort(i,j,count, animals, Newborn, isBottomAnimal);
@@ -880,6 +881,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int i, unsigned int j,
 		animals.push_back(newAnimal);
 	}
 }
+
 #endif
 
 FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments){

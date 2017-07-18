@@ -160,7 +160,6 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort *animal){
 		animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
 	}
 }
-
 //void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
 //
 //

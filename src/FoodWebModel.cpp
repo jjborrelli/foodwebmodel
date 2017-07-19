@@ -20,7 +20,9 @@ string operator+(string arg1, int arg2){
 
 void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	grazerDynamics.assertionViolationBuffer = &assertionViolationBuffer;
+	/* Set grazer count and biomass pointers to the grazer dynamics objects*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
+
 	grazerDynamics.floatingAnimals=&this->zooplankton;
 	grazerDynamics.bottomAnimals=&this->bottomGrazers;
 #else
@@ -827,6 +829,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		/* Initialize periphyton and bottom feeder biomass*/
 		this->periDifferential[i] = 0;
 		this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
+		/* Copy bottom grazer biomass per cell*/
 #ifdef  INDIVIDUAL_BASED_ANIMALS
 		addAnimalCohorts(maxDepthIndex[i],i,readProcessedData.initial_grazer_count[maxDepthIndex[i]][i], bottomGrazers, true);
 #else
@@ -846,9 +849,10 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 			} else {
 				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
 					this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+					/* Copy floating grazer biomass per cell*/
 	#ifdef INDIVIDUAL_BASED_ANIMALS
 					if(readProcessedData.initial_grazer_count[j][i]>0.0f){
-						addAnimalCohorts(i,j,readProcessedData.initial_grazer_count[j][i], zooplankton, false);
+						addAnimalCohorts(j,i,readProcessedData.initial_grazer_count[j][i], zooplankton, false);
 					}
 	#else
 					this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];
@@ -859,23 +863,26 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	setBathymetricParameters();
 	calculateDistanceToFocus();
 }
+
+/* Functions for adding individual-based animal cohorts*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
-void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal){
+void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal){
 	if(count>0){
-		addAnimalCohort(i,j,count, animals, Newborn, isBottomAnimal);
-		addAnimalCohort(i,j,count, animals, Young, isBottomAnimal);
-		addAnimalCohort(i,j,count, animals, Mature, isBottomAnimal);
+		addAnimalCohort(depthIndex,columnIndex,count, animals, Newborn, isBottomAnimal);
+		addAnimalCohort(depthIndex,columnIndex,count, animals, Young, isBottomAnimal);
+		addAnimalCohort(depthIndex,columnIndex,count, animals, Mature, isBottomAnimal);
 	}
 }
 
-void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int i, unsigned int j, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal){
+void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal){
 	if(count>0&&readProcessedData.initial_grazer_distribution[developmentStage]>0.0f){
 		AnimalCohort newAnimal;
-		newAnimal.x=i;
-		newAnimal.y=j;
+		newAnimal.x=depthIndex;
+		newAnimal.y=columnIndex;
 		newAnimal.stage=developmentStage;
 		newAnimal.isBottomAnimal=isBottomAnimal;
+		newAnimal.ageInDays=0;
 		newAnimal.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newAnimal.totalBiomass=newAnimal.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		animals.push_back(newAnimal);

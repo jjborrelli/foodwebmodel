@@ -71,6 +71,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #endif
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
+	/* Update biomass in bottom and floating grazer cohorts*/
 	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
 		updateCohortBiomass(&((*bottomAnimals)[animalIndex]));
 	}
@@ -137,6 +138,8 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 }
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
+
+/* Function for updating biomass in grazer cohorts*/
 void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort *animal){
 	unsigned int depthIndex=animal->x, columnIndex=animal->y;
 	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;

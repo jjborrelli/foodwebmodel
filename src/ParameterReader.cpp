@@ -35,7 +35,7 @@ void FoodWebModel::ParameterReader::readSimulationParametersFromFile(const std::
 		/*Read while there are lines left in the file*/
 		std::cout<<"Reading parameters from file "<<parameterFileName<<"."<<endl;
 		while(std::getline(parametersFile, file_line, '\n')){
-//			std::cout<<"Line read: "<<file_line<<"."<<endl;
+			//			std::cout<<"Line read: "<<file_line<<"."<<endl;
 			vector<string> parameterRead = generalSplit(file_line, std::string(";"));
 			setParameter(parameterRead[0], parameterRead[1]);
 			std::cout<<"Parameter pair with name: "<<parameterRead[0]<<" and value: "<<parameterRead[1]<<" read."<<endl;
@@ -75,6 +75,22 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("OutputGrazerRoute")){
 		simArguments.outputGrazerRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("OutputGrazerBornRoute")){
+		simArguments.outputGrazerBornRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("OutputGrazerDeadRoute")){
+		simArguments.outputGrazerDeadRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("OutputPredatorBornRoute")){
+		simArguments.outputPredatorBornRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("OutputPredatorDeadRoute")){
+		simArguments.outputPredatorDeadRoute= parameterValue;
 		return;
 	}
 	if(!parameterName.compare("OutputPredatorRoute")){
@@ -185,69 +201,73 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		return;
 	}
 	if(!parameterName.compare("GrazerBaseMortality")){
-				simArguments.grazer_base_mortality_proportion= atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerFilteringRate")){
-				simArguments.grazer_filtering_rate_per_individual= atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerBasalRespirationWeight")){
-				simArguments.grazer_basal_respiration_weight= atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerKValueRespiration")){
-				simArguments.grazer_k_value_respiration= atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerCarryingCapacityCoefficient")){
-				simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerCarryingCapacityIntercept")){
-				simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerMaximumFoundBiomass")){
-				simArguments.grazer_maximum_found_biomass = atof(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerMaxHoursWithoutFood")){
-				simArguments.grazer_max_hours_without_food= atoi(parameterValue.c_str());
-				return;
-			}
-			if(!parameterName.compare("GrazerFoodStarvationThreshold")){
-				simArguments.grazer_food_starvation_threshold= atof(parameterValue.c_str());
-				return;
-			}
+		simArguments.grazer_base_mortality_proportion= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerFilteringRate")){
+		simArguments.grazer_filtering_rate_per_individual= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerBasalRespirationWeight")){
+		simArguments.grazer_basal_respiration_weight= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerKValueRespiration")){
+		simArguments.grazer_k_value_respiration= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerCarryingCapacityCoefficient")){
+		simArguments.grazer_carrying_capacity_coefficient= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerCarryingCapacityIntercept")){
+		simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerMaximumFoundBiomass")){
+		simArguments.grazer_maximum_found_biomass = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerMaxHoursWithoutFood")){
+		simArguments.grazer_max_hours_without_food= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerFoodStarvationThreshold")){
+		simArguments.grazer_food_starvation_threshold= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerMaximumAgeInHours")){
+		simArguments.grazer_maximum_age_in_hours= atoi(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PredatorBaseMortality")){
-			simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
-			return;
-		}
-		if(!parameterName.compare("PredatorFilteringRate")){
-			simArguments.predator_filtering_rate_per_individual= atof(parameterValue.c_str());
-			return;
-		}
-		if(!parameterName.compare("PredatorBasalRespirationWeight")){
-			simArguments.predator_basal_respiration_weight= atof(parameterValue.c_str());
-			return;
-		}
-		if(!parameterName.compare("PredatorKValueRespiration")){
-			simArguments.predator_k_value_respiration= atof(parameterValue.c_str());
-			return;
-		}
-		if(!parameterName.compare("PredatorCarryingCapacityCoefficient")){
-			simArguments.predator_carrying_capacity_coefficient= atof(parameterValue.c_str());
-			return;
-		}
-		if(!parameterName.compare("PredatorCarryingCapacityIntercept")){
-			simArguments.predator_carrying_capacity_intercept = atof(parameterValue.c_str());
-			return;
-		}
-		if(!parameterName.compare("PredatorMaximumFoundBiomass")){
-			simArguments.predator_maximum_found_biomass = atof(parameterValue.c_str());
-			return;
-		}
+		simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorFilteringRate")){
+		simArguments.predator_filtering_rate_per_individual= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorBasalRespirationWeight")){
+		simArguments.predator_basal_respiration_weight= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorKValueRespiration")){
+		simArguments.predator_k_value_respiration= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorCarryingCapacityCoefficient")){
+		simArguments.predator_carrying_capacity_coefficient= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorCarryingCapacityIntercept")){
+		simArguments.predator_carrying_capacity_intercept = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorMaximumFoundBiomass")){
+		simArguments.predator_maximum_found_biomass = atof(parameterValue.c_str());
+		return;
+	}
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter."<<endl;
 }
 

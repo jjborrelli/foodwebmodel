@@ -4,7 +4,8 @@
  *  Created on: Jul 6, 2017
  *      Author: manu_
  */
-
+#include <algorithm> // for remove_if
+#include <functional> // for unary_function
 #include "../headers/AnimalBiomassDynamics.hpp"
 
 using namespace std;
@@ -49,7 +50,12 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
 
 void AnimalBiomassDynamics::updateAnimalBiomass(){
+/* Clear string buffers */
 	animalBiomassBuffer.str("");
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	animalBornBuffer.str("");
+	animalDeadBuffer.str("");
+#endif
 	/* Clear zooplankton count summing. This will be compared with threshold upper number as a halting condition*/
 	this->floating_animal_count_summing=0;
 	/*Matrix to store the decision of biomass must be saved. It will be read when registering slough to output slough file*/
@@ -72,12 +78,15 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Update biomass in bottom and floating grazer cohorts*/
-	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
-		updateCohortBiomass(((*bottomAnimals)[animalIndex]));
+	for (std::vector<AnimalCohort>::iterator it = bottomAnimals->begin() ; it != bottomAnimals->end(); ++it){
+		updateCohortBiomass(*it);
 	}
-	for (int animalIndex = 0; animalIndex < floatingAnimals->size(); ++animalIndex) {
-		updateCohortBiomass(((*floatingAnimals)[animalIndex]));
+	for (std::vector<AnimalCohort>::iterator it = floatingAnimals->begin() ; it != floatingAnimals->end(); ++it){
+		updateCohortBiomass(*it);
 	}
+
+	removeDeadAnimals();
+
 #else
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
@@ -140,29 +149,44 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 /* Function for updating biomass in grazer cohorts*/
-void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& animal){
-	unsigned int depthIndex=animal.x, columnIndex=animal.y;
+void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
+	unsigned int depthIndex=cohort.x, columnIndex=cohort.y;
 	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-	if(animal.isBottomAnimal){
+	if(cohort.isBottomAnimal){
 		registerBiomass&=depthIndex%DEPTH_OUTPUT_RESOLUTION==0;
 	}
 	lineBuffer.str("");
 	lineBuffer.clear();
-	biomassType initialAnimalBiomass = animal.totalBiomass;
-	animalCountType animalCount=animal.numberOfIndividuals;
-	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, animal.isBottomAnimal, animalCount, initialAnimalBiomass);
-	animalStarvationMortality(animal, getFoodBiomass(animal));
-	animal.totalBiomass+=biomassDifferential;
-#ifdef CHECK_ASSERTIONS
-	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal.totalBiomass, initialAnimalBiomass,
-			biomassDifferential, animal.isBottomAnimal);
+	biomassType initialAnimalBiomass = cohort.totalBiomass;
+	animalCountType animalCount=cohort.numberOfIndividuals;
+	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
+#ifdef ANIMAL_STARVATION
+	animalStarvationMortality(cohort, getFoodBiomass(cohort));
 #endif
-	animal.numberOfIndividuals=ceil(animal.totalBiomass/initial_grazer_weight[animal.stage]);
-	animal.numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal.numberOfIndividuals);
-	this->floating_animal_count_summing+=animal.numberOfIndividuals;
+#ifdef ANIMAL_AGING
+	animalAging(cohort);
+#endif
+	cohort.totalBiomass+=biomassDifferential;
+#ifdef CHECK_ASSERTIONS
+	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.totalBiomass, initialAnimalBiomass,
+			biomassDifferential, cohort.isBottomAnimal);
+#endif
+	cohort.numberOfIndividuals=ceil(cohort.totalBiomass/initial_grazer_weight[cohort.stage]);
+	cohort.numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, cohort.numberOfIndividuals);
+	this->floating_animal_count_summing+=cohort.numberOfIndividuals;
+	/* If the number of individuals or total biomass in the cohort is 0, consider it dead for other circumstances*/
+	if((cohort.totalBiomass<=0||cohort.numberOfIndividuals<=0)&&cohort.death==None){
+		cohort.death=Other;
+	}
 	/*If biomass must be registered, register standard phytoplankton biomass*/
-	if(registerBiomass&&animal.numberOfIndividuals>0){
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal.numberOfIndividuals<<commaString<<animal.totalBiomass<<endl;
+	if(registerBiomass&&cohort.numberOfIndividuals>0){
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.totalBiomass<<endl;
+	}
+
+	/* If the cohort is dead, register its death*/
+	if(cohort.death!=None){
+		unsigned int isBottomAnimal=cohort.isBottomAnimal?1:0;
+		this->animalDeadBuffer<<cohort.x<<lineBuffer.str()<<cohort.y<<lineBuffer.str()<<(*current_hour)<<lineBuffer.str()<<isBottomAnimal<<lineBuffer.str()<<cohort.ageInHours<<lineBuffer.str()<<cohort.hoursWithoutFood<<lineBuffer.str()<<cohort.stage<<lineBuffer.str()<<cohort.numberOfIndividuals<<lineBuffer.str()<<cohort.totalBiomass<<endl;
 	}
 }
 #endif
@@ -493,27 +517,63 @@ void AnimalBiomassDynamics::calculatePredationPressure(animalCountType zooplankt
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
+#ifdef ANIMAL_STARVATION
 /* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, “Family planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,” Oecologia, vol. 91, no. 4, pp. 463–467, Oct. 1992., page 465, Fig. 1)*/
-void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& animal, biomassType foodBiomass){
-	if(foodBiomass<this->food_starvation_threshold)
-		/* If starving, increment the number of hours without food*/
-		animal.hoursWithoutFood++;
-	if(animal.hoursWithoutFood>=this->max_hours_without_food){
-		/* If starving above the maximum, kill the cohort*/
-		animal.numberOfIndividuals=0;
-		animal.death=Starvation;
+void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass){
+	if(foodBiomass<this->food_starvation_threshold){
+			/* If starving, increment the number of hours without food*/
+			cohort.hoursWithoutFood++;
+		if(cohort.hoursWithoutFood>=this->max_hours_without_food){
+			/* If starving above the maximum, kill the cohort*/
+			cohort.numberOfIndividuals=0;
+			cohort.death=Starvation;
+		}
+	} else{
+		/* IF there is enough food, reset the number of hours without food*/
+		cohort.hoursWithoutFood=0;
 	}
 
 }
+#endif
 
 /* Get food biomass depending of the animal cohort*/
-biomassType  AnimalBiomassDynamics::getFoodBiomass(AnimalCohort& animal){
-	if(animal.isBottomAnimal)
-		return bottomFoodBiomass[animal.y];
+biomassType  AnimalBiomassDynamics::getFoodBiomass(AnimalCohort& cohort){
+	if(cohort.isBottomAnimal)
+		return bottomFoodBiomass[cohort.y];
 	else
-		return floatingFoodBiomass[animal.x][animal.y];
+		return floatingFoodBiomass[cohort.x][cohort.y];
 }
+
+#ifdef ANIMAL_AGING
+
+/* Animal aging*/
+void AnimalBiomassDynamics::animalAging(AnimalCohort& cohort){
+	cohort.ageInHours++;
+	if(ageInHours>this->maximum_age_in_hours){
+		cohort.death=Senescence;
+	}
+}
+
 #endif
+
+
+
+/* Remove dead animals*/
+
+
+/* Iterate over animal vectors and remove those that are dead*/
+void AnimalBiomassDynamics::removeDeadCohorts(vector<AnimalCohort> *animalCohorts){
+	animalCohorts->erase(std::remove_if(animalCohorts->begin(), animalCohorts->end(), removeDeadCohort()), animalCohorts->end());
+}
+
+void AnimalBiomassDynamics::removeDeadAnimals(){
+	removeDeadCohorts(bottomAnimals);
+	removeDeadCohorts(floatingAnimals);
+
+}
+
+#endif
+
 
 
 } /* namespace FoodWebModel */

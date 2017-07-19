@@ -25,6 +25,9 @@ public:
 	virtual ~AnimalBiomassDynamics();
 protected:
 	std::ostringstream lineBuffer, animalBiomassBuffer;
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	std::ostringstream animalBornBuffer, animalDeadBuffer;
+#endif
 	/* Animal count summing. The simulation halts below a given number*/
 	animalCountType floating_animal_count_summing;
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -55,8 +58,16 @@ protected:
 
 	/* Animal constants*/
 	physicalType food_conversion_factor;
+
+	/* Threshold below which the concentration is considered starvation (in ug/l)*/
 	biomassType food_starvation_threshold;
+
+	/* Maximum number of hours that the animal can survive with food below starvation levels*/
 	unsigned int max_hours_without_food;
+
+	/* Maximum animal age*/
+	unsigned int maximum_age_in_hours;
+
 
 	/*Parameters for grazer carrying capacity*/
 	biomassType animal_carrying_capacity_coefficient, animal_carrying_capacity_intercept, animal_carrying_capacity, maximum_found_animal_biomass;
@@ -76,7 +87,16 @@ protected:
 	/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	biomassType foodPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
-
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	/* Define auxiliary function to check if a cohort is dead*/
+	struct removeDeadCohort : public std::unary_function<const AnimalCohort&, bool>
+	{
+	    bool operator()(const AnimalCohort& cohort) const
+	    {
+	        return cohort.death!=None;
+	    }
+	};
+#endif
 
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
@@ -84,7 +104,9 @@ protected:
 
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	void updateCohortBiomass(AnimalCohort& animal);
+	void updateCohortBiomass(AnimalCohort& cohort);
+	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
+	void removeDeadAnimals();
 #endif
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
@@ -98,8 +120,13 @@ protected:
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	void animalStarvationMortality(AnimalCohort& animal, biomassType foodBiomass);
-	biomassType getFoodBiomass(AnimalCohort& animal);
+#ifdef ANIMAL_STARVATION
+	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
+#endif
+#ifdef ANIMAL_AGING
+	void animalAging(AnimalCohort& cohort);
+#endif
+	biomassType getFoodBiomass(AnimalCohort& cohort);
 #endif
 	void salinityMortality(biomassType localeBiomass);
 	void calculateLowOxigenMortality(biomassType inputBiomass);

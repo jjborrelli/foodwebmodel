@@ -125,6 +125,9 @@ namespace FoodWebModel {
 
 		/*Output files*/
 		std::ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile, outputPredatorFile, outputPhysicalFile;
+#ifdef INDIVIDUAL_BASED_ANIMALS
+		std::ofstream outputGrazerBornFile, outputGrazerDeadFile, outputPredatorBornFile, outputPredatorDeadFile;
+#endif
 		#ifdef CHECK_ASSERTIONS
 		std::ofstream outputAssertionViolationFile;
 		#endif

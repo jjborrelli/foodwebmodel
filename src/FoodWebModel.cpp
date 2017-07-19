@@ -83,7 +83,15 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputSloughFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
 	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, LightAllowance, AlgaeTurbidity, LightAtDepth, LimitationProduct, LightDifference, NormalizedLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassDifferential, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount, GrazerBiomass"<<endl;
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputGrazerBornFile<<"Depth, Column, Time, AlgaeType, GrazerBornAgeInHours, GrazerBornHoursWithoutFood, GrazerBornStage, GrazerBornDeath, GrazerBornIndividuals, GrazerBornBiomass"<<endl;
+	outputGrazerDeadFile<<"Depth, Column, Time, AlgaeType, GrazerDeadAgeInHours, GrazerDeadHoursWithoutFood, GrazerDeadStage, GrazerDeadDeath, GrazerDeadIndividuals, GrazerDeadBiomass"<<endl;
+#endif
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, PredatorBiomassDifferential, PredatorBiomass, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorCount"<<endl;
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputPredatorBornFile<<"Depth, Column, Time, AlgaeType, PredatorBornAgeInHours, PredatorBornHoursWithoutFood, PredatorBornStage, PredatorBornDeath, PredatorBornIndividuals, PredatorBornBiomass"<<endl;
+	outputPredatorDeadFile<<"Depth, Column, Time, AlgaeType, PredatorDeadAgeInHours, PredatorDeadHoursWithoutFood, PredatorDeadStage, PredatorDeadDeath, PredatorDeadIndividuals, PredatorDeadBiomass"<<endl;
+#endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;
 	writeSimulatedParameters(simArguments.outputParameterRoute);
 	// Report start of the simulation
@@ -106,6 +114,13 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			outputGrazerFile<<grazerDynamics.animalBiomassBuffer.str();
 			outputPredatorFile<<predatorDynamics.animalBiomassBuffer.str();
 		}
+#ifdef INDIVIDUAL_BASED_ANIMALS
+		outputGrazerBornFile<<grazerDynamics.animalBornBuffer.str();
+		outputGrazerDeadFile<<grazerDynamics.animalDeadBuffer.str();
+		outputPredatorBornFile<<predatorDynamics.animalBornBuffer.str();
+		outputPredatorDeadFile<<predatorDynamics.animalDeadBuffer.str();
+
+#endif
 #ifdef CHECK_ASSERTIONS
 		outputAssertionViolationFile<<assertionViolationBuffer.str();
 		assertionViolationBuffer.str("");
@@ -283,6 +298,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	cout<<"Using cohort-based approach for animal dynamics."<<endl;
+#ifdef ANIMAL_STARVATION
+	cout<<"Modeling animal starvation."<<endl;
+#else
+	cout<<"Not modeling animal starvation."<<endl;
+#endif
 #else
 	cout<<"Using differential equations for animal dynamics."<<endl;
 #endif
@@ -296,6 +316,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer carrying capacity intercept "<<grazerDynamics.animal_carrying_capacity_intercept<<"."<<endl;
 	cout<<"Using grazer max hours without food "<<grazerDynamics.max_hours_without_food<<"."<<endl;
 	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
+	cout<<"Using grazer maximum age in hours"<<grazerDynamics.maximum_age_in_hours<<"."<<endl;
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
@@ -327,10 +348,11 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<grazerDynamics.animal_carrying_capacity_intercept<<endl;
 		parameterFileStream<<"GrazerMaxHoursWithoutFood;"<<grazerDynamics.max_hours_without_food<<endl;
 		parameterFileStream<<"GrazerFoodStarvationThreshold;"<<grazerDynamics.food_starvation_threshold<<endl;
-		parameterFileStream<<"MaximumFoundGrazerBiomass;"<<grazerDynamics.maximum_found_animal_biomass<<endl;
+		parameterFileStream<<"GrazerMaximumFoundBiomass;"<<grazerDynamics.maximum_found_animal_biomass<<endl;
+		parameterFileStream<<"GrazerMaximumAgeInHours"<<grazerDynamics.maximum_age_in_hours<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;
-		parameterFileStream<<"MaximumFoundAlgalBiomass;"<<this->maximum_found_algal_biomass<<endl;
+		parameterFileStream<<"AlgalMaximumFoundBiomass;"<<this->maximum_found_algal_biomass<<endl;
 		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
@@ -349,8 +371,16 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& simArguments){
 	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
 	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputGrazerBornFile.open(simArguments.outputGrazerBornRoute.c_str());
+	outputGrazerDeadFile.open(simArguments.outputGrazerDeadRoute.c_str());
+#endif
 	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
 	outputPredatorFile.open(simArguments.outputPredatorRoute.c_str());
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputPredatorBornFile.open(simArguments.outputPredatorBornRoute.c_str());
+	outputPredatorDeadFile.open(simArguments.outputPredatorDeadRoute.c_str());
+#endif
 	outputPhysicalFile.open(simArguments.outputPhysicalRoute.c_str());
 #ifdef CHECK_ASSERTIONS
 	outputAssertionViolationFile.open(simArguments.outputAssertionViolationRoute.c_str());
@@ -371,11 +401,35 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 	} else{
 		cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for grazer register."<<endl;
 	}
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	if (outputGrazerBornFile.is_open()){
+			cout<<"File "<<simArguments.outputGrazerBornRoute<<" open for grazer born register."<<endl;
+		} else{
+			cout<<"File "<<simArguments.outputGrazerBornRoute<<" could not be opened for grazer born register."<<endl;
+		}
+	if (outputGrazerDeadFile.is_open()){
+			cout<<"File "<<simArguments.outputGrazerDeadRoute<<" open for grazer dead register."<<endl;
+		} else{
+			cout<<"File "<<simArguments.outputGrazerDeadRoute<<" could not be opened for grazer dead register."<<endl;
+		}
+#endif
 	if (outputPredatorFile.is_open()){
 		cout<<"File "<<simArguments.outputPredatorRoute<<" open for predator register."<<endl;
 	} else{
 		cout<<"File "<<simArguments.outputPredatorRoute<<" could not be opened for predator register."<<endl;
 	}
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	if (outputPredatorBornFile.is_open()){
+				cout<<"File "<<simArguments.outputPredatorBornRoute<<" open for predator born register."<<endl;
+			} else{
+				cout<<"File "<<simArguments.outputPredatorBornRoute<<" could not be opened for predator born register."<<endl;
+			}
+		if (outputPredatorDeadFile.is_open()){
+				cout<<"File "<<simArguments.outputGrazerRoute<<" open for predator dead register."<<endl;
+			} else{
+				cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for predator dead register."<<endl;
+			}
+#endif
 	if (outputPhysicalFile.is_open()){
 		cout<<"File "<<simArguments.outputPhysicalRoute<<" open for physical variables."<<endl;
 	} else{
@@ -396,7 +450,15 @@ void FoodWebModel::FoodWebModel::closeSimulationFiles(){
 	outputAlgaeFile.close();
 	outputSloughFile.close();
 	outputGrazerFile.close();
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputGrazerBornFile.close();
+	outputGrazerDeadFile.close();
+#endif
 	outputPredatorFile.close();
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputPredatorBornFile.close();
+	outputPredatorDeadFile.close();
+#endif
 	outputPhysicalFile.close();
 #ifdef CHECK_ASSERTIONS
 	outputAssertionViolationFile.close();
@@ -888,16 +950,16 @@ void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsig
 
 void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal){
 	if(count>0&&readProcessedData.initial_grazer_distribution[developmentStage]>0.0f){
-		AnimalCohort newAnimal;
-		newAnimal.x=depthIndex;
-		newAnimal.y=columnIndex;
-		newAnimal.stage=developmentStage;
-		newAnimal.isBottomAnimal=isBottomAnimal;
-		newAnimal.ageInDays=newAnimal.hoursWithoutFood=0;
-		newAnimal.death=None;
-		newAnimal.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
-		newAnimal.totalBiomass=newAnimal.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
-		animals.push_back(newAnimal);
+		AnimalCohort newCohort;
+		newCohort.x=depthIndex;
+		newCohort.y=columnIndex;
+		newCohort.stage=developmentStage;
+		newCohort.isBottomAnimal=isBottomAnimal;
+		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
+		newCohort.death=None;
+		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
+		newCohort.totalBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
+		animals.push_back(newCohort);
 	}
 }
 

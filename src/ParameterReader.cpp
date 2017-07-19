@@ -212,6 +212,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 				simArguments.grazer_maximum_found_biomass = atof(parameterValue.c_str());
 				return;
 			}
+			if(!parameterName.compare("GrazerMaxHoursWithoutFood")){
+				simArguments.grazer_max_hours_without_food= atoi(parameterValue.c_str());
+				return;
+			}
+			if(!parameterName.compare("GrazerFoodStarvationThreshold")){
+				simArguments.grazer_food_starvation_threshold= atof(parameterValue.c_str());
+				return;
+			}
 	if(!parameterName.compare("PredatorBaseMortality")){
 			simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
 			return;

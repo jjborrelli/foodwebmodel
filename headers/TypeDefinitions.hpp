@@ -54,7 +54,10 @@ typedef struct {
 	grazer_k_value_respiration,
 	grazer_carrying_capacity_coefficient,
 	grazer_carrying_capacity_intercept,
-	grazer_maximum_found_biomass;
+	grazer_maximum_found_biomass,
+	grazer_food_starvation_threshold;
+
+	unsigned int grazer_max_hours_without_food;
 
 	biomassType	predator_base_mortality_proportion, predator_filtering_rate_per_individual,
 	predator_basal_respiration_weight,
@@ -71,10 +74,12 @@ typedef struct {
 /* Types for individual-based dynamics of animals*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
+typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
-	unsigned int x, y, ageInDays;
+	unsigned int x, y, ageInDays, hoursWithoutFood;
 	animalStage stage;
+	causeOfDeath death;
 	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;
 	biomassType totalBiomass;

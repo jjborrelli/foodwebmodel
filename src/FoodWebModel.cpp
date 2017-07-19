@@ -161,6 +161,8 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 		grazerDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
 		grazerDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
 		grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
+		grazerDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
+		grazerDynamics.max_hours_without_food=simArguments.grazer_max_hours_without_food;
 
 }
 
@@ -279,6 +281,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Using simple linear nutrient limitation."<<endl;
 #endif
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	cout<<"Using cohort-based approach for animal dynamics."<<endl;
+#else
+	cout<<"Using differential equations for animal dynamics."<<endl;
+#endif
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
@@ -287,6 +294,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using respiration K value "<<grazerDynamics.k_value_respiration<<"."<<endl;
 	cout<<"Using grazer carrying capacity coefficient "<<grazerDynamics.animal_carrying_capacity_coefficient<<"."<<endl;
 	cout<<"Using grazer carrying capacity intercept "<<grazerDynamics.animal_carrying_capacity_intercept<<"."<<endl;
+	cout<<"Using grazer max hours without food "<<grazerDynamics.max_hours_without_food<<"."<<endl;
+	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
@@ -316,6 +325,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"KValueRespiration;"<<grazerDynamics.k_value_respiration<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<grazerDynamics.animal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<grazerDynamics.animal_carrying_capacity_intercept<<endl;
+		parameterFileStream<<"GrazerMaxHoursWithoutFood;"<<grazerDynamics.max_hours_without_food<<endl;
+		parameterFileStream<<"GrazerFoodStarvationThreshold;"<<grazerDynamics.food_starvation_threshold<<endl;
 		parameterFileStream<<"MaximumFoundGrazerBiomass;"<<grazerDynamics.maximum_found_animal_biomass<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;
@@ -882,7 +893,8 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newAnimal.y=columnIndex;
 		newAnimal.stage=developmentStage;
 		newAnimal.isBottomAnimal=isBottomAnimal;
-		newAnimal.ageInDays=0;
+		newAnimal.ageInDays=newAnimal.hoursWithoutFood=0;
+		newAnimal.death=None;
 		newAnimal.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newAnimal.totalBiomass=newAnimal.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		animals.push_back(newAnimal);

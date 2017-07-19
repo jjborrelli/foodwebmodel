@@ -73,10 +73,10 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Update biomass in bottom and floating grazer cohorts*/
 	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
-		updateCohortBiomass(&((*bottomAnimals)[animalIndex]));
+		updateCohortBiomass(((*bottomAnimals)[animalIndex]));
 	}
 	for (int animalIndex = 0; animalIndex < floatingAnimals->size(); ++animalIndex) {
-		updateCohortBiomass(&((*floatingAnimals)[animalIndex]));
+		updateCohortBiomass(((*floatingAnimals)[animalIndex]));
 	}
 #else
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
@@ -140,28 +140,29 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 /* Function for updating biomass in grazer cohorts*/
-void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort *animal){
-	unsigned int depthIndex=animal->x, columnIndex=animal->y;
+void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& animal){
+	unsigned int depthIndex=animal.x, columnIndex=animal.y;
 	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-	if(animal->isBottomAnimal){
+	if(animal.isBottomAnimal){
 		registerBiomass&=depthIndex%DEPTH_OUTPUT_RESOLUTION==0;
 	}
 	lineBuffer.str("");
 	lineBuffer.clear();
-	biomassType initialAnimalBiomass = animal->totalBiomass;
-	animalCountType animalCount=animal->numberOfIndividuals;
-	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, animal->isBottomAnimal, animalCount, initialAnimalBiomass);
-	animal->totalBiomass+=biomassDifferential;
+	biomassType initialAnimalBiomass = animal.totalBiomass;
+	animalCountType animalCount=animal.numberOfIndividuals;
+	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, animal.isBottomAnimal, animalCount, initialAnimalBiomass);
+	animalStarvationMortality(animal, getFoodBiomass(animal));
+	animal.totalBiomass+=biomassDifferential;
 #ifdef CHECK_ASSERTIONS
-	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalBiomass, initialAnimalBiomass,
-			biomassDifferential, animal->isBottomAnimal);
+	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal.totalBiomass, initialAnimalBiomass,
+			biomassDifferential, animal.isBottomAnimal);
 #endif
-	animal->numberOfIndividuals=ceil(animal->totalBiomass/initial_grazer_weight[animal->stage]);
-	animal->numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal->numberOfIndividuals);
-	this->floating_animal_count_summing+=animal->numberOfIndividuals;
+	animal.numberOfIndividuals=ceil(animal.totalBiomass/initial_grazer_weight[animal.stage]);
+	animal.numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal.numberOfIndividuals);
+	this->floating_animal_count_summing+=animal.numberOfIndividuals;
 	/*If biomass must be registered, register standard phytoplankton biomass*/
-	if(registerBiomass&&animal->numberOfIndividuals>0){
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
+	if(registerBiomass&&animal.numberOfIndividuals>0){
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal.numberOfIndividuals<<commaString<<animal.totalBiomass<<endl;
 	}
 }
 #endif
@@ -292,17 +293,23 @@ void AnimalBiomassDynamics::calculateLocalPreferenceScore() {
 	}
 }
 
+/* Get food biomass for the modeled species */
+biomassType AnimalBiomassDynamics::getFoodBiomass(bool bottom, int columnIndex,
+		int depthIndex) {
+	return bottom ?
+			this->bottomFoodBiomass[columnIndex] :
+			this->floatingFoodBiomass[depthIndex][columnIndex];
+}
+
 biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass){
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 
 		/* Get zooplankton count and biomass*/
-		biomassType localeAlgaeBiomassBeforeEating=bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
-		biomassType localeAlgaeBiomassInMicrograms = localeAlgaeBiomassBeforeEating*this->food_conversion_factor;
-
+	biomassType localeFoodBiomassBeforeEating = getFoodBiomass(bottom, columnIndex, depthIndex);
+		biomassType localeFoodBiomassInMicrograms = localeFoodBiomassBeforeEating*this->food_conversion_factor;
 		stroganovApproximation(localeTemperature);
-		foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeAlgaeBiomassInMicrograms);
-		biomassType localeAlgaeBiomassAfterEating = bottom?this->bottomFoodBiomass[columnIndex]:this->floatingFoodBiomass[depthIndex][columnIndex];
-
+		foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms);
+		biomassType localeFoodBiomassAfterEating =  getFoodBiomass(bottom,	columnIndex, depthIndex);
 		defecation();
 		animalRespiration(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
 		animalExcretion(salinity_corrected_animal_respiration);
@@ -319,8 +326,8 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<(*current_hour);
 		lineBuffer<<commaString<<bottom?1:0;
 		lineBuffer<<commaString<<consumption_per_individual;
-		lineBuffer<<commaString<<consumption_per_individual/localeAlgaeBiomassBeforeEating;
-		lineBuffer<<commaString<<used_consumption/localeAlgaeBiomassBeforeEating;
+		lineBuffer<<commaString<<consumption_per_individual/localeFoodBiomassBeforeEating;
+		lineBuffer<<commaString<<used_consumption/localeFoodBiomassBeforeEating;
 		lineBuffer<<commaString<<stroganov_adjustment;
 		lineBuffer<<commaString<<locale_consumption;
 		lineBuffer<<commaString<<locale_consumption_salt_adjusted;
@@ -342,8 +349,8 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<animal_predatory_pressure;
 		lineBuffer<<commaString<<animal_carrying_capacity;
 		lineBuffer<<commaString<<localeBiomassDifferential;
-		lineBuffer<<commaString<<localeAlgaeBiomassBeforeEating;
-		lineBuffer<<commaString<<localeAlgaeBiomassAfterEating;
+		lineBuffer<<commaString<<localeFoodBiomassBeforeEating;
+		lineBuffer<<commaString<<localeFoodBiomassAfterEating;
 		return localeBiomassDifferential;
 }
 
@@ -458,6 +465,7 @@ void AnimalBiomassDynamics::calculateGrazerCarryingCapacityMortality(biomassType
 }
 
 
+
 /* Salinity mortality (AquaTox Documentation, page 110, equation 112)*/
 void AnimalBiomassDynamics::salinityMortality(biomassType localeBiomass){
 		/* Salinity mortality can be present or not*/
@@ -483,6 +491,29 @@ void AnimalBiomassDynamics::calculatePredationPressure(animalCountType zooplankt
 #endif
 }
 
+#ifdef INDIVIDUAL_BASED_ANIMALS
+
+/* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, “Family planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,” Oecologia, vol. 91, no. 4, pp. 463–467, Oct. 1992., page 465, Fig. 1)*/
+void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& animal, biomassType foodBiomass){
+	if(foodBiomass<this->food_starvation_threshold)
+		/* If starving, increment the number of hours without food*/
+		animal.hoursWithoutFood++;
+	if(animal.hoursWithoutFood>=this->max_hours_without_food){
+		/* If starving above the maximum, kill the cohort*/
+		animal.numberOfIndividuals=0;
+		animal.death=Starvation;
+	}
+
+}
+
+/* Get food biomass depending of the animal cohort*/
+biomassType  AnimalBiomassDynamics::getFoodBiomass(AnimalCohort& animal){
+	if(animal.isBottomAnimal)
+		return bottomFoodBiomass[animal.y];
+	else
+		return floatingFoodBiomass[animal.x][animal.y];
+}
+#endif
 
 
 } /* namespace FoodWebModel */

@@ -55,6 +55,8 @@ protected:
 
 	/* Animal constants*/
 	physicalType food_conversion_factor;
+	biomassType food_starvation_threshold;
+	unsigned int max_hours_without_food;
 
 	/*Parameters for grazer carrying capacity*/
 	biomassType animal_carrying_capacity_coefficient, animal_carrying_capacity_intercept, animal_carrying_capacity, maximum_found_animal_biomass;
@@ -82,7 +84,7 @@ protected:
 
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	void updateCohortBiomass(AnimalCohort *animal);
+	void updateCohortBiomass(AnimalCohort& animal);
 #endif
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
@@ -95,6 +97,10 @@ protected:
 	void animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	void animalStarvationMortality(AnimalCohort& animal, biomassType foodBiomass);
+	biomassType getFoodBiomass(AnimalCohort& animal);
+#endif
 	void salinityMortality(biomassType localeBiomass);
 	void calculateLowOxigenMortality(biomassType inputBiomass);
 	void stroganovApproximation(physicalType localeTemperature);
@@ -106,6 +112,7 @@ protected:
 //	void verticalMigrateAnimalsPreference();
 	void calculateLocalPreferenceScore();
 	void reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom);
+	biomassType getFoodBiomass(bool bottom, int columnIndex, int depthIndex);
 };
 
 } /* namespace FoodWebModel */

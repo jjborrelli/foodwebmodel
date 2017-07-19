@@ -39,8 +39,7 @@ typedef struct {
 	lightAtSurfaceRoute,
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
-	zooplanktonBiomassDepthCenterRoute,
-	initialZooplanktonDistributionRoute;
+	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 
 	biomassType algae_biomass_differential_production_scale,
@@ -76,6 +75,7 @@ typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
 typedef struct {
 	unsigned int x, y, ageInDays;
 	animalStage stage;
+	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;
 	biomassType totalBiomass;
 } AnimalCohort;

@@ -21,15 +21,16 @@ AnimalBiomassDynamics::~AnimalBiomassDynamics() {
 }
 
 void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom) {
+	unsigned int isBottomAsInt=(isBottom?1:0);
 	if (isnan(biomass)||isinf(biomass)) {
 		(*assertionViolationBuffer) << "NanInfAnimal; Biomass: " << "Biomass: "
 				<< biomass << ", Depth: "<<depthIndex<<", Column: "
-				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<(isBottom?1:0) << endl;
+				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
 	}
 	if (biomass < 0.0f) {
 		(*assertionViolationBuffer) << "NegativeAnimal; Biomass: "
 				<< biomass << ", Depth: "<<depthIndex<<", Column: "
-				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<(isBottom?1:0) << endl;
+				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
 	}
 	if (biomass
 			!= previousBiomass + differential) {
@@ -41,7 +42,7 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 						- (previousBiomass
 								+ differential)
 				<< ", Depth: "<<depthIndex<<", Column: " << columnIndex << ", Time: " << (*current_hour)
-				<< ", IsBottom: "<<(isBottom?1:0) << endl;
+				<< ", IsBottom: "<<isBottomAsInt << endl;
 	}
 }
 
@@ -71,47 +72,10 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	for (int animalIndex = 0; animalIndex < bottomAnimals->size(); ++animalIndex) {
-<<<<<<< HEAD
-		AnimalCohort* animal=&((*bottomAnimals)[animalIndex]);
-=======
-		Animal* animal=&(bottomAnimals[animalIndex]);
->>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
-		unsigned int depthIndex=animal->x, columnIndex=animal->y;
-		lineBuffer.str("");
-		lineBuffer.clear();
-		bool isBottomAnimal=true;
-		bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-<<<<<<< HEAD
-		biomassType initialAnimalBiomass = animal->totalBiomass;
-		animalCountType animalCount=animal->numberOfIndividuals;
-		biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, isBottomAnimal, animalCount, initialAnimalBiomass);
-		animal->totalBiomass+=biomassDifferential;
-	#ifdef CHECK_ASSERTIONS
-		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalBiomass, initialAnimalBiomass,
-				biomassDifferential, true);
-	#endif
-		animal->numberOfIndividuals=ceil(animal->totalBiomass/initial_grazer_weight[animal->stage]);
-=======
-		biomassType initialAnimalBiomass = animal->totalWeight;
-		animalCountType animalCount=animal->numberOfIndividuals;
-		biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, isBottomAnimal, animalCount, initialAnimalBiomass);
-		animal->totalWeight+=biomassDifferential;
-	#ifdef CHECK_ASSERTIONS
-		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalWeight, initialAnimalBiomass,
-				bottomAnimalBiomassDifferential, true);
-	#endif
-		animal->numberOfIndividuals=ceil(animal->totalWeight/DAPHNIA_WEIGHT_IN_MICROGRAMS);
->>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
-		animal->numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal->numberOfIndividuals);
-		this->floating_animal_count_summing+=animal->numberOfIndividuals;
-		/*If biomass must be registered, register standard phytoplankton biomass*/
-		if(registerZooplanktonBiomass[depthIndex][columnIndex]){
-<<<<<<< HEAD
-			animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
-=======
-			animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<commaString<<floatingAnimalBiomass[depthIndex][columnIndex]<<endl;
->>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
-		}
+		updateCohortBiomass(&((*bottomAnimals)[animalIndex]));
+	}
+	for (int animalIndex = 0; animalIndex < floatingAnimals->size(); ++animalIndex) {
+		updateCohortBiomass(&((*floatingAnimals)[animalIndex]));
 	}
 #else
 	/*Calculate phytoplankton and periphyton biomass on the current step*/
@@ -123,11 +87,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 		bottomAnimalBiomass[columnIndex]=((biomassType)bottomAnimalCount[columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 		biomassType previousBottomAnimalBiomass = bottomAnimalBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
-<<<<<<< HEAD
 		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, bottomAnimalCount[columnIndex], previousBottomAnimalBiomass);
-=======
-		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, previousBottomAnimalBiomass, bottomAnimalCount[columnIndex]);
->>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 		bottomAnimalBiomass[columnIndex]+=bottomAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, bottomAnimalBiomass[columnIndex], previousBottomAnimalBiomass,
@@ -137,7 +97,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 		bottomAnimalCount[columnIndex]=ceil(bottomAnimalBiomass[columnIndex]/DAPHNIA_WEIGHT_IN_MICROGRAMS);
 		bottomAnimalCount[columnIndex]=max<animalCountType>((animalCountType)0.0f, bottomAnimalCount[columnIndex]);
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
-		if(registerBottomAnimalBiomass){
+		if(registerBottomAnimalBiomass&&bottomAnimalBiomass[columnIndex]>0){
 			animalBiomassBuffer<<lineBuffer.str()<<commaString<<bottomAnimalCount[columnIndex]<<commaString<<bottomAnimalBiomass[columnIndex]<<endl;
 		}
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
@@ -155,11 +115,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				floatingAnimalBiomass[depthIndex][columnIndex]=((biomassType)floatingAnimalCount[depthIndex][columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 				biomassType previousFloatingAnimalBiomass = floatingAnimalBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
-<<<<<<< HEAD
 				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, floatingAnimalCount[depthIndex][columnIndex], previousFloatingAnimalBiomass);
-=======
-				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, previousFloatingAnimalBiomass, floatingAnimalCount[depthIndex][columnIndex]);
->>>>>>> 8195f30dc2d51fc07f9ebfb14a307f90b5923092
 				floatingAnimalBiomass[depthIndex][columnIndex]+=floatingAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 				reportAssertionError(depthIndex, columnIndex, floatingAnimalBiomass[depthIndex][columnIndex], previousFloatingAnimalBiomass,
@@ -170,7 +126,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				floatingAnimalCount[depthIndex][columnIndex]=max<animalCountType>((animalCountType)0.0f, floatingAnimalCount[depthIndex][columnIndex]);
 				this->floating_animal_count_summing+=floatingAnimalCount[depthIndex][columnIndex];
 				/*If biomass must be registered, register standard phytoplankton biomass*/
-				if(registerZooplanktonBiomass[depthIndex][columnIndex]){
+				if(registerZooplanktonBiomass[depthIndex][columnIndex]&&floatingAnimalBiomass[depthIndex][columnIndex]>0){
 					animalBiomassBuffer<<lineBuffer.str()<<commaString<<floatingAnimalCount[depthIndex][columnIndex]<<commaString<<floatingAnimalBiomass[depthIndex][columnIndex]<<endl;
 				}
 
@@ -180,6 +136,32 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #endif
 }
 
+#ifdef INDIVIDUAL_BASED_ANIMALS
+void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort *animal){
+	unsigned int depthIndex=animal->x, columnIndex=animal->y;
+	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+	if(animal->isBottomAnimal){
+		registerBiomass&=depthIndex%DEPTH_OUTPUT_RESOLUTION==0;
+	}
+	lineBuffer.str("");
+	lineBuffer.clear();
+	biomassType initialAnimalBiomass = animal->totalBiomass;
+	animalCountType animalCount=animal->numberOfIndividuals;
+	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, animal->isBottomAnimal, animalCount, initialAnimalBiomass);
+	animal->totalBiomass+=biomassDifferential;
+#ifdef CHECK_ASSERTIONS
+	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, animal->totalBiomass, initialAnimalBiomass,
+			biomassDifferential, animal->isBottomAnimal);
+#endif
+	animal->numberOfIndividuals=ceil(animal->totalBiomass/initial_grazer_weight[animal->stage]);
+	animal->numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, animal->numberOfIndividuals);
+	this->floating_animal_count_summing+=animal->numberOfIndividuals;
+	/*If biomass must be registered, register standard phytoplankton biomass*/
+	if(registerBiomass&&animal->numberOfIndividuals>0){
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<animal->numberOfIndividuals<<commaString<<animal->totalBiomass<<endl;
+	}
+}
+#endif
 //void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
 //
 //

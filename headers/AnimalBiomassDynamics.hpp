@@ -29,16 +29,18 @@ protected:
 	animalCountType floating_animal_count_summing;
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	vector<AnimalCohort> *floatingAnimals, *bottomAnimals;
-	biomassType initial_grazer_weight[MAX_CLASS_INDEX];
 #else
 	/* Animal biomass in micrograms*/
 	biomassType *floatingAnimalBiomass[MAX_DEPTH_INDEX], *bottomAnimalBiomass;
 	/* Animal individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	animalCountType *floatingAnimalCount[MAX_DEPTH_INDEX], *bottomAnimalCount;
 #endif
+
+	biomassType initial_grazer_weight[MAX_CLASS_INDEX];
 	/* Food biomass and differential in micrograms*/
 	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
 	biomassType *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
+
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
@@ -77,7 +79,11 @@ protected:
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
 #endif
+
 	void updateAnimalBiomass();
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	void updateCohortBiomass(AnimalCohort *animal);
+#endif
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
 	void defecation();

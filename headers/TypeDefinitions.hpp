@@ -82,6 +82,7 @@ typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
 	unsigned int x, y, ageInHours, hoursWithoutFood;
+	unsigned int cohortID;
 	animalStage stage;
 	causeOfDeath death;
 	bool isBottomAnimal;

@@ -80,14 +80,20 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	openSimulationFiles(simArguments);
 
 	/*Write file headers*/
-	outputSloughFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, LightAllowance, AlgaeTurbidity, LightAtDepth, LimitationProduct, LightDifference, NormalizedLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
-	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassDifferential, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerCount, GrazerBiomass"<<endl;
+#ifdef EXTENDED_OUTPUT
+	outputInitialAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, LightAllowance, AlgaeTurbidity, LightAtDepth, LimitationProduct, LightDifference, NormalizedLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
+	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerBiomassDifferential, GrazerCount, GrazerBiomass"<<endl;
+	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
+#else
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
+	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass"<<endl;
+	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
+#endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerBornFile<<"Depth, Column, Time, AlgaeType, GrazerBornAgeInHours, GrazerBornHoursWithoutFood, GrazerBornStage, GrazerBornDeath, GrazerBornIndividuals, GrazerBornBiomass"<<endl;
 	outputGrazerDeadFile<<"Depth, Column, Time, AlgaeType, GrazerDeadAgeInHours, GrazerDeadHoursWithoutFood, GrazerDeadStage, GrazerDeadDeath, GrazerDeadIndividuals, GrazerDeadBiomass"<<endl;
 #endif
-	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, PredatorBiomassDifferential, PredatorBiomass, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorCount"<<endl;
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputPredatorBornFile<<"Depth, Column, Time, AlgaeType, PredatorBornAgeInHours, PredatorBornHoursWithoutFood, PredatorBornStage, PredatorBornDeath, PredatorBornIndividuals, PredatorBornBiomass"<<endl;
 	outputPredatorDeadFile<<"Depth, Column, Time, AlgaeType, PredatorDeadAgeInHours, PredatorDeadHoursWithoutFood, PredatorDeadStage, PredatorDeadDeath, PredatorDeadIndividuals, PredatorDeadBiomass"<<endl;
@@ -109,16 +115,20 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			cout<<"Simulation hour: "<<current_hour<<endl;
 		step();
 		if(current_hour%TIME_OUTPUT_RESOLUTION==0){
+#ifdef EXTENDED_OUTPUT
+			outputInitialAlgaeFile<<initialAlgaeBuffer.str();
+#endif
 			outputAlgaeFile<<algaeBuffer.str();
-			outputSloughFile<<sloughBuffer.str();
 			outputGrazerFile<<grazerDynamics.animalBiomassBuffer.str();
 			outputPredatorFile<<predatorDynamics.animalBiomassBuffer.str();
 		}
 #ifdef INDIVIDUAL_BASED_ANIMALS
+#ifdef EXTENDED_OUTPUT
 		outputGrazerBornFile<<grazerDynamics.animalBornBuffer.str();
 		outputGrazerDeadFile<<grazerDynamics.animalDeadBuffer.str();
 		outputPredatorBornFile<<predatorDynamics.animalBornBuffer.str();
 		outputPredatorDeadFile<<predatorDynamics.animalDeadBuffer.str();
+#endif
 
 #endif
 #ifdef CHECK_ASSERTIONS
@@ -369,13 +379,13 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 
 
 void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& simArguments){
-	outputAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
+	outputInitialAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
 	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerBornFile.open(simArguments.outputGrazerBornRoute.c_str());
 	outputGrazerDeadFile.open(simArguments.outputGrazerDeadRoute.c_str());
 #endif
-	outputSloughFile.open(simArguments.outputSloughRoute.c_str());
+	outputAlgaeFile.open(simArguments.outputSloughRoute.c_str());
 	outputPredatorFile.open(simArguments.outputPredatorRoute.c_str());
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputPredatorBornFile.open(simArguments.outputPredatorBornRoute.c_str());
@@ -386,12 +396,12 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 	outputAssertionViolationFile.open(simArguments.outputAssertionViolationRoute.c_str());
 #endif
 	/*Report successfully or not successfully open files*/
-	if (outputAlgaeFile.is_open()&&!outputAlgaeFile.fail()){
+	if (outputInitialAlgaeFile.is_open()&&!outputInitialAlgaeFile.fail()){
 		cout<<"File "<<simArguments.outputAlgaeRoute<<" open for algae biomass output."<<endl;
 	} else{
 		cout<<"File "<<simArguments.outputAlgaeRoute<<" could not be opened for algae biomass output."<<endl;
 	}
-	if (outputSloughFile.is_open()){
+	if (outputAlgaeFile.is_open()){
 		cout<<"File "<<simArguments.outputSloughRoute<<" open for slough register."<<endl;
 	} else{
 		cout<<"File "<<simArguments.outputSloughRoute<<" could not be opened for slough register."<<endl;
@@ -425,9 +435,9 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 				cout<<"File "<<simArguments.outputPredatorBornRoute<<" could not be opened for predator born register."<<endl;
 			}
 		if (outputPredatorDeadFile.is_open()){
-				cout<<"File "<<simArguments.outputGrazerRoute<<" open for predator dead register."<<endl;
+				cout<<"File "<<simArguments.outputPredatorDeadRoute<<" open for predator dead register."<<endl;
 			} else{
-				cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for predator dead register."<<endl;
+				cout<<"File "<<simArguments.outputPredatorDeadRoute<<" could not be opened for predator dead register."<<endl;
 			}
 #endif
 	if (outputPhysicalFile.is_open()){
@@ -447,8 +457,8 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 }
 
 void FoodWebModel::FoodWebModel::closeSimulationFiles(){
+	outputInitialAlgaeFile.close();
 	outputAlgaeFile.close();
-	outputSloughFile.close();
 	outputGrazerFile.close();
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerBornFile.close();
@@ -497,11 +507,12 @@ void FoodWebModel::FoodWebModel::updatePhysicalState(){
 				salinityEffect(depthIndex, columnIndex, salinity_concentration);
 				phosphorusConcentrationAtDepth(depthIndex, columnIndex);
 				physicalType phosphorus_at_depth_exponent=this->chemical_at_depth_exponent;
-
 				calculateTemperature(depthIndex, columnIndex);
+#ifdef EXTENDED_OUTPUT
 				if(registerBiomass[depthIndex][columnIndex]){
 					outputPhysicalFile<<depthIndex<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<0<<commaString<<temperature[depthIndex][columnIndex]<<commaString<<temperature_angular_frequency<<commaString<<temperature_sine<<commaString<<salinity_at_depth_exponent<<commaString<<salinity_concentration<<commaString<<salinity_effect_matrix[depthIndex][columnIndex]<<commaString<<salinity_exponent<<commaString<<phosphorus_at_depth_exponent<<commaString<<phosphorus_concentration[depthIndex][columnIndex]<<commaString<<current_phosphorus_concentration_at_bottom<<commaString<<light_at_top<<endl;
 				}
+#endif
 			}
 		}
 
@@ -525,14 +536,14 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 // All algae biomass must be a well-formed number greater than 0
 #ifdef CHECK_ASSERTIONS
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-		if(isnan(periBiomass[columnIndex])||isinf(periBiomass[columnIndex])){
+		if(isnan((float)periBiomass[columnIndex])||isinf((float)periBiomass[columnIndex])){
 			assertionViolationBuffer<<"NanInfPeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 		}
 		if(periBiomass[columnIndex]<0.0f){
 			assertionViolationBuffer<<"NegativePeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 		}
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
-			if(isnan(phytoBiomass[depthIndex][columnIndex])||isinf(phytoBiomass[depthIndex][columnIndex])){
+			if(isnan((float)phytoBiomass[depthIndex][columnIndex])||isinf((float)phytoBiomass[depthIndex][columnIndex])){
 				assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 			}
 			if(phytoBiomass[depthIndex][columnIndex]<0.0f){
@@ -544,8 +555,8 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 	/*Use different algae biomass differential weights for burn-in and production*/
 //	algae_biomass_differential_scale=current_hour<=BURNIN_MAX_CYCLE?ALGAE_BIOMASS_DIFFERENTIAL_BURNIN_SCALE:this->algae_biomass_differential_production_scale;
 	algae_biomass_differential_scale=algae_biomass_differential_production_scale;
+	initialAlgaeBuffer.str("");
 	algaeBuffer.str("");
-	sloughBuffer.str("");
 	/* Clear vertical migrated phyto biomass*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		verticalMigratedPeriBiomass[columnIndex]=periBiomassDifferential[columnIndex]=0.0f;
@@ -564,7 +575,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		biomassType previousPeriBiomass=periBiomass[columnIndex];
 		periBiomassDifferential[columnIndex] = algaeBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 #ifdef CHECK_ASSERTIONS
-		if(isnan(periBiomassDifferential[columnIndex])||isinf(periBiomassDifferential[columnIndex])){
+		if(isnan((float)periBiomassDifferential[columnIndex])||isinf((float)periBiomassDifferential[columnIndex])){
 			assertionViolationBuffer<<"NanInfPeriDiff; Peri: "<<periBiomassDifferential[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 		}
 #endif
@@ -589,7 +600,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 				phytoBiomassDifferential[depthIndex][columnIndex]*=algae_biomass_differential_scale;
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
 #ifdef CHECK_ASSERTIONS
-				if(isnan(phytoBiomass[depthIndex][columnIndex])||isinf(phytoBiomass[depthIndex][columnIndex])){
+				if(isnan((float)phytoBiomass[depthIndex][columnIndex])||isinf((float)phytoBiomass[depthIndex][columnIndex])){
 					assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 				}
 				if(phytoBiomass[depthIndex][columnIndex]<0.0f){
@@ -603,7 +614,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 				lineBuffer<<commaString<<verticalMigratedPhytoBiomass[depthIndex][columnIndex]<<endl;
 				/*If biomass must be registered, register standard phytoplankton biomass*/
 				if(registerBiomass[depthIndex][columnIndex]){
-					algaeBuffer<<lineBuffer.str();
+					initialAlgaeBuffer<<lineBuffer.str();
 					//cout<<"Biomass: "<<phytoBiomass[depthIndex][columnIndex]<<", Differential: "<<phytoBiomassDifferential[depthIndex][columnIndex]<<"."<<endl;
 				}
 
@@ -618,7 +629,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		periBiomassDifferential[columnIndex]*=algae_biomass_differential_scale;
 		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
 #ifdef CHECK_ASSERTIONS
-		if(isnan(periBiomass[columnIndex])||isinf(periBiomass[columnIndex])){
+		if(isnan((float)periBiomass[columnIndex])||isinf((float)periBiomass[columnIndex])){
 			assertionViolationBuffer<<"NanInfPeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 		}
 		if(periBiomass[columnIndex]<0.0f){
@@ -631,8 +642,12 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		lineBuffer<<commaString<<verticalMigratedPeriBiomass[columnIndex]<<endl;
 		/*If biomass must be registered, register standard and slough periphyton biomass*/
 		if(registerBiomass[0][columnIndex]){
-			algaeBuffer<<lineBuffer.str();
-			sloughBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<1<<commaString<<depthVector[columnIndex]<<commaString<<0.0f<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<endl;//Depth, Column, Type, Time, Washup
+			initialAlgaeBuffer<<lineBuffer.str();
+			algaeBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<1<<commaString<<depthVector[columnIndex];//Depth, Column, Type, Time, Washup
+#ifdef EXTENDED_OUTPUT
+			algaeBuffer<<commaString<<0.0f;
+#endif
+			algaeBuffer<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<endl;
 		}
 	}
 	/*Add slough biomass*/
@@ -641,7 +656,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 			phytoBiomass[depthIndex][columnIndex]=max((double)0.0f,phytoBiomass[depthIndex][columnIndex]+sloughPhytoBiomass[depthIndex][columnIndex]);
 			phytoBiomassDifferential[depthIndex][columnIndex]+=sloughPhytoBiomass[depthIndex][columnIndex];
 #ifdef CHECK_ASSERTIONS
-				if(isnan(phytoBiomass[depthIndex][columnIndex])||isinf(phytoBiomass[depthIndex][columnIndex])){
+				if(isnan((float)phytoBiomass[depthIndex][columnIndex])||isinf((float)phytoBiomass[depthIndex][columnIndex])){
 					assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 				}
 				if(phytoBiomass[depthIndex][columnIndex]<0.0f){
@@ -652,7 +667,11 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 
 			/*If biomass must be registered and the bottom of the lake has not been reached yet, register slough biomass*/
 			if(registerBiomass[depthIndex][columnIndex]){
-				sloughBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<0<<commaString<<indexToDepth[depthIndex]<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex]<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
+				algaeBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<0<<commaString<<indexToDepth[depthIndex];
+#ifdef EXTENDED_OUTPUT
+				algaeBuffer<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex];
+#endif
+				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
 
 			}
 		}
@@ -820,7 +839,7 @@ biomassType FoodWebModel::FoodWebModel::sumPhytoBiomassToDepth(int depthIndex, i
 		sumPhytoBiomass+=phytoBiomass[i][columnIndex];
 	}
 #ifdef CHECK_ASSERTIONS
-	if(isnan(sumPhytoBiomass)||isinf(sumPhytoBiomass)){
+	if(isnan((float)sumPhytoBiomass)||isinf((float)sumPhytoBiomass)){
 		assertionViolationBuffer<<"NanInfPhytoSum; PhytoSum: "<<sumPhytoBiomass<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 	}
 	if(sumPhytoBiomass<0.0f){
@@ -904,6 +923,8 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
 		/* Copy bottom grazer biomass per cell*/
 #ifdef  INDIVIDUAL_BASED_ANIMALS
+		/*Initialize cohort IDs*/
+		this->cohortID=0;
 		addAnimalCohorts(maxDepthIndex[i],i,readProcessedData.initial_grazer_count[maxDepthIndex[i]][i], bottomGrazers, true);
 #else
 		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
@@ -957,6 +978,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.isBottomAnimal=isBottomAnimal;
 		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
 		newCohort.death=None;
+		newCohort.cohortID=this->cohortID++;
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.totalBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		animals.push_back(newCohort);

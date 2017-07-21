@@ -23,7 +23,7 @@ AnimalBiomassDynamics::~AnimalBiomassDynamics() {
 
 void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom) {
 	unsigned int isBottomAsInt=(isBottom?1:0);
-	if (isnan(biomass)||isinf(biomass)) {
+	if (isnan((float)biomass)||isinf((float)biomass)) {
 		(*assertionViolationBuffer) << "NanInfAnimal; Biomass: " << "Biomass: "
 				<< biomass << ", Depth: "<<depthIndex<<", Column: "
 				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
@@ -349,6 +349,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<columnIndex;
 		lineBuffer<<commaString<<(*current_hour);
 		lineBuffer<<commaString<<bottom?1:0;
+#ifdef EXTENDED_OUTPUT
 		lineBuffer<<commaString<<consumption_per_individual;
 		lineBuffer<<commaString<<consumption_per_individual/localeFoodBiomassBeforeEating;
 		lineBuffer<<commaString<<used_consumption/localeFoodBiomassBeforeEating;
@@ -372,9 +373,10 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<animal_mortality;
 		lineBuffer<<commaString<<animal_predatory_pressure;
 		lineBuffer<<commaString<<animal_carrying_capacity;
-		lineBuffer<<commaString<<localeBiomassDifferential;
 		lineBuffer<<commaString<<localeFoodBiomassBeforeEating;
 		lineBuffer<<commaString<<localeFoodBiomassAfterEating;
+#endif
+		lineBuffer<<commaString<<localeBiomassDifferential;
 		return localeBiomassDifferential;
 }
 

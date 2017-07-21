@@ -30,7 +30,10 @@ namespace FoodWebModel {
 
 	class FoodWebModel {
 
-
+	private:
+#ifdef INDIVIDUAL_BASED_ANIMALS
+		unsigned int cohortID;
+#endif
 		/*Class attributes*/
 	protected:
 		ReadProcessedData readProcessedData;
@@ -113,7 +116,7 @@ namespace FoodWebModel {
 
 
 		/* Buffer line to write simulation results*/
-		std::ostringstream lineBuffer, algaeBuffer, sloughBuffer;
+		std::ostringstream lineBuffer, initialAlgaeBuffer, algaeBuffer;
 
 		/* Matrix for biomass registration */
 		bool registerBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -124,7 +127,7 @@ namespace FoodWebModel {
 
 
 		/*Output files*/
-		std::ofstream outputAlgaeFile, outputSloughFile, outputGrazerFile, outputPredatorFile, outputPhysicalFile;
+		std::ofstream outputInitialAlgaeFile, outputAlgaeFile, outputGrazerFile, outputPredatorFile, outputPhysicalFile;
 #ifdef INDIVIDUAL_BASED_ANIMALS
 		std::ofstream outputGrazerBornFile, outputGrazerDeadFile, outputPredatorBornFile, outputPredatorDeadFile;
 #endif

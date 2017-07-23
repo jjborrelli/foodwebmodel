@@ -61,7 +61,7 @@ typedef struct {
 	grazer_maximum_found_biomass,
 	grazer_food_starvation_threshold;
 
-	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours;
+	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours, grazer_random_seed;
 
 	biomassType	predator_base_mortality_proportion, predator_filtering_rate_per_individual,
 	predator_basal_respiration_weight,
@@ -73,6 +73,8 @@ typedef struct {
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,
 	phosphorus_half_saturation,
 	light_allowance_weight;
+
+	unsigned int  predator_random_seed;
 } SimulationArguments;
 
 /* Types for individual-based dynamics of animals*/

@@ -240,6 +240,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_maximum_age_in_hours= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerRandomSeed")){
+		simArguments.grazer_random_seed= atoi(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PredatorBaseMortality")){
 		simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
 		return;
@@ -266,6 +270,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("PredatorMaximumFoundBiomass")){
 		simArguments.predator_maximum_found_biomass = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PredatorRandomSeed")){
+		simArguments.predator_random_seed= atoi(parameterValue.c_str());
 		return;
 	}
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter."<<endl;

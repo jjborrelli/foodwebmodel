@@ -9,6 +9,7 @@
 #include "../headers/FoodWebModel.hpp"
 #include <string>
 #include <iostream>
+#include <random>
 
 using namespace std;
 
@@ -172,22 +173,24 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 
 void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArguments& simArguments){
 	grazerDynamics.animal_base_mortality_proportion=
-					simArguments.grazer_base_mortality_proportion;
-		grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX/ this->ZMax;
-				simArguments.grazer_base_mortality_proportion;
+			simArguments.grazer_base_mortality_proportion;
+	grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX/ this->ZMax;
+	simArguments.grazer_base_mortality_proportion;
 
-		grazerDynamics.vertical_migration_buffer_size = 2
-				* grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour + 1;
-		grazerDynamics.filtering_rate_per_daphnia = simArguments.grazer_filtering_rate_per_individual;
-		grazerDynamics.filtering_rate_per_daphnia_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
-		grazerDynamics.basal_respiration_weight = simArguments.grazer_basal_respiration_weight;
-		grazerDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
-		grazerDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
-		grazerDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
-		grazerDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
-		grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
-		grazerDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
-		grazerDynamics.max_hours_without_food=simArguments.grazer_max_hours_without_food;
+	grazerDynamics.vertical_migration_buffer_size = 2
+			* grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour + 1;
+	grazerDynamics.filtering_rate_per_daphnia = simArguments.grazer_filtering_rate_per_individual;
+	grazerDynamics.filtering_rate_per_daphnia_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
+	grazerDynamics.basal_respiration_weight = simArguments.grazer_basal_respiration_weight;
+	grazerDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
+	grazerDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
+	grazerDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
+	grazerDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
+	grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
+	grazerDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
+	grazerDynamics.max_hours_without_food=simArguments.grazer_max_hours_without_food;
+	grazerDynamics.random_seed=simArguments.grazer_random_seed;
+	grazerDynamics.randomGenerator=new default_random_engine(grazerDynamics.random_seed);
 
 }
 
@@ -328,6 +331,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
 	cout<<"Using grazer maximum age in hours"<<grazerDynamics.maximum_age_in_hours<<"."<<endl;
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
+	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;

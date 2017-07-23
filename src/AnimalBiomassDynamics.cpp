@@ -18,7 +18,7 @@ AnimalBiomassDynamics::AnimalBiomassDynamics() {
 }
 
 AnimalBiomassDynamics::~AnimalBiomassDynamics() {
-	// TODO Auto-generated destructor stub
+	delete randomGenerator;
 }
 
 void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom) {
@@ -44,6 +44,14 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 								+ differential)
 				<< ", Depth: "<<depthIndex<<", Column: " << columnIndex << ", Time: " << (*current_hour)
 				<< ", IsBottom: "<<isBottomAsInt << endl;
+	}
+}
+
+void AnimalBiomassDynamics::updateCohortBiomassFromVector(std::vector<AnimalCohort> *animalVector) {//
+	shuffle(animalVector->begin(), animalVector->end(), *randomGenerator);
+	for (std::vector<AnimalCohort>::iterator it = animalVector->begin();
+			it != animalVector->end(); ++it) {
+		updateCohortBiomass(*it);
 	}
 }
 
@@ -78,12 +86,9 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Update biomass in bottom and floating grazer cohorts*/
-	for (std::vector<AnimalCohort>::iterator it = bottomAnimals->begin() ; it != bottomAnimals->end(); ++it){
-		updateCohortBiomass(*it);
-	}
-	for (std::vector<AnimalCohort>::iterator it = floatingAnimals->begin() ; it != floatingAnimals->end(); ++it){
-		updateCohortBiomass(*it);
-	}
+
+	updateCohortBiomassFromVector(bottomAnimals);
+	updateCohortBiomassFromVector(floatingAnimals);
 
 	removeDeadAnimals();
 

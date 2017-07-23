@@ -10,6 +10,7 @@
 #include <sstream>
 #include <math.h>
 #include <vector>
+#include <random>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 #include "SimulationModes.hpp"
@@ -87,6 +88,9 @@ protected:
 	/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	biomassType foodPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
+	std::default_random_engine* randomGenerator;
+	unsigned int random_seed;
+
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Define auxiliary function to check if a cohort is dead*/
 	struct removeDeadCohort : public std::unary_function<const AnimalCohort&, bool>
@@ -107,6 +111,7 @@ protected:
 	void updateCohortBiomass(AnimalCohort& cohort);
 	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
 	void removeDeadAnimals();
+	void updateCohortBiomassFromVector(std::vector<AnimalCohort> *animalVector);
 #endif
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
@@ -140,6 +145,7 @@ protected:
 	void calculateLocalPreferenceScore();
 	void reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom);
 	biomassType getFoodBiomass(bool bottom, int columnIndex, int depthIndex);
+
 };
 
 } /* namespace FoodWebModel */

@@ -13,15 +13,17 @@
 typedef double biomassType;
 typedef double physicalType;
 typedef unsigned int animalCountType;
+typedef unsigned long int cohortIDType;
 
 #include <string>
+#include <iostream>
 #include "SimulationModes.hpp"
 //#include "ModelConstants.hpp"
 
 using namespace std;
 
 typedef struct {
-	string depthRoute,
+	std::string depthRoute,
 	depthScaleRoute,
 	initialTemperatureRoute,
 	temperatureRangeRoute,
@@ -59,9 +61,15 @@ typedef struct {
 	grazer_carrying_capacity_coefficient,
 	grazer_carrying_capacity_intercept,
 	grazer_maximum_found_biomass,
-	grazer_food_starvation_threshold;
+	grazer_food_starvation_threshold,
+	grazer_egg_allocation_threshold;
 
-	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours, grazer_random_seed;
+	double grazer_reproduction_proportion_investment_amplitude,
+	grazer_reproduction_proportion_investment_coefficient,
+	grazer_reproduction_proportion_investment_intercept;
+
+	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours,
+	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period;
 
 	biomassType	predator_base_mortality_proportion, predator_filtering_rate_per_individual,
 	predator_basal_respiration_weight,
@@ -74,7 +82,7 @@ typedef struct {
 	phosphorus_half_saturation,
 	light_allowance_weight;
 
-	unsigned int  predator_random_seed;
+	unsigned int predator_random_seed;
 } SimulationArguments;
 
 /* Types for individual-based dynamics of animals*/
@@ -83,14 +91,29 @@ typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
-	unsigned int x, y, ageInHours, hoursWithoutFood;
-	unsigned int cohortID;
+	int x, y, ageInHours, hoursWithoutFood;
+	cohortIDType cohortID;
 	animalStage stage;
 	causeOfDeath death;
 	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;
-	biomassType totalBiomass;
+	biomassType bodyBiomass, gonadBiomass;
 } AnimalCohort;
+
+typedef struct {
+	int x, y, ageInHours;
+	cohortIDType cohortID;
+	bool isBottomAnimal;
+	animalCountType numberOfEggs;
+	biomassType biomass;
+} EggCohort;
+
+std::ostream& operator<<(std::ostream& os, const AnimalCohort& cohort);
+std::ostream& operator<<(std::ostream& os, const EggCohort& cohort);
+void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2);
+void operator+=(EggCohort& cohort1, const EggCohort& cohort2);
+
+
 #endif
 
 #endif /* TYPEDEFINITIONS_HPP_ */

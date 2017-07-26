@@ -10,6 +10,7 @@
 #include <sstream>
 #include <math.h>
 #include <vector>
+#include <map>
 #include <random>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
@@ -33,6 +34,12 @@ protected:
 	animalCountType floating_animal_count_summing;
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	vector<AnimalCohort> *floatingAnimals, *bottomAnimals;
+
+	/* Attributes for internal usage for cohort modeling*/
+	double reproduction_proportion_investment;
+#ifdef CREATE_NEW_COHORTS
+	map<pair<int,int>,EggCohort> floatingEggs, bottomEggs;
+#endif
 #else
 	/* Animal biomass in micrograms*/
 	biomassType *floatingAnimalBiomass[MAX_DEPTH_INDEX], *bottomAnimalBiomass;
@@ -47,6 +54,7 @@ protected:
 
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
+	cohortIDType *cohortID;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
 
 	/* Zooplankton parameter weights*/
@@ -61,13 +69,13 @@ protected:
 	physicalType food_conversion_factor;
 
 	/* Threshold below which the concentration is considered starvation (in ug/l)*/
-	biomassType food_starvation_threshold;
+	biomassType food_starvation_threshold, egg_allocation_threshold;
 
 	/* Maximum number of hours that the animal can survive with food below starvation levels*/
 	unsigned int max_hours_without_food;
 
-	/* Maximum animal age*/
-	unsigned int maximum_age_in_hours;
+	/* Maximum animal age and incubation time in hours*/
+	unsigned int maximum_age_in_hours, incubation_hours, ovipositing_period;
 
 
 	/*Parameters for grazer carrying capacity*/
@@ -88,6 +96,9 @@ protected:
 	/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	biomassType foodPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
+	/* Gonad biomass allocation */
+	double reproduction_proportion_investment_amplitude, reproduction_proportion_investment_coefficient, reproduction_proportion_investment_intercept;
+
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
 
@@ -97,6 +108,11 @@ protected:
 	{
 	    bool operator()(const AnimalCohort& cohort) const
 	    {
+	    	if(cohort.death!=None){
+#ifdef REPORT_COHORT_INFO
+		    	cout<<"Removing cohort with characterstics: "<<cohort<<"."<<endl;
+#endif
+	    	}
 	        return cohort.death!=None;
 	    }
 	};
@@ -130,6 +146,11 @@ protected:
 #endif
 #ifdef ANIMAL_AGING
 	void animalAging(AnimalCohort& cohort);
+#endif
+#ifdef CREATE_NEW_COHORTS
+	void calculateReproductionProportionInvestment(biomassType foodBiomass);
+	biomassType createNewCohort(AnimalCohort& parentCohort, biomassType eggBiomass);
+	void matureEggs(map<pair<int,int>,EggCohort>& eggMap, vector<AnimalCohort> *adultAnimals);
 #endif
 	biomassType getFoodBiomass(AnimalCohort& cohort);
 #endif

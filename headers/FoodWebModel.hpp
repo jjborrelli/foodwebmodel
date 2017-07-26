@@ -32,7 +32,7 @@ namespace FoodWebModel {
 
 	private:
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		unsigned int cohortID;
+		cohortIDType cohortID;
 #endif
 		/*Class attributes*/
 	protected:

@@ -240,6 +240,30 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_maximum_age_in_hours= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerIncubationHours")){
+		simArguments.grazer_incubation_hours= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerEggAllocationThreshold")){
+		simArguments.grazer_egg_allocation_threshold= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerOvipositingPeriod")){
+		simArguments.grazer_ovipositing_period= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerReproductionProportionInvestmentAmplitude")){
+		simArguments.grazer_reproduction_proportion_investment_amplitude= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerReproductionProportionInvestmentCoefficient")){
+		simArguments.grazer_reproduction_proportion_investment_coefficient= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerReproductionProportionInvestmentIntercept")){
+		simArguments.grazer_reproduction_proportion_investment_intercept= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerRandomSeed")){
 		simArguments.grazer_random_seed= atoi(parameterValue.c_str());
 		return;

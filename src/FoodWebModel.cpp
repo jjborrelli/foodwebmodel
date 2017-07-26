@@ -84,13 +84,17 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 #ifdef EXTENDED_OUTPUT
 	outputInitialAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, LightAllowance, AlgaeTurbidity, LightAtDepth, LimitationProduct, LightDifference, NormalizedLightDifference, ResourceLimitationExponent, AlgaeBiomassToDepth, PhotoSynthesys, AlgaeRespiration, AlgaeExcretion, AlgaeNaturalMortality, AlgaeSedimentation, AlgaeWeightedSedimentation, AlgaeSlough, AlgaeTempMortality, AlgaeResourceLimStress, AlgaeWeightedResourceLimStress, AlgaeNaturalMortalityFactor, AlgalNaturalMortalityRate, AlgaeVerticalMigration"<<endl;
 	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeWashup, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
-	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerBiomassDifferential, GrazerCount, GrazerBiomass"<<endl;
+	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
 #else
 	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
-	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass"<<endl;
+	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
+#if defined(REGISTER_COHORT_ID) && defined(INDIVIDUAL_BASED_ANIMALS)
+	outputGrazerFile<<", CohortID";
+#endif
+	outputGrazerFile<<endl;
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerBornFile<<"Depth, Column, Time, AlgaeType, GrazerBornAgeInHours, GrazerBornHoursWithoutFood, GrazerBornStage, GrazerBornDeath, GrazerBornIndividuals, GrazerBornBiomass"<<endl;
 	outputGrazerDeadFile<<"Depth, Column, Time, AlgaeType, GrazerDeadAgeInHours, GrazerDeadHoursWithoutFood, GrazerDeadStage, GrazerDeadDeath, GrazerDeadIndividuals, GrazerDeadBiomass"<<endl;
@@ -189,8 +193,16 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
 	grazerDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
 	grazerDynamics.max_hours_without_food=simArguments.grazer_max_hours_without_food;
+	grazerDynamics.maximum_age_in_hours=simArguments.grazer_maximum_age_in_hours;
+	grazerDynamics.incubation_hours=simArguments.grazer_incubation_hours;
+	grazerDynamics.egg_allocation_threshold=simArguments.grazer_egg_allocation_threshold;
+	grazerDynamics.ovipositing_period=simArguments.grazer_ovipositing_period;
+	grazerDynamics.reproduction_proportion_investment_amplitude=simArguments.grazer_reproduction_proportion_investment_amplitude;
+	grazerDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
+	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
 	grazerDynamics.random_seed=simArguments.grazer_random_seed;
 	grazerDynamics.randomGenerator=new default_random_engine(grazerDynamics.random_seed);
+	grazerDynamics.cohortID=&(this->cohortID);
 
 }
 
@@ -316,6 +328,16 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not modeling animal starvation."<<endl;
 #endif
+#ifdef REPORT_COHORT_INFO
+	cout<<"Reporting cohort info."<<endl;
+#else
+	cout<<"Not reporting cohort info."<<endl;
+#endif
+#ifdef REGISTER_COHORT_ID
+	cout<<"Registering cohort ID."<<endl;
+#else
+	cout<<"Not registering cohort ID."<<endl;
+#endif
 #else
 	cout<<"Using differential equations for animal dynamics."<<endl;
 #endif
@@ -329,8 +351,14 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer carrying capacity intercept "<<grazerDynamics.animal_carrying_capacity_intercept<<"."<<endl;
 	cout<<"Using grazer max hours without food "<<grazerDynamics.max_hours_without_food<<"."<<endl;
 	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
-	cout<<"Using grazer maximum age in hours"<<grazerDynamics.maximum_age_in_hours<<"."<<endl;
+	cout<<"Using grazer maximum age in hours "<<grazerDynamics.maximum_age_in_hours<<"."<<endl;
+	cout<<"Using grazer incubation hours "<<grazerDynamics.incubation_hours<<"."<<endl;
+	cout<<"Using egg allocation threshold "<<grazerDynamics.egg_allocation_threshold<<"."<<endl;
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
+	cout<<"Using grazer ovipositing frequency "<<grazerDynamics.ovipositing_period<<"."<<endl;
+	cout<<"Using grazer reproduction proportion investment amplitude "<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
+	cout<<"Using grazer reproduction proportion investment coefficient "<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
+	cout<<"Using grazer reproduction proportion investment intercept "<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
 	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
@@ -363,7 +391,14 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerMaxHoursWithoutFood;"<<grazerDynamics.max_hours_without_food<<endl;
 		parameterFileStream<<"GrazerFoodStarvationThreshold;"<<grazerDynamics.food_starvation_threshold<<endl;
 		parameterFileStream<<"GrazerMaximumFoundBiomass;"<<grazerDynamics.maximum_found_animal_biomass<<endl;
-		parameterFileStream<<"GrazerMaximumAgeInHours"<<grazerDynamics.maximum_age_in_hours<<endl;
+		parameterFileStream<<"GrazerMaximumAgeInHours;"<<grazerDynamics.maximum_age_in_hours<<endl;
+		parameterFileStream<<"GrazerIncubationHours;"<<grazerDynamics.incubation_hours<<endl;
+		parameterFileStream<<"GrazerEggAllocationThreshold;"<<grazerDynamics.egg_allocation_threshold<<endl;
+		parameterFileStream<<"GrazerOvipositingFrequency;"<<grazerDynamics.ovipositing_period<<"."<<endl;
+		parameterFileStream<<"GrazerReproductionProportionInvestmentAmplitude;"<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
+		parameterFileStream<<"GrazerReproductionProportionInvestmentCoefficient;"<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
+		parameterFileStream<<"GrazerReproductionProportionInvestmentIntercept;"<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
+		parameterFileStream<<"GrazerRandomSeed;"<<grazerDynamics.random_seed<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;
 		parameterFileStream<<"AlgalMaximumFoundBiomass;"<<this->maximum_found_algal_biomass<<endl;
@@ -984,7 +1019,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.death=None;
 		newCohort.cohortID=this->cohortID++;
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
-		newCohort.totalBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
+		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		animals.push_back(newCohort);
 	}
 }

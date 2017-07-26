@@ -10,6 +10,31 @@
 
 using namespace std;
 
+std::ostream& operator<<(std::ostream& os, const AnimalCohort& cohort){
+	os<<"(Animal cohort. ID: "<<cohort.cohortID<<", x: "<<cohort.x<<", y: "<<cohort.y<<", age: "<<cohort.ageInHours<<", number of indviduals: "<<cohort.numberOfIndividuals<<", body biomass: "<<cohort.bodyBiomass<<", gonad biomass: "<<cohort.gonadBiomass;
+	os<<", stage: "<<cohort.stage<<", cause of death: "<<cohort.death;
+	os<<", is bottom animal: "<<(cohort.isBottomAnimal?1:0)<<")";
+	return os;
+
+}
+
+
+std::ostream& operator<<(std::ostream& os, const EggCohort& cohort){
+	os<<"(Egg cohort. ID: "<<cohort.cohortID<<", x: "<<cohort.x<<", y: "<<cohort.y<<", age: "<<cohort.ageInHours<<", number of eggs: "<<cohort.numberOfEggs<<", biomass: "<<cohort.biomass;
+	os<<", is bottom egg: "<<(cohort.isBottomAnimal?1:0)<<")";
+	return os;
+}
+void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
+	cohort1.bodyBiomass+=cohort2.bodyBiomass;
+	cohort1.numberOfIndividuals+=cohort2.numberOfIndividuals;
+
+}
+
+void operator+=(EggCohort& cohort1, const EggCohort& cohort2){
+	cohort1.biomass+=cohort2.biomass;
+	cohort1.numberOfEggs+=cohort2.numberOfEggs;
+}
+
 namespace FoodWebModel {
 
 AnimalBiomassDynamics::AnimalBiomassDynamics() {
@@ -26,12 +51,12 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 	if (isnan((float)biomass)||isinf((float)biomass)) {
 		(*assertionViolationBuffer) << "NanInfAnimal; Biomass: " << "Biomass: "
 				<< biomass << ", Depth: "<<depthIndex<<", Column: "
-				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
+				<< columnIndex << ", Hour: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
 	}
 	if (biomass < 0.0f) {
 		(*assertionViolationBuffer) << "NegativeAnimal; Biomass: "
 				<< biomass << ", Depth: "<<depthIndex<<", Column: "
-				<< columnIndex << ", Time: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
+				<< columnIndex << ", Hour: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
 	}
 	if (biomass
 			!= previousBiomass + differential) {
@@ -42,7 +67,7 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 				<< biomass
 						- (previousBiomass
 								+ differential)
-				<< ", Depth: "<<depthIndex<<", Column: " << columnIndex << ", Time: " << (*current_hour)
+				<< ", Depth: "<<depthIndex<<", Column: " << columnIndex << ", Hour: " << (*current_hour)
 				<< ", IsBottom: "<<isBottomAsInt << endl;
 	}
 }
@@ -51,7 +76,9 @@ void AnimalBiomassDynamics::updateCohortBiomassFromVector(std::vector<AnimalCoho
 	shuffle(animalVector->begin(), animalVector->end(), *randomGenerator);
 	for (std::vector<AnimalCohort>::iterator it = animalVector->begin();
 			it != animalVector->end(); ++it) {
+		/* Only non-egg animals are subjected to standard biomass update*/
 		updateCohortBiomass(*it);
+
 	}
 }
 
@@ -87,9 +114,16 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Update biomass in bottom and floating grazer cohorts*/
 
+	/*Add eggs to the lists of floating and bottom animals*/
+
 	updateCohortBiomassFromVector(bottomAnimals);
 	updateCohortBiomassFromVector(floatingAnimals);
 
+	/* Increase egg age*/
+	matureEggs(bottomEggs, bottomAnimals);
+	matureEggs(floatingEggs, floatingAnimals);
+
+	/* Remove all dead animals*/
 	removeDeadAnimals();
 
 #else
@@ -155,43 +189,89 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 /* Function for updating biomass in grazer cohorts*/
 void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
-	unsigned int depthIndex=cohort.x, columnIndex=cohort.y;
+	int depthIndex=cohort.x, columnIndex=cohort.y;
 	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
 	if(cohort.isBottomAnimal){
 		registerBiomass&=depthIndex%DEPTH_OUTPUT_RESOLUTION==0;
 	}
 	lineBuffer.str("");
 	lineBuffer.clear();
-	biomassType initialAnimalBiomass = cohort.totalBiomass;
+	biomassType initialFoodBiomass= getFoodBiomass(cohort.isBottomAnimal, cohort.y, cohort.x);
+	biomassType initialAnimalBiomass = cohort.bodyBiomass;
 	animalCountType animalCount=cohort.numberOfIndividuals;
+#ifdef CREATE_NEW_COHORTS
+	if(cohort.stage==animalStage::Mature){
+		calculateReproductionProportionInvestment(initialFoodBiomass);
+	} else{
+		reproduction_proportion_investment=0.0f;
+	}
+
+#else
+	reproduction_proportion_investment=0.0f;
+#endif
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
+
+	/* If biomass differential is negative, do not invest in eggs*/
+
+	if(biomassDifferential<0.0f) reproduction_proportion_investment=0.0f;
+
+	/* Amount of biomass invested in body and gonad weight*/
+	biomassType bodyBiomassInvestment=biomassDifferential*(1-reproduction_proportion_investment);
+	biomassType gonadBiomassInvestment=biomassDifferential*reproduction_proportion_investment;
+	cohort.gonadBiomass+=gonadBiomassInvestment;
 #ifdef ANIMAL_STARVATION
 	animalStarvationMortality(cohort, getFoodBiomass(cohort));
+#endif
+#ifdef CREATE_NEW_COHORTS
+	/* If there exists gonad investment, create new eggs*/
+	if((*(this->current_hour)%this->ovipositing_period)==0){
+		if(gonadBiomassInvestment>0.0f){
+			/* If the biomass is enough to generate at least one egg, create it.*/
+//			if(gonadBiomassInvestment>=(biomassType)initial_grazer_weight[animalStage::Egg]){
+	#ifdef REPORT_COHORT_INFO
+				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(*this->cohortID)<<", biomass: "<<gonadBiomassInvestment<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
+	#endif
+				biomassType newCohortBiomass = createNewCohort(cohort, gonadBiomassInvestment);
+	#ifdef REPORT_COHORT_INFO
+				cout<<"Cohort created."<<endl;
+	#endif
+				/* Store biomass remnant as body investment in the parent cohort*/
+				cohort.gonadBiomass=gonadBiomassInvestment-newCohortBiomass;
+			}
+
+		}
 #endif
 #ifdef ANIMAL_AGING
 	animalAging(cohort);
 #endif
-	cohort.totalBiomass+=biomassDifferential;
+	cohort.bodyBiomass+=bodyBiomassInvestment;
 #ifdef CHECK_ASSERTIONS
-	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.totalBiomass, initialAnimalBiomass,
+	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.bodyBiomass, initialAnimalBiomass,
 			biomassDifferential, cohort.isBottomAnimal);
 #endif
-	cohort.numberOfIndividuals=ceil(cohort.totalBiomass/initial_grazer_weight[cohort.stage]);
+	/* Update number of individuals based on cohort biomass*/
+#ifndef CREATE_NEW_COHORTS
+	cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
 	cohort.numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, cohort.numberOfIndividuals);
+#endif
 	this->floating_animal_count_summing+=cohort.numberOfIndividuals;
-	/* If the number of individuals or total biomass in the cohort is 0, consider it dead for other circumstances*/
-	if((cohort.totalBiomass<=0||cohort.numberOfIndividuals<=0)&&cohort.death==None){
-		cohort.death=Other;
+	/* If the number of individuals or total biomass in the cohort is 0, consider it dead of starvation */
+	if((cohort.bodyBiomass<=0||cohort.numberOfIndividuals<=0)&&cohort.death==None){
+		cohort.death=causeOfDeath::Starvation;
 	}
 	/*If biomass must be registered, register standard phytoplankton biomass*/
 	if(registerBiomass&&cohort.numberOfIndividuals>0){
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.totalBiomass<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass;
+#ifdef REGISTER_COHORT_ID
+		animalBiomassBuffer<<commaString<<cohort.cohortID;
+#endif
+		animalBiomassBuffer<<endl;
 	}
 
 	/* If the cohort is dead, register its death*/
 	if(cohort.death!=None){
 		unsigned int isBottomAnimal=cohort.isBottomAnimal?1:0;
-		this->animalDeadBuffer<<cohort.x<<lineBuffer.str()<<cohort.y<<lineBuffer.str()<<(*current_hour)<<lineBuffer.str()<<isBottomAnimal<<lineBuffer.str()<<cohort.ageInHours<<lineBuffer.str()<<cohort.hoursWithoutFood<<lineBuffer.str()<<cohort.stage<<lineBuffer.str()<<cohort.numberOfIndividuals<<lineBuffer.str()<<cohort.totalBiomass<<endl;
+		this->animalDeadBuffer<<cohort.x<<commaString<<cohort.y<<commaString<<(*current_hour)<<commaString<<isBottomAnimal<<commaString<<cohort.ageInHours<<commaString<<cohort.hoursWithoutFood<<commaString<<cohort.stage<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<endl;
 	}
 }
 #endif
@@ -555,9 +635,11 @@ biomassType  AnimalBiomassDynamics::getFoodBiomass(AnimalCohort& cohort){
 
 /* Animal aging*/
 void AnimalBiomassDynamics::animalAging(AnimalCohort& cohort){
-	cohort.ageInHours++;
-	if(ageInHours>this->maximum_age_in_hours){
+	if(cohort.ageInHours++>this->maximum_age_in_hours){
 		cohort.death=Senescence;
+#ifdef REPORT_COHORT_INFO
+		cout<<"Hour: "<<(*this->current_hour)<<". Senescence reached for cohort: "<<cohort<<"."<<endl;
+#endif
 	}
 }
 
@@ -578,6 +660,79 @@ void AnimalBiomassDynamics::removeDeadAnimals(){
 	removeDeadCohorts(floatingAnimals);
 
 }
+
+#ifdef CREATE_NEW_COHORTS
+
+void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassType foodBiomass){
+	/* Proportion of investment to eggs taken from ([1] M. Lynch, “The Life History Consequences of Resource Depression in Daphnia Pulex,” Ecology, vol. 70, no. 1, pp. 246–256, Feb. 1989.)*/
+
+	reproduction_proportion_investment = this->reproduction_proportion_investment_amplitude*(1 - exp((double)(-this->reproduction_proportion_investment_coefficient*(foodBiomass*LITER_TO_MILLILITER - this->reproduction_proportion_investment_intercept))));
+
+
+}
+
+biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, biomassType initialBiomass){
+	/* The attributes from the child cohort are inherited from the parent cohort*/
+	EggCohort eggCohort;
+	eggCohort.x=parentCohort.x;
+	eggCohort.y=parentCohort.y;
+	eggCohort.isBottomAnimal=parentCohort.isBottomAnimal;
+	/*The others are attributes for newborn cohorts*/
+	eggCohort.ageInHours=0;
+	eggCohort.numberOfEggs=(animalCountType)(initialBiomass/initial_grazer_weight[animalStage::Egg]);
+	eggCohort.biomass=(biomassType)eggCohort.numberOfEggs*initial_grazer_weight[animalStage::Egg];
+	eggCohort.cohortID=(*this->cohortID)++;
+	/*Add to the correct map of eggs*/
+	pair<int, int> cohortCoordinates(eggCohort.x, eggCohort.y);
+	if(eggCohort.isBottomAnimal){
+
+		if ( bottomEggs.find(cohortCoordinates) == bottomEggs.end() ) {
+			/* If the cohort exists, increase biomass and number of eggs*/
+			bottomEggs[cohortCoordinates]=eggCohort;
+		} else{
+			bottomEggs[cohortCoordinates]+=eggCohort;
+		}
+	} else{
+		if ( floatingEggs.find(cohortCoordinates) == floatingEggs.end() ) {
+			/* If the cohort exists, increase biomass and number of eggs*/
+			floatingEggs[cohortCoordinates]=eggCohort;
+		} else{
+			floatingEggs[cohortCoordinates]+=eggCohort;
+		}
+	}
+	return eggCohort.biomass;
+}
+
+void AnimalBiomassDynamics::matureEggs(map<pair<int,int>,EggCohort>& eggMap, vector<AnimalCohort> *adultAnimals){
+	for (std::map<pair<int,int>,EggCohort>::iterator it=eggMap.begin(); it!=eggMap.end(); ++it){
+		/* If the egg has hatched, add to the adult list and remove*/
+	    if((++it->second.ageInHours)>this->incubation_hours){
+	    	EggCohort eggCohort=it->second;
+#ifdef REPORT_COHORT_INFO
+	    	cout<<"Hour: "<<*(this->current_hour)<<". Maturing egg cohort: "<<eggCohort<<"."<<endl;
+#endif
+	    	AnimalCohort animalCohort;
+	    	animalCohort.x=eggCohort.x;
+	    	animalCohort.y=eggCohort.y;
+	    	animalCohort.bodyBiomass=eggCohort.biomass;
+	    	animalCohort.numberOfIndividuals=eggCohort.numberOfEggs;
+	    	animalCohort.cohortID=eggCohort.cohortID;
+	    	animalCohort.isBottomAnimal=eggCohort.isBottomAnimal;
+	    	animalCohort.gonadBiomass=0.0f;
+	    	animalCohort.stage=animalStage::Mature;
+	    	animalCohort.death=causeOfDeath::None;
+	    	animalCohort.hoursWithoutFood=animalCohort.ageInHours=0;
+	    	adultAnimals->push_back(animalCohort);
+	    	eggMap.erase(it);
+#ifdef REPORT_COHORT_INFO
+	    	cout<<"Egg cohort matured."<<endl;
+#endif
+	    }
+
+	}
+
+}
+#endif
 
 #endif
 

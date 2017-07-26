@@ -246,7 +246,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #endif
 	cohort.bodyBiomass+=bodyBiomassInvestment;
 #ifdef CHECK_ASSERTIONS
-	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.bodyBiomass, initialAnimalBiomass,
+	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.bodyBiomass+cohort.gonadBiomass, initialAnimalBiomass,
 			biomassDifferential, cohort.isBottomAnimal);
 #endif
 	/* Update number of individuals based on cohort biomass*/

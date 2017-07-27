@@ -120,9 +120,11 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 	updateCohortBiomassFromVector(floatingAnimals);
 
 	/* Increase egg age*/
+
+#ifdef CREATE_NEW_COHORTS
 	matureEggs(bottomEggs, bottomAnimals);
 	matureEggs(floatingEggs, floatingAnimals);
-
+#endif
 	/* Remove all dead animals*/
 	removeDeadAnimals();
 

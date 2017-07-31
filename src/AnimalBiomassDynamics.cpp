@@ -58,7 +58,7 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 				<< biomass << ", Depth: "<<depthIndex<<", Column: "
 				<< columnIndex << ", Hour: " << (*current_hour) << ", IsBottom: "<<isBottomAsInt << endl;
 	}
-	if (biomass
+	/*if (biomass
 			!= previousBiomass + differential) {
 		(*assertionViolationBuffer) << "UpdateAnimal; Biomass: "
 				<< biomass << ", PreviousBiomass: "
@@ -69,7 +69,7 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 								+ differential)
 				<< ", Depth: "<<depthIndex<<", Column: " << columnIndex << ", Hour: " << (*current_hour)
 				<< ", IsBottom: "<<isBottomAsInt << endl;
-	}
+	}*/
 }
 
 void AnimalBiomassDynamics::updateCohortBiomassFromVector(std::vector<AnimalCohort> *animalVector) {//
@@ -263,7 +263,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	}
 	/*If biomass must be registered, register standard phytoplankton biomass*/
 	if(registerBiomass&&cohort.numberOfIndividuals>0){
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.stage;
 #ifdef REGISTER_COHORT_ID
 		animalBiomassBuffer<<commaString<<cohort.cohortID;
 #endif
@@ -472,7 +472,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
 void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms){
 
-	consumption_per_individual = this->filtering_rate_per_daphnia_in_cell_volume*foodBiomassInMicrograms*stroganov_adjustment;
+	consumption_per_individual = this->filtering_rate_per_individual_in_cell_volume*foodBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
 	consumption_per_individual = min<biomassType>(FEEDING_SATURATION,MAXIMUM_GRAZING_ABSORBED);
 //	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);
@@ -708,8 +708,50 @@ biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, b
 void AnimalBiomassDynamics::matureEggs(map<pair<int,int>,EggCohort>& eggMap, vector<AnimalCohort> *adultAnimals){
 	for (std::map<pair<int,int>,EggCohort>::iterator it=eggMap.begin(); it!=eggMap.end(); ++it){
 		/* If the egg has hatched, add to the adult list and remove*/
-	    if((++it->second.ageInHours)>this->incubation_hours){
-	    	EggCohort eggCohort=it->second;
+    	/* If eggs are counted, report number of eggs found*/
+		it->second.ageInHours++;
+		EggCohort& eggCohort=it->second;
+#ifdef COUNT_EGGS
+		lineBuffer.str("");
+		lineBuffer.clear();
+		lineBuffer<<eggCohort.x;
+		lineBuffer<<commaString<<eggCohort.y;
+		lineBuffer<<commaString<<(*current_hour);
+		lineBuffer<<commaString<<eggCohort.isBottomAnimal?1:0;
+#ifdef EXTENDED_OUTPUT
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+		lineBuffer<<commaString<<0;
+#endif
+		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<animalStage::Egg<<endl;
+#ifdef REGISTER_COHORT_ID
+		lineBuffer<<commaString<<cohort.cohortID;
+#endif
+		animalBiomassBuffer<<lineBuffer.str();
+#endif
+	    if(eggCohort.ageInHours>this->incubation_hours){
 #ifdef REPORT_COHORT_INFO
 	    	cout<<"Hour: "<<*(this->current_hour)<<". Maturing egg cohort: "<<eggCohort<<"."<<endl;
 #endif
@@ -726,6 +768,7 @@ void AnimalBiomassDynamics::matureEggs(map<pair<int,int>,EggCohort>& eggMap, vec
 	    	animalCohort.hoursWithoutFood=animalCohort.ageInHours=0;
 	    	adultAnimals->push_back(animalCohort);
 	    	eggMap.erase(it);
+
 #ifdef REPORT_COHORT_INFO
 	    	cout<<"Egg cohort matured."<<endl;
 #endif

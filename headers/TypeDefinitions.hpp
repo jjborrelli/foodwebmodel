@@ -48,6 +48,8 @@ typedef struct {
 	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 
+	physicalType phosphorous_weight;
+
 	biomassType algae_biomass_differential_production_scale,
 	algal_carrying_capacity_coefficient,
 	algal_carrying_capacity_intercept,

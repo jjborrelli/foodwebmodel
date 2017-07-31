@@ -91,8 +91,11 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
-#if defined(REGISTER_COHORT_ID) && defined(INDIVIDUAL_BASED_ANIMALS)
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	outputGrazerFile<<", Stage";
+#ifdef REGISTER_COHORT_ID
 	outputGrazerFile<<", CohortID";
+#endif
 #endif
 	outputGrazerFile<<endl;
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -171,6 +174,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->algal_carrying_capacity_coefficient = simArguments.algal_carrying_capacity_coefficient;
 	this->algal_carrying_capacity_intercept = simArguments.algal_carrying_capacity_intercept;
 	this->maximum_found_algal_biomass=simArguments.maximum_found_algal_biomass;
+	this->phosphorous_weight=simArguments.phosphorous_weight;
 	initializeGrazerAttributes(simArguments);
 }
 
@@ -184,7 +188,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.vertical_migration_buffer_size = 2
 			* grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour + 1;
 	grazerDynamics.filtering_rate_per_daphnia = simArguments.grazer_filtering_rate_per_individual;
-	grazerDynamics.filtering_rate_per_daphnia_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
+	grazerDynamics.filtering_rate_per_individual_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
 	grazerDynamics.basal_respiration_weight = simArguments.grazer_basal_respiration_weight;
 	grazerDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
 	grazerDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
@@ -338,11 +342,17 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not registering cohort ID."<<endl;
 #endif
+#ifdef COUNT_EGGS
+	cout<<"Counting eggs."<<endl;
+#else
+	cout<<"Not counting eggs."<<endl;
+#endif
 #else
 	cout<<"Using differential equations for animal dynamics."<<endl;
 #endif
+	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
-	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_daphnia_in_cell_volume<<" liters/hour."<<endl;
+	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using base grazer mortality factor "<<grazerDynamics.animal_base_mortality_proportion<<"."<<endl;
 	cout<<"Using basal respiration weight "<<grazerDynamics.basal_respiration_weight<<"."<<endl;
@@ -380,6 +390,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 	parameterFileStream.open(parameterSimulationRoute.c_str());
 	if (parameterFileStream.is_open()){
 		cout<<"File "<<parameterSimulationRoute<<" open for simulation parameter register."<<endl;
+		parameterFileStream<<"PhosphorousWeight;"<<this->phosphorous_weight<<endl;
 		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
 		parameterFileStream<<"AnimalBaseMortality;"<<grazerDynamics.animal_base_mortality_proportion<<endl;
 		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
@@ -1239,12 +1250,12 @@ void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 }
 
 
-/*Phosphorous concentration at a given depth*/
+/*Phosphorus concentration at a given depth*/
 
 void FoodWebModel::FoodWebModel::phosphorusConcentrationAtDepth(int depthIndex, int columnIndex){
 	current_phosphorus_concentration_at_bottom = PHOSPHORUS_CONCENTRATION_AT_BOTTOM;
 	#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
-	current_phosphorus_concentration_at_bottom = phosphorus_concentration_at_bottom_in_hour[current_hour];
+	current_phosphorus_concentration_at_bottom = this->phosphorous_weight * phosphorus_concentration_at_bottom_in_hour[current_hour];
 	#endif
 	chemicalConcentrationAtDepth(depthIndex, columnIndex, current_phosphorus_concentration_at_bottom);
 	/* Save phosphorus concentration for later use*/

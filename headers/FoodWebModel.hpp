@@ -99,7 +99,8 @@ namespace FoodWebModel {
 		/*Max possible column index (X axis)*/
 		//int  maxColumn;
 
-
+		/* Physical single-value parameters*/
+		physicalType phosphorous_weight;
 
 		/* Physical attributes*/
 		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom;

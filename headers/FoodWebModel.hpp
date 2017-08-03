@@ -60,8 +60,8 @@ namespace FoodWebModel {
 		biomassType algae_biomass_differential_production_scale;
 		/* Grazer biomass in micrograms*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		vector<AnimalCohort> zooplankton, bottomGrazers;
-		vector<AnimalCohort> floatingPredator, bottomPredator;
+		map<pair<int,int>,AnimalCohort> zooplankton, bottomGrazers;
+		map<pair<int,int>,AnimalCohort> floatingPredator, bottomPredator;
 #else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
@@ -130,7 +130,7 @@ namespace FoodWebModel {
 		/*Output files*/
 		std::ofstream outputInitialAlgaeFile, outputAlgaeFile, outputGrazerFile, outputPredatorFile, outputPhysicalFile;
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		std::ofstream outputGrazerBornFile, outputGrazerDeadFile, outputPredatorBornFile, outputPredatorDeadFile;
+		std::ofstream grazerTraceFile, predatorTraceFile;
 #endif
 		#ifdef CHECK_ASSERTIONS
 		std::ofstream outputAssertionViolationFile;
@@ -152,8 +152,8 @@ namespace FoodWebModel {
 		void updateRegisterVariables();
 		void initializePointers();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal);
-		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal);
+		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal);
+		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal);
 #endif
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);

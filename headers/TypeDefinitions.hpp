@@ -13,7 +13,7 @@
 typedef double biomassType;
 typedef double physicalType;
 typedef unsigned int animalCountType;
-typedef unsigned long int cohortIDType;
+typedef long int cohortIDType;
 
 #include <string>
 #include <iostream>
@@ -30,11 +30,9 @@ typedef struct {
 	outputAlgaeRoute,
 	outputSloughRoute,
 	outputGrazerRoute,
-	outputGrazerBornRoute,
-	outputGrazerDeadRoute,
+	outputGrazerTraceRoute,
 	outputPredatorRoute,
-	outputPredatorBornRoute,
-	outputPredatorDeadRoute,
+	outputPredatorTraceRoute,
 	outputPhysicalRoute,
 	outputParameterRoute,
 	outputAssertionViolationRoute,
@@ -93,19 +91,20 @@ typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
-	int x, y, ageInHours, hoursWithoutFood;
-	cohortIDType cohortID;
+	int x, y;// ageInHours, hoursWithoutFood;
+
 	animalStage stage;
-	causeOfDeath death;
+//	causeOfDeath death;
 	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;
 	biomassType bodyBiomass, gonadBiomass;
+	cohortIDType cohortID;
 } AnimalCohort;
 
 typedef struct {
 	int x, y, ageInHours;
 	cohortIDType cohortID;
-	bool isBottomAnimal;
+	bool isBottomAnimal, hasHatched;
 	animalCountType numberOfEggs;
 	biomassType biomass;
 } EggCohort;

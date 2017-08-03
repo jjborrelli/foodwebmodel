@@ -77,20 +77,12 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.outputGrazerRoute= parameterValue;
 		return;
 	}
-	if(!parameterName.compare("OutputGrazerBornRoute")){
-		simArguments.outputGrazerBornRoute= parameterValue;
+	if(!parameterName.compare("OutputGrazerTraceRoute")){
+		simArguments.outputGrazerTraceRoute= parameterValue;
 		return;
 	}
-	if(!parameterName.compare("OutputGrazerDeadRoute")){
-		simArguments.outputGrazerDeadRoute= parameterValue;
-		return;
-	}
-	if(!parameterName.compare("OutputPredatorBornRoute")){
-		simArguments.outputPredatorBornRoute= parameterValue;
-		return;
-	}
-	if(!parameterName.compare("OutputPredatorDeadRoute")){
-		simArguments.outputPredatorDeadRoute= parameterValue;
+	if(!parameterName.compare("OutputPredatorTraceRoute")){
+		simArguments.outputPredatorTraceRoute= parameterValue;
 		return;
 	}
 	if(!parameterName.compare("OutputPredatorRoute")){

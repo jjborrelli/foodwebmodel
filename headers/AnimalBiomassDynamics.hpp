@@ -28,17 +28,24 @@ public:
 protected:
 	std::ostringstream lineBuffer, animalBiomassBuffer;
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	std::ostringstream animalBornBuffer, animalDeadBuffer;
+	std::ostringstream animalTraceBuffer;
 #endif
 	/* Animal count summing. The simulation halts below a given number*/
 	animalCountType floating_animal_count_summing;
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	vector<AnimalCohort> *floatingAnimals, *bottomAnimals;
+	map<pair<int,int>,AnimalCohort> *floatingAnimals, *bottomAnimals;
 
 	/* Attributes for internal usage for cohort modeling*/
 	double reproduction_proportion_investment;
+	struct removeOldEggs : public std::unary_function<const EggCohort&, bool>
+	{
+	    bool operator()(const EggCohort& cohort) const
+	    {
+	        return cohort.hasHatched;
+	    }
+	};
 #ifdef CREATE_NEW_COHORTS
-	map<pair<int,int>,EggCohort> floatingEggs, bottomEggs;
+	vector<EggCohort> floatingEggs, bottomEggs;
 #endif
 #else
 	/* Animal biomass in micrograms*/
@@ -101,23 +108,6 @@ protected:
 
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
-
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	/* Define auxiliary function to check if a cohort is dead*/
-	struct removeDeadCohort : public std::unary_function<const AnimalCohort&, bool>
-	{
-	    bool operator()(const AnimalCohort& cohort) const
-	    {
-	    	if(cohort.death!=None){
-#ifdef REPORT_COHORT_INFO
-		    	cout<<"Removing cohort with characterstics: "<<cohort<<"."<<endl;
-#endif
-	    	}
-	        return cohort.death!=None;
-	    }
-	};
-#endif
-
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
 #endif
@@ -125,9 +115,9 @@ protected:
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	void updateCohortBiomass(AnimalCohort& cohort);
-	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
-	void removeDeadAnimals();
-	void updateCohortBiomassFromVector(std::vector<AnimalCohort> *animalVector);
+//	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
+//	void removeDeadAnimals();
+	void updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals);
 #endif
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
@@ -150,7 +140,7 @@ protected:
 #ifdef CREATE_NEW_COHORTS
 	void calculateReproductionProportionInvestment(biomassType foodBiomass);
 	biomassType createNewCohort(AnimalCohort& parentCohort, biomassType eggBiomass);
-	void matureEggs(map<pair<int,int>,EggCohort>& eggMap, vector<AnimalCohort> *adultAnimals);
+	void matureEggs(vector<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #endif
 	biomassType getFoodBiomass(AnimalCohort& cohort);
 #endif

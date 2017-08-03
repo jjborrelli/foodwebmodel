@@ -58,7 +58,7 @@
 
 //#define ANIMAL_STARVATION
 
-#define ANIMAL_AGING
+//#define ANIMAL_AGING
 //#define CHECK_GRAZER_LOWER_LIMIT
 
 #define CREATE_NEW_COHORTS
@@ -67,7 +67,7 @@
 
 //#define REGISTER_COHORT_ID
 
-#define COUNT_EGGS
+//#define COUNT_EGGS
 
 //#define SATURATION_GRAZING
 //#define ZOOPLANKTON_ACCUMULATION

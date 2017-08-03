@@ -92,19 +92,9 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerFile<<", Stage";
-#ifdef REGISTER_COHORT_ID
-	outputGrazerFile<<", CohortID";
-#endif
-#endif
-	outputGrazerFile<<endl;
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerBornFile<<"Depth, Column, Time, AlgaeType, GrazerBornAgeInHours, GrazerBornHoursWithoutFood, GrazerBornStage, GrazerBornDeath, GrazerBornIndividuals, GrazerBornBiomass"<<endl;
-	outputGrazerDeadFile<<"Depth, Column, Time, AlgaeType, GrazerDeadAgeInHours, GrazerDeadHoursWithoutFood, GrazerDeadStage, GrazerDeadDeath, GrazerDeadIndividuals, GrazerDeadBiomass"<<endl;
-#endif
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	outputPredatorBornFile<<"Depth, Column, Time, AlgaeType, PredatorBornAgeInHours, PredatorBornHoursWithoutFood, PredatorBornStage, PredatorBornDeath, PredatorBornIndividuals, PredatorBornBiomass"<<endl;
-	outputPredatorDeadFile<<"Depth, Column, Time, AlgaeType, PredatorDeadAgeInHours, PredatorDeadHoursWithoutFood, PredatorDeadStage, PredatorDeadDeath, PredatorDeadIndividuals, PredatorDeadBiomass"<<endl;
+	outputGrazerFile<<", Stage, CohortID"<<endl;
+	grazerTraceFile<<"Depth, Column, Time, AlgaeType, GrazerStage, GrazerIndividuals, GrazerBodyBiomass, GrazerGonadBiomass, GrazerCohortID"<<endl;
+	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;
 	writeSimulatedParameters(simArguments.outputParameterRoute);
@@ -132,10 +122,8 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 		}
 #ifdef INDIVIDUAL_BASED_ANIMALS
 #ifdef EXTENDED_OUTPUT
-		outputGrazerBornFile<<grazerDynamics.animalBornBuffer.str();
-		outputGrazerDeadFile<<grazerDynamics.animalDeadBuffer.str();
-		outputPredatorBornFile<<predatorDynamics.animalBornBuffer.str();
-		outputPredatorDeadFile<<predatorDynamics.animalDeadBuffer.str();
+		grazerTraceFile<<grazerDynamics.animalTraceBuffer.str();
+		predatorTraceFile<<predatorDynamics.animalTraceBuffer.str();
 #endif
 
 #endif
@@ -337,11 +325,6 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not reporting cohort info."<<endl;
 #endif
-#ifdef REGISTER_COHORT_ID
-	cout<<"Registering cohort ID."<<endl;
-#else
-	cout<<"Not registering cohort ID."<<endl;
-#endif
 #ifdef COUNT_EGGS
 	cout<<"Counting eggs."<<endl;
 #else
@@ -432,15 +415,11 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 	outputInitialAlgaeFile.open(simArguments.outputAlgaeRoute.c_str());
 	outputGrazerFile.open(simArguments.outputGrazerRoute.c_str());
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerBornFile.open(simArguments.outputGrazerBornRoute.c_str());
-	outputGrazerDeadFile.open(simArguments.outputGrazerDeadRoute.c_str());
+	grazerTraceFile.open(simArguments.outputGrazerTraceRoute.c_str());
+	predatorTraceFile.open(simArguments.outputPredatorTraceRoute.c_str());
 #endif
 	outputAlgaeFile.open(simArguments.outputSloughRoute.c_str());
 	outputPredatorFile.open(simArguments.outputPredatorRoute.c_str());
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	outputPredatorBornFile.open(simArguments.outputPredatorBornRoute.c_str());
-	outputPredatorDeadFile.open(simArguments.outputPredatorDeadRoute.c_str());
-#endif
 	outputPhysicalFile.open(simArguments.outputPhysicalRoute.c_str());
 #ifdef CHECK_ASSERTIONS
 	outputAssertionViolationFile.open(simArguments.outputAssertionViolationRoute.c_str());
@@ -461,34 +440,22 @@ void FoodWebModel::FoodWebModel::openSimulationFiles(const SimulationArguments& 
 	} else{
 		cout<<"File "<<simArguments.outputGrazerRoute<<" could not be opened for grazer register."<<endl;
 	}
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	if (outputGrazerBornFile.is_open()){
-			cout<<"File "<<simArguments.outputGrazerBornRoute<<" open for grazer born register."<<endl;
-		} else{
-			cout<<"File "<<simArguments.outputGrazerBornRoute<<" could not be opened for grazer born register."<<endl;
-		}
-	if (outputGrazerDeadFile.is_open()){
-			cout<<"File "<<simArguments.outputGrazerDeadRoute<<" open for grazer dead register."<<endl;
-		} else{
-			cout<<"File "<<simArguments.outputGrazerDeadRoute<<" could not be opened for grazer dead register."<<endl;
-		}
-#endif
 	if (outputPredatorFile.is_open()){
 		cout<<"File "<<simArguments.outputPredatorRoute<<" open for predator register."<<endl;
 	} else{
 		cout<<"File "<<simArguments.outputPredatorRoute<<" could not be opened for predator register."<<endl;
 	}
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	if (outputPredatorBornFile.is_open()){
-				cout<<"File "<<simArguments.outputPredatorBornRoute<<" open for predator born register."<<endl;
-			} else{
-				cout<<"File "<<simArguments.outputPredatorBornRoute<<" could not be opened for predator born register."<<endl;
-			}
-		if (outputPredatorDeadFile.is_open()){
-				cout<<"File "<<simArguments.outputPredatorDeadRoute<<" open for predator dead register."<<endl;
-			} else{
-				cout<<"File "<<simArguments.outputPredatorDeadRoute<<" could not be opened for predator dead register."<<endl;
-			}
+	if (grazerTraceFile.is_open()){
+			cout<<"File "<<simArguments.outputGrazerTraceRoute<<" open for grazer trace register."<<endl;
+		} else{
+			cout<<"File "<<simArguments.outputGrazerTraceRoute<<" could not be opened for grazer trace register."<<endl;
+		}
+	if (predatorTraceFile.is_open()){
+			cout<<"File "<<simArguments.outputPredatorTraceRoute<<" open for predator trace register."<<endl;
+		} else{
+			cout<<"File "<<simArguments.outputPredatorTraceRoute<<" could not be opened for predator trace register."<<endl;
+		}
 #endif
 	if (outputPhysicalFile.is_open()){
 		cout<<"File "<<simArguments.outputPhysicalRoute<<" open for physical variables."<<endl;
@@ -510,14 +477,10 @@ void FoodWebModel::FoodWebModel::closeSimulationFiles(){
 	outputInitialAlgaeFile.close();
 	outputAlgaeFile.close();
 	outputGrazerFile.close();
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerBornFile.close();
-	outputGrazerDeadFile.close();
-#endif
 	outputPredatorFile.close();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputPredatorBornFile.close();
-	outputPredatorDeadFile.close();
+	grazerTraceFile.close();
+	predatorTraceFile.close();
 #endif
 	outputPhysicalFile.close();
 #ifdef CHECK_ASSERTIONS
@@ -1011,7 +974,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 /* Functions for adding individual-based animal cohorts*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
-void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal){
+void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal){
 	if(count>0){
 		addAnimalCohort(depthIndex,columnIndex,count, animals, Newborn, isBottomAnimal);
 		addAnimalCohort(depthIndex,columnIndex,count, animals, Young, isBottomAnimal);
@@ -1019,19 +982,26 @@ void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsig
 	}
 }
 
-void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal){
+void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal){
 	if(count>0&&readProcessedData.initial_grazer_distribution[developmentStage]>0.0f){
 		AnimalCohort newCohort;
+		//pair<int,int> cohortCoordinates(depthIndex, columnIndex);
 		newCohort.x=depthIndex;
 		newCohort.y=columnIndex;
 		newCohort.stage=developmentStage;
 		newCohort.isBottomAnimal=isBottomAnimal;
-		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
-		newCohort.death=None;
-		newCohort.cohortID=this->cohortID++;
+//		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
+//		newCohort.death=None;
+		newCohort.cohortID=-1;
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
-		animals.push_back(newCohort);
+		newCohort.gonadBiomass=0.0f;
+		if ( animals.find(pair<int,int>(depthIndex, columnIndex)) == animals.end() ) {
+			/* If the cohort exists, increase biomass and number of eggs*/
+			animals[pair<int,int>(depthIndex, columnIndex)]=newCohort;
+		} else{
+			animals[pair<int,int>(depthIndex, columnIndex)]+=newCohort;
+		}
 	}
 }
 

@@ -85,6 +85,10 @@ void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>
 			it != animals->end(); ++it) {
 		/* Only non-egg animals are subjected to standard biomass update*/
 		updateCohortBiomass(it->second);
+		/* Remove cohort if the number of animals or its biomass is 0*/
+		if(it->second.numberOfIndividuals<=0||it->second.bodyBiomass<=0){
+			animals->erase(it);
+		}
 
 	}
 }
@@ -267,7 +271,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	/*Remove dead animals in the cohort*/
 	if(animal_mortality>0){
 		animalCountType deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
-		cohort.numberOfIndividuals-=deadIndividuals;
+		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-deadIndividuals);
 	}
 #ifdef CHECK_ASSERTIONS
 	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.bodyBiomass+cohort.gonadBiomass, initialAnimalBiomass,

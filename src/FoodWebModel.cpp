@@ -193,6 +193,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
 	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
 	grazerDynamics.random_seed=simArguments.grazer_random_seed;
+	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
 	grazerDynamics.randomGenerator=new default_random_engine(grazerDynamics.random_seed);
 	grazerDynamics.cohortID=&(this->cohortID);
 
@@ -352,6 +353,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer reproduction proportion investment amplitude "<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment coefficient "<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment intercept "<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
+	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
@@ -392,6 +394,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerReproductionProportionInvestmentAmplitude;"<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentCoefficient;"<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentIntercept;"<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
+		parameterFileStream<<"GrazerStarvationFactor;"<<grazerDynamics.starvation_factor<<"."<<endl;
 		parameterFileStream<<"GrazerRandomSeed;"<<grazerDynamics.random_seed<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;

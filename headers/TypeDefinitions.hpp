@@ -62,7 +62,8 @@ typedef struct {
 	grazer_carrying_capacity_intercept,
 	grazer_maximum_found_biomass,
 	grazer_food_starvation_threshold,
-	grazer_egg_allocation_threshold;
+	grazer_egg_allocation_threshold,
+	grazer_starvation_factor;
 
 	double grazer_reproduction_proportion_investment_amplitude,
 	grazer_reproduction_proportion_investment_coefficient,

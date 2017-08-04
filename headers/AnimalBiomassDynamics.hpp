@@ -76,7 +76,7 @@ protected:
 	physicalType food_conversion_factor;
 
 	/* Threshold below which the concentration is considered starvation (in ug/l)*/
-	biomassType food_starvation_threshold, egg_allocation_threshold;
+	biomassType food_starvation_threshold, egg_allocation_threshold, starvation_factor;
 
 	/* Maximum number of hours that the animal can survive with food below starvation levels*/
 	unsigned int max_hours_without_food;

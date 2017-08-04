@@ -273,6 +273,12 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 		animalCountType deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-deadIndividuals);
 	}
+
+	/*Remove starved animals in the cohort*/
+	if(salinity_corrected_animal_respiration>0){
+		animalCountType starvedIndividuals=this->starvation_factor*salinity_corrected_animal_respiration/this->initial_grazer_weight[cohort.stage];
+		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-starvedIndividuals);
+	}
 #ifdef CHECK_ASSERTIONS
 	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.bodyBiomass+cohort.gonadBiomass, initialAnimalBiomass,
 			biomassDifferential, cohort.isBottomAnimal);

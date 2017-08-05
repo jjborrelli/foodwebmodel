@@ -92,7 +92,7 @@ protected:
 	physicalType *temperature[MAX_DEPTH_INDEX], *lakeLightAtDepth[MAX_DEPTH_INDEX], *previousLakeLightAtDepth[MAX_DEPTH_INDEX];
 
 	/* Animal attributes*/
-	biomassType used_consumption, consumption_per_individual, locale_consumption, locale_defecation, base_animal_respiration, salinity_corrected_animal_respiration, basal_animal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, animal_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_mortality, locale_consumption_salt_adjusted, animal_mortality, animal_predatory_pressure, low_oxigen_animal_mortality;
+	biomassType used_consumption, consumption_per_individual, locale_consumption, consumed_biomass, locale_defecation, base_animal_respiration, salinity_corrected_animal_respiration, basal_animal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, animal_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_mortality, locale_consumption_salt_adjusted, animal_mortality, animal_predatory_pressure, low_oxigen_animal_mortality;
 
 	/* Animal physical attributes*/
 	physicalType stroganov_adjustment;
@@ -104,7 +104,10 @@ protected:
 	biomassType foodPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/* Gonad biomass allocation */
-	double reproduction_proportion_investment_amplitude, reproduction_proportion_investment_coefficient, reproduction_proportion_investment_intercept;
+	double reproduction_proportion_investment_amplitude, reproduction_proportion_investment_coefficient, reproduction_proportion_investment_intercept, dead_animal_proportion;
+
+	/* Gonad biomass metrics */
+	biomassType reproduction_investment_subtraction, reproduction_investment_exponent, reproduction_investment_power;
 
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;

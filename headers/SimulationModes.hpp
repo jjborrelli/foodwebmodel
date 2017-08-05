@@ -69,6 +69,8 @@
 
 //#define COUNT_EGGS
 
+//#define EXPONENTIAL_GONAD_ALLOCATION
+
 //#define SATURATION_GRAZING
 //#define ZOOPLANKTON_ACCUMULATION
 /* End simulation modes*/

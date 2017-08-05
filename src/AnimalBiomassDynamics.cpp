@@ -91,6 +91,7 @@ void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>
 		}
 
 	}
+
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
@@ -128,6 +129,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 	updateCohortBiomassForAnimals(bottomAnimals);
 	updateCohortBiomassForAnimals(floatingAnimals);
+	cout<<"Summatory of individuals: "<<this->floating_animal_count_summing/(41*254)<<"."<<endl;
 
 	/* Increase egg age*/
 
@@ -239,6 +241,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 
 	/* Amount of biomass invested in body and gonad weight*/
 	biomassType bodyBiomassInvestment=biomassDifferential*(1-reproduction_proportion_investment);
+ biomassType bodyLostBiomass=consumed_biomass*(1-reproduction_proportion_investment);
 	biomassType gonadBiomassInvestment=biomassDifferential*reproduction_proportion_investment;
 	cohort.gonadBiomass+=gonadBiomassInvestment;
 #ifdef ANIMAL_STARVATION
@@ -251,9 +254,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 			/* If the biomass is enough to generate at least one egg, create it.*/
 			if(cohort.gonadBiomass>=(biomassType)initial_grazer_weight[animalStage::Egg]){
 	#ifdef REPORT_COHORT_INFO
-				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(*this->cohortID)<<", biomass: "<<gonadBiomassInvestment<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
+				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(*this->cohortID)<<", biomass: "<<cohort.gonadBiomass<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
 	#endif
-				biomassType newCohortBiomass = createNewCohort(cohort, gonadBiomassInvestment);
+				biomassType newCohortBiomass = createNewCohort(cohort, cohort.gonadBiomass);
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Cohort created."<<endl;
 	#endif
@@ -275,10 +278,12 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	}
 
 	/*Remove starved animals in the cohort*/
-	if(salinity_corrected_animal_respiration>0){
-		animalCountType starvedIndividuals=this->starvation_factor*salinity_corrected_animal_respiration/this->initial_grazer_weight[cohort.stage];
+	/*if(consumed_biomass>0){
+		biomassType biomassDeficit=consumed_biomass;
+		animalCountType starvedIndividuals=this->starvation_factor*biomassDeficit/this->initial_grazer_weight[cohort.stage];
+   cout<<"Starved individuals: "<<starvedIndividuals<<", starvation factor: "<<this->starvation_factor<<endl;
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-starvedIndividuals);
-	}
+	}*/
 #ifdef CHECK_ASSERTIONS
 	reportAssertionError(maxDepthIndex[columnIndex], columnIndex, cohort.bodyBiomass+cohort.gonadBiomass, initialAnimalBiomass,
 			biomassDifferential, cohort.isBottomAnimal);
@@ -288,6 +293,13 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
 	cohort.numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, cohort.numberOfIndividuals);
 #endif
+  if(bodyLostBiomass>0.0f){
+
+    //cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
+	  // Include removal of starved grazers multiplied by a weight
+	cohort.numberOfIndividuals-=ceil(this->dead_animal_proportion*bodyLostBiomass/initial_grazer_weight[cohort.stage]);
+	cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals);
+  }
 	this->floating_animal_count_summing+=cohort.numberOfIndividuals;
 	/* If the number of individuals or total biomass in the cohort is 0, consider it dead of starvation */
 //	if((cohort.bodyBiomass<=0||cohort.numberOfIndividuals<=0)&&cohort.death==None){
@@ -418,7 +430,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //	}
 //}
 
-/* Calculate neighboring preference score for daphnia migration. Inspired by ([1] B.-P. Han and M. Stra�kraba, �Modeling patterns of zooplankton diel vertical migration,� J. Plankton Res., vol. 20, no. 8, pp. 1463�1487, 1998., Eqn. 15)*/
+/* Calculate neighboring preference score for daphnia migration. Inspired by ([1] B.-P. Han and M. Straï¿½kraba, ï¿½Modeling patterns of zooplankton diel vertical migration,ï¿½ J. Plankton Res., vol. 20, no. 8, pp. 1463ï¿½1487, 1998., Eqn. 15)*/
 void AnimalBiomassDynamics::calculateLocalPreferenceScore() {
 	for (int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX; depthIndex++) {
 		for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX;
@@ -454,8 +466,8 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		animalExcretion(salinity_corrected_animal_respiration);
 		animalMortality(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
 		calculatePredationPressure(animalCount);
-
-		biomassType localeBiomassDifferential=used_consumption-locale_defecation-salinity_corrected_animal_respiration-animal_excretion_loss-animal_mortality-animal_predatory_pressure;
+		consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
+		biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
 
 		/* Plot grazer biomass differential*/
 		lineBuffer.str("");
@@ -490,6 +502,10 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 		lineBuffer<<commaString<<animal_carrying_capacity;
 		lineBuffer<<commaString<<localeFoodBiomassBeforeEating;
 		lineBuffer<<commaString<<localeFoodBiomassAfterEating;
+		lineBuffer<<commaString<<reproduction_investment_subtraction;
+		lineBuffer<<commaString<<reproduction_investment_exponent;
+		lineBuffer<<commaString<<reproduction_investment_power;
+		lineBuffer<<commaString<<reproduction_proportion_investment;
 #endif
 		lineBuffer<<commaString<<localeBiomassDifferential;
 		return localeBiomassDifferential;
@@ -618,7 +634,7 @@ void AnimalBiomassDynamics::salinityMortality(biomassType localeBiomass){
 #endif
 }
 
-/* The levels of oxygen concentration found in the lake do not reflect significant D. pulex mortality according to: (L. J. Weider and W. Lampert, �Differential response of Daphnia genotypes to oxygen stress: respiration rates, hemoglobin content and low-oxygen tolerance,� Oecologia, vol. 65, no. 4, pp. 487�491, Mar. 1985.)*/
+/* The levels of oxygen concentration found in the lake do not reflect significant D. pulex mortality according to: (L. J. Weider and W. Lampert, ï¿½Differential response of Daphnia genotypes to oxygen stress: respiration rates, hemoglobin content and low-oxygen tolerance,ï¿½ Oecologia, vol. 65, no. 4, pp. 487ï¿½491, Mar. 1985.)*/
 void AnimalBiomassDynamics::calculateLowOxigenMortality(biomassType inputBiomass){
 	low_oxigen_animal_mortality=0.0f;
 }
@@ -636,7 +652,7 @@ void AnimalBiomassDynamics::calculatePredationPressure(animalCountType zooplankt
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 #ifdef ANIMAL_STARVATION
-/* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, “Family planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,” Oecologia, vol. 91, no. 4, pp. 463–467, Oct. 1992., page 465, Fig. 1)*/
+/* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, â€œFamily planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,â€ Oecologia, vol. 91, no. 4, pp. 463â€“467, Oct. 1992., page 465, Fig. 1)*/
 void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass){
 	if(foodBiomass<this->food_starvation_threshold){
 			/* If starving, increment the number of hours without food*/
@@ -695,10 +711,18 @@ void AnimalBiomassDynamics::animalAging(AnimalCohort& cohort){
 #ifdef CREATE_NEW_COHORTS
 
 void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassType foodBiomass){
-	/* Proportion of investment to eggs taken from ([1] M. Lynch, “The Life History Consequences of Resource Depression in Daphnia Pulex,” Ecology, vol. 70, no. 1, pp. 246–256, Feb. 1989.)*/
-
-	reproduction_proportion_investment = this->reproduction_proportion_investment_amplitude*(1 - exp((double)(-this->reproduction_proportion_investment_coefficient*(foodBiomass*LITER_TO_MILLILITER - this->reproduction_proportion_investment_intercept))));
-
+	/* Proportion of investment to eggs taken from ([1] M. Lynch, â€œThe Life History Consequences of Resource Depression in Daphnia Pulex,â€ Ecology, vol. 70, no. 1, pp. 246â€“256, Feb. 1989.)*/
+#ifdef EXPONENTIAL_GONAD_ALLOCATION
+	reproduction_investment_subtraction=foodBiomass*MILLILITER_TO_LITER - this->reproduction_proportion_investment_intercept;
+	reproduction_investment_exponent=-this->reproduction_proportion_investment_coefficient*(reproduction_investment_subtraction);
+	reproduction_investment_power=exp((double)reproduction_investment_exponent);
+	reproduction_proportion_investment = this->reproduction_proportion_investment_amplitude*(1 - reproduction_investment_power);
+#else
+	reproduction_investment_subtraction=0;
+	reproduction_investment_exponent=reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);
+	reproduction_investment_power=reproduction_investment_exponent+this->reproduction_proportion_investment_amplitude;
+	reproduction_proportion_investment=max<biomassType>(0,min<biomassType>(1,reproduction_investment_power));
+#endif
 
 }
 

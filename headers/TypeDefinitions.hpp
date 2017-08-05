@@ -12,7 +12,7 @@
 
 typedef double biomassType;
 typedef double physicalType;
-typedef unsigned int animalCountType;
+typedef int animalCountType;
 typedef long int cohortIDType;
 
 #include <string>
@@ -63,7 +63,8 @@ typedef struct {
 	grazer_maximum_found_biomass,
 	grazer_food_starvation_threshold,
 	grazer_egg_allocation_threshold,
-	grazer_starvation_factor;
+	grazer_starvation_factor,
+	grazer_dead_animal_proportion;
 
 	double grazer_reproduction_proportion_investment_amplitude,
 	grazer_reproduction_proportion_investment_coefficient,

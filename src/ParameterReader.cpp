@@ -264,6 +264,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_starvation_factor= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerDeadAnimalProportion")){
+		simArguments.grazer_dead_animal_proportion= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerRandomSeed")){
 		simArguments.grazer_random_seed= atoi(parameterValue.c_str());
 		return;

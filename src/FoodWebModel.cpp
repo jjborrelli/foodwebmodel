@@ -340,6 +340,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Using differential equations for animal dynamics."<<endl;
 #endif
+#ifdef PRINT_ANIMAL_SUMMATORY
+	cout<<"Printing animal summatory."<<endl;
+#else
+	cout<<"Not printing animal summatory."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
@@ -994,7 +999,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsig
 	}
 }
 
-void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal){
+void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal){
 	if(count>0&&readProcessedData.initial_grazer_distribution[developmentStage]>0.0f){
 		AnimalCohort newCohort;
 		//pair<int,int> cohortCoordinates(depthIndex, columnIndex);

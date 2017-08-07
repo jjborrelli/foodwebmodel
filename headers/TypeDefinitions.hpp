@@ -12,7 +12,7 @@
 
 typedef double biomassType;
 typedef double physicalType;
-typedef int animalCountType;
+typedef long long int animalCountType;
 typedef long int cohortIDType;
 
 #include <string>
@@ -89,13 +89,13 @@ typedef struct {
 
 /* Types for individual-based dynamics of animals*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
-typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} animalStage;
+typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} AnimalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
 	int x, y;// ageInHours, hoursWithoutFood;
 
-	animalStage stage;
+	AnimalStage stage;
 //	causeOfDeath death;
 	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;

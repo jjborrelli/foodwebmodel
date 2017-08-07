@@ -43,9 +43,8 @@ void operator+=(AnimalCohort& cohort1, const EggCohort& cohort2){
 
 namespace FoodWebModel {
 
-AnimalBiomassDynamics::AnimalBiomassDynamics() {
+AnimalBiomassDynamics::AnimalBiomassDynamics():randomGenerator(NULL) {
 	// TODO Auto-generated constructor stub
-	randomGenerator=NULL;
 
 }
 
@@ -129,13 +128,15 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 
 	updateCohortBiomassForAnimals(bottomAnimals);
 	updateCohortBiomassForAnimals(floatingAnimals);
-	cout<<"Summatory of individuals: "<<this->floating_animal_count_summing/(41*254)<<"."<<endl;
 
 	/* Increase egg age*/
 
 #ifdef CREATE_NEW_COHORTS
 	matureEggs(bottomEggs, bottomAnimals);
 	matureEggs(floatingEggs, floatingAnimals);
+#endif
+#ifdef PRINT_ANIMAL_SUMMATORY
+	cout<<"Summatory of individuals: "<<this->floating_animal_count_summing/(41*254)<<"."<<endl;
 #endif
 	/* Remove all dead animals*/
 //	removeDeadAnimals();
@@ -221,7 +222,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	biomassType initialAnimalBiomass = cohort.bodyBiomass;
 	animalCountType animalCount=cohort.numberOfIndividuals;
 #ifdef CREATE_NEW_COHORTS
-	if(cohort.stage==animalStage::Mature){
+	if(cohort.stage==AnimalStage::Mature){
 		calculateReproductionProportionInvestment(initialFoodBiomass);
 	} else{
 		reproduction_proportion_investment=0.0f;
@@ -230,8 +231,11 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #else
 	reproduction_proportion_investment=0.0f;
 #endif
+#if defined (INDIVIDUAL_BASED_ANIMALS)&& defined (CREATE_NEW_COHORTS)
+	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass, cohort.stage);
+#else
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
-
+#endif
 	/* Remove dead animals based on biomass*/
 
 
@@ -252,7 +256,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	if((*(this->current_hour)%this->ovipositing_period)==0){
 		if(gonadBiomassInvestment>0.0f){
 			/* If the biomass is enough to generate at least one egg, create it.*/
-			if(cohort.gonadBiomass>=(biomassType)initial_grazer_weight[animalStage::Egg]){
+			if(cohort.gonadBiomass>=(biomassType)initial_grazer_weight[AnimalStage::Egg]){
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(*this->cohortID)<<", biomass: "<<cohort.gonadBiomass<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
 	#endif
@@ -291,7 +295,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	/* Update number of individuals based on cohort biomass*/
 #ifndef CREATE_NEW_COHORTS
 	cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
-	cohort.numberOfIndividuals=max<animalCountType>((animalCountType)0.0f, cohort.numberOfIndividuals);
+	cohort.numberOfIndividuals=max<animalCountType>(0, cohort.numberOfIndividuals);
 #endif
   if(bodyLostBiomass>0.0f){
 
@@ -451,64 +455,72 @@ biomassType AnimalBiomassDynamics::getFoodBiomass(bool bottom, int columnIndex,
 			this->bottomFoodBiomass[columnIndex] :
 			this->floatingFoodBiomass[depthIndex][columnIndex];
 }
-
+#if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
+biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass, AnimalStage stage){
+#else
 biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass){
+#endif
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 
 		/* Get zooplankton count and biomass*/
 	biomassType localeFoodBiomassBeforeEating = getFoodBiomass(bottom, columnIndex, depthIndex);
-		biomassType localeFoodBiomassInMicrograms = localeFoodBiomassBeforeEating*this->food_conversion_factor;
-		stroganovApproximation(localeTemperature);
-		foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms);
-		biomassType localeFoodBiomassAfterEating =  getFoodBiomass(bottom,	columnIndex, depthIndex);
-		defecation();
-		animalRespiration(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
-		animalExcretion(salinity_corrected_animal_respiration);
-		animalMortality(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
-		calculatePredationPressure(animalCount);
-		consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
-		biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
-
-		/* Plot grazer biomass differential*/
-		lineBuffer.str("");
-		lineBuffer.clear();
-		lineBuffer<<depthIndex;
-		lineBuffer<<commaString<<columnIndex;
-		lineBuffer<<commaString<<(*current_hour);
-		lineBuffer<<commaString<<bottom?1:0;
-#ifdef EXTENDED_OUTPUT
-		lineBuffer<<commaString<<consumption_per_individual;
-		lineBuffer<<commaString<<consumption_per_individual/localeFoodBiomassBeforeEating;
-		lineBuffer<<commaString<<used_consumption/localeFoodBiomassBeforeEating;
-		lineBuffer<<commaString<<stroganov_adjustment;
-		lineBuffer<<commaString<<locale_consumption;
-		lineBuffer<<commaString<<locale_consumption_salt_adjusted;
-		lineBuffer<<commaString<<locale_defecation;
-		lineBuffer<<commaString<<basal_animal_respiration;
-		lineBuffer<<commaString<<active_respiration_exponent;
-		lineBuffer<<commaString<<active_respiration_factor;
-		lineBuffer<<commaString<<active_respiration;
-		lineBuffer<<commaString<<metabolic_respiration;
-		lineBuffer<<commaString<<base_animal_respiration;
-		lineBuffer<<commaString<<salinity_corrected_animal_respiration;
-		lineBuffer<<commaString<<animal_excretion_loss;
-		lineBuffer<<commaString<<animal_temperature_mortality;
-		lineBuffer<<commaString<<animal_temp_independent_mortality;
-		lineBuffer<<commaString<<animal_base_mortality;
-		lineBuffer<<commaString<<salinity_mortality;
-		lineBuffer<<commaString<<low_oxigen_animal_mortality;
-		lineBuffer<<commaString<<animal_mortality;
-		lineBuffer<<commaString<<animal_predatory_pressure;
-		lineBuffer<<commaString<<animal_carrying_capacity;
-		lineBuffer<<commaString<<localeFoodBiomassBeforeEating;
-		lineBuffer<<commaString<<localeFoodBiomassAfterEating;
-		lineBuffer<<commaString<<reproduction_investment_subtraction;
-		lineBuffer<<commaString<<reproduction_investment_exponent;
-		lineBuffer<<commaString<<reproduction_investment_power;
-		lineBuffer<<commaString<<reproduction_proportion_investment;
+	biomassType localeFoodBiomassInMicrograms = localeFoodBiomassBeforeEating*this->food_conversion_factor;
+	stroganovApproximation(localeTemperature);
+	foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms);
+	biomassType localeFoodBiomassAfterEating =  getFoodBiomass(bottom,	columnIndex, depthIndex);
+	defecation();
+	animalRespiration(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
+	animalExcretion(salinity_corrected_animal_respiration);
+#if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
+	biomassType mortalityBiomass=animalCount*this->initial_grazer_weight[stage];
+#else
+	biomassType mortalityBiomass=animalBiomass;
 #endif
-		lineBuffer<<commaString<<localeBiomassDifferential;
-		return localeBiomassDifferential;
+	animalMortality(mortalityBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
+	calculatePredationPressure(animalCount);
+	consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
+	biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
+
+	/* Plot grazer biomass differential*/
+	lineBuffer.str("");
+	lineBuffer.clear();
+	lineBuffer<<depthIndex;
+	lineBuffer<<commaString<<columnIndex;
+	lineBuffer<<commaString<<(*current_hour);
+	lineBuffer<<commaString<<bottom?1:0;
+#ifdef EXTENDED_OUTPUT
+	lineBuffer<<commaString<<consumption_per_individual;
+	lineBuffer<<commaString<<consumption_per_individual/localeFoodBiomassBeforeEating;
+	lineBuffer<<commaString<<used_consumption/localeFoodBiomassBeforeEating;
+	lineBuffer<<commaString<<stroganov_adjustment;
+	lineBuffer<<commaString<<locale_consumption;
+	lineBuffer<<commaString<<locale_consumption_salt_adjusted;
+	lineBuffer<<commaString<<locale_defecation;
+	lineBuffer<<commaString<<basal_animal_respiration;
+	lineBuffer<<commaString<<active_respiration_exponent;
+	lineBuffer<<commaString<<active_respiration_factor;
+	lineBuffer<<commaString<<active_respiration;
+	lineBuffer<<commaString<<metabolic_respiration;
+	lineBuffer<<commaString<<base_animal_respiration;
+	lineBuffer<<commaString<<salinity_corrected_animal_respiration;
+	lineBuffer<<commaString<<animal_excretion_loss;
+	lineBuffer<<commaString<<animal_temperature_mortality;
+	lineBuffer<<commaString<<animal_temp_independent_mortality;
+	lineBuffer<<commaString<<animal_base_mortality;
+	lineBuffer<<commaString<<salinity_mortality;
+	lineBuffer<<commaString<<low_oxigen_animal_mortality;
+	lineBuffer<<commaString<<animal_mortality;
+	lineBuffer<<commaString<<animal_predatory_pressure;
+	lineBuffer<<commaString<<animal_carrying_capacity;
+	lineBuffer<<commaString<<localeFoodBiomassBeforeEating;
+	lineBuffer<<commaString<<localeFoodBiomassAfterEating;
+	lineBuffer<<commaString<<reproduction_investment_subtraction;
+	lineBuffer<<commaString<<reproduction_investment_exponent;
+	lineBuffer<<commaString<<reproduction_investment_power;
+	lineBuffer<<commaString<<reproduction_proportion_investment;
+#endif
+	lineBuffer<<commaString<<localeBiomassDifferential;
+	return localeBiomassDifferential;
 }
 
 
@@ -734,8 +746,8 @@ biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, b
 	eggCohort.isBottomAnimal=parentCohort.isBottomAnimal;
 	/*The others are attributes for newborn cohorts*/
 	eggCohort.ageInHours=0;
-	eggCohort.numberOfEggs=(animalCountType)(initialBiomass/initial_grazer_weight[animalStage::Egg]);
-	eggCohort.biomass=(biomassType)eggCohort.numberOfEggs*initial_grazer_weight[animalStage::Egg];
+	eggCohort.numberOfEggs=(animalCountType)(initialBiomass/initial_grazer_weight[AnimalStage::Egg]);
+	eggCohort.biomass=(biomassType)eggCohort.numberOfEggs*initial_grazer_weight[AnimalStage::Egg];
 	eggCohort.cohortID=(*this->cohortID)++;
 	eggCohort.hasHatched=false;
 	/*Add to the correct map of eggs*/
@@ -787,7 +799,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 		lineBuffer<<commaString<<0;
 		lineBuffer<<commaString<<0;
 #endif
-		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<animalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
+		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
 		animalBiomassBuffer<<lineBuffer.str();
 #endif
 		/*If the egg has hatched, create a new adult cohort*/
@@ -805,7 +817,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.cohortID=eggCohort.cohortID;
 	    		animalCohort.isBottomAnimal=eggCohort.isBottomAnimal;
 	    		animalCohort.gonadBiomass=0.0f;
-	    		animalCohort.stage=animalStage::Mature;
+	    		animalCohort.stage=AnimalStage::Mature;
 	    		/* If the adult cohort exists, increase biomass and number of eggs*/
 	    		(*adultAnimals)[cohortCoordinates]=animalCohort;
 	    	} else{

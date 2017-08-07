@@ -71,6 +71,8 @@
 
 //#define EXPONENTIAL_GONAD_ALLOCATION
 
+#define PRINT_ANIMAL_SUMMATORY
+
 //#define SATURATION_GRAZING
 //#define ZOOPLANKTON_ACCUMULATION
 /* End simulation modes*/

@@ -153,7 +153,7 @@ namespace FoodWebModel {
 		void initializePointers();
 #ifdef INDIVIDUAL_BASED_ANIMALS
 		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal);
-		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, animalStage developmentStage, bool isBottomAnimal);
+		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal);
 #endif
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);

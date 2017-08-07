@@ -109,6 +109,7 @@ protected:
 	/* Gonad biomass metrics */
 	biomassType reproduction_investment_subtraction, reproduction_investment_exponent, reproduction_investment_power;
 
+
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
 #ifdef CHECK_ASSERTIONS
@@ -122,7 +123,11 @@ protected:
 //	void removeDeadAnimals();
 	void updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals);
 #endif
+#if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
+	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass, AnimalStage stage);
+#else
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
+#endif
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);

@@ -44,8 +44,21 @@ protected:
 	        return cohort.hasHatched;
 	    }
 	};
+
+	struct removeStarvedOrMaturedJuveniles : public std::unary_function<const AnimalCohort&, bool>
+	{
+	    bool operator()(const AnimalCohort& cohort) const
+	    {
+	        return cohort.numberOfIndividuals<=0||cohort.bodyBiomass<=0.0f||cohort.stage==AnimalStage::Mature;
+	    }
+	};
+
+
 #ifdef CREATE_NEW_COHORTS
 	vector<EggCohort> floatingEggs, bottomEggs;
+#ifdef MATURE_JUVENILES
+	vector<AnimalCohort> floatingJuveniles, bottomJuveniles;
+#endif
 #endif
 #else
 	/* Animal biomass in micrograms*/
@@ -81,11 +94,11 @@ protected:
 	/* Maximum number of hours that the animal can survive with food below starvation levels*/
 	unsigned int max_hours_without_food;
 
-	/* Maximum animal age and incubation time in hours*/
-	unsigned int maximum_age_in_hours, incubation_hours, ovipositing_period;
+	/* Parameters for reproduction*/
+	unsigned int maximum_age_in_hours, incubation_hours, ovipositing_period, maturation_hours;
 
 
-	/*Parameters for grazer carrying capacity*/
+	/*Parameters for animal carrying capacity*/
 	biomassType animal_carrying_capacity_coefficient, animal_carrying_capacity_intercept, animal_carrying_capacity, maximum_found_animal_biomass;
 
 	/*Parameters for physical pointers*/
@@ -148,7 +161,12 @@ protected:
 #ifdef CREATE_NEW_COHORTS
 	void calculateReproductionProportionInvestment(biomassType foodBiomass);
 	biomassType createNewCohort(AnimalCohort& parentCohort, biomassType eggBiomass);
+#ifdef MATURE_JUVENILES
+	void matureEggs(vector<EggCohort>& eggs, vector<AnimalCohort>& adultAnimals);
+	void matureJuveniles(vector<AnimalCohort>& juveniles, map<pair<int,int>,AnimalCohort> *adultAnimals);
+#else
 	void matureEggs(vector<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
+#endif
 #endif
 	biomassType getFoodBiomass(AnimalCohort& cohort);
 #endif

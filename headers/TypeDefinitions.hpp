@@ -71,7 +71,7 @@ typedef struct {
 	grazer_reproduction_proportion_investment_intercept;
 
 	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours,
-	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period;
+	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours;
 
 	biomassType	predator_base_mortality_proportion, predator_filtering_rate_per_individual,
 	predator_basal_respiration_weight,
@@ -89,11 +89,11 @@ typedef struct {
 
 /* Types for individual-based dynamics of animals*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
-typedef enum {Egg=0, Newborn=1, Young=2, Mature=3} AnimalStage;
+typedef enum {Egg=0, Juvenile=1, Mature=2} AnimalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
-	int x, y;// ageInHours, hoursWithoutFood;
+	int x, y, ageInHours;// ageInHours, hoursWithoutFood;
 
 	AnimalStage stage;
 //	causeOfDeath death;
@@ -115,8 +115,7 @@ std::ostream& operator<<(std::ostream& os, const AnimalCohort& cohort);
 std::ostream& operator<<(std::ostream& os, const EggCohort& cohort);
 void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2);
 void operator+=(EggCohort& cohort1, const EggCohort& cohort2);
-
-
+void operator+=(AnimalCohort& cohort1, const EggCohort& cohort2);
 #endif
 
 #endif /* TYPEDEFINITIONS_HPP_ */

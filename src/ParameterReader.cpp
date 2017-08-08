@@ -248,6 +248,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_ovipositing_period= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerMaturationHours")){
+		simArguments.grazer_maturation_hours= atoi(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerReproductionProportionInvestmentAmplitude")){
 		simArguments.grazer_reproduction_proportion_investment_amplitude= atof(parameterValue.c_str());
 		return;

@@ -231,7 +231,7 @@ static const unsigned int INITIAL_ZOOPLANKTON_SHIFT=22;
 
 /* Number of possible age classes*/
 
-static const unsigned int MAX_CLASS_INDEX=4;
+static const unsigned int MAX_CLASS_INDEX=3;
 
 /*Maximum distance in meters for daphnia swum per hour (B.-P. Han and M. Stra�kraba, �Modeling patterns of zooplankton diel vertical migration,� J. Plankton Res., vol. 20, no. 8, pp. 1463�1487, 1998.)*/
 

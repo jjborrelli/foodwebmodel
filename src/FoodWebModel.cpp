@@ -189,6 +189,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.incubation_hours=simArguments.grazer_incubation_hours;
 	grazerDynamics.egg_allocation_threshold=simArguments.grazer_egg_allocation_threshold;
 	grazerDynamics.ovipositing_period=simArguments.grazer_ovipositing_period;
+	grazerDynamics.maturation_hours=simArguments.grazer_maturation_hours;
 	grazerDynamics.reproduction_proportion_investment_amplitude=simArguments.grazer_reproduction_proportion_investment_amplitude;
 	grazerDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
 	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
@@ -345,6 +346,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not printing animal summatory."<<endl;
 #endif
+#if defined(INDIVIDUAL_BASED_ANIMALS) && defined(CREATE_NEW_COHORTS) && defined(MATURE_JUVENILES)
+	cout<<"Maturing juveniles."<<endl;
+#else
+	cout<<"Not maturing juveniles."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
@@ -361,6 +367,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using egg allocation threshold "<<grazerDynamics.egg_allocation_threshold<<"."<<endl;
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
 	cout<<"Using grazer ovipositing frequency "<<grazerDynamics.ovipositing_period<<"."<<endl;
+	cout<<"Using grazer maturation hours "<<grazerDynamics.maturation_hours<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment amplitude "<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment coefficient "<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment intercept "<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
@@ -404,6 +411,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerIncubationHours;"<<grazerDynamics.incubation_hours<<endl;
 		parameterFileStream<<"GrazerEggAllocationThreshold;"<<grazerDynamics.egg_allocation_threshold<<endl;
 		parameterFileStream<<"GrazerOvipositingFrequency;"<<grazerDynamics.ovipositing_period<<endl;
+		parameterFileStream<<"GrazerMaturationHours;"<<grazerDynamics.maturation_hours<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentAmplitude;"<<grazerDynamics.reproduction_proportion_investment_amplitude<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentCoefficient;"<<grazerDynamics.reproduction_proportion_investment_coefficient<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentIntercept;"<<grazerDynamics.reproduction_proportion_investment_intercept<<endl;
@@ -993,9 +1001,8 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 
 void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal){
 	if(count>0){
-		addAnimalCohort(depthIndex,columnIndex,count, animals, Newborn, isBottomAnimal);
-		addAnimalCohort(depthIndex,columnIndex,count, animals, Young, isBottomAnimal);
-		addAnimalCohort(depthIndex,columnIndex,count, animals, Mature, isBottomAnimal);
+		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Juvenile, isBottomAnimal);
+		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Mature, isBottomAnimal);
 	}
 }
 

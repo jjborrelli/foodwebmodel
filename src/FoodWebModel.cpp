@@ -228,6 +228,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 #ifdef USE_PHOTOPERIOD
 	cout<<"Using sinusoidal photoperiod."<<endl;
+#elif defined(USE_YEARLY_LIGHT_SURFACE)
+	cout<<"Using yearly table-based photoperiod."<<endl;
 #else
 	cout<<"Using table-based photoperiod."<<endl;
 #endif
@@ -545,6 +547,7 @@ void FoodWebModel::FoodWebModel::updateRegisterVariables(){
 void FoodWebModel::FoodWebModel::updatePhysicalState(){
 	photoPeriod();
 	calculateLightAtTop();
+	//useSeasonalLight();
 
 	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
@@ -934,8 +937,10 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 
 	/* Store phosphorus concentration at bottom*/
 	phosphorus_concentration_at_bottom_in_hour= new physicalType[readProcessedData.simulationCycles];
+	yearly_light_at_surface= new physicalType[readProcessedData.simulationCycles];
 	for(int i=0; i<readProcessedData.simulationCycles; i++){
 		phosphorus_concentration_at_bottom_in_hour[i]=readProcessedData.phosphorusConcentrationAtBottom[i];
+		yearly_light_at_surface[i] = readProcessedData.yearlylightAtSurface[i];
 	}
 	/*Copy arrays that depend on maximum depth*/
 	for(int i=0; i<MAX_DEPTH_INDEX; i++){
@@ -1247,6 +1252,8 @@ void FoodWebModel::FoodWebModel::photoPeriod(){
 void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 #ifdef USE_PHOTOPERIOD
 	light_at_top= AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
+#elif defined(USE_YEARLY_LIGHT_SURFACE)
+	light_at_top= this->yearly_light_at_surface[current_hour];
 #else
 	light_at_top= this->hourlyLightAtSurface[current_hour%HOURS_PER_DAY];
 #endif

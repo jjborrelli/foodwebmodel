@@ -41,6 +41,7 @@ typedef struct {
 	initialZooplanktonDistributionRoute,
 	initialZooplanktonWeightRoute,
 	lightAtSurfaceRoute,
+	lightAtSurfaceYearRoute,
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
 	zooplanktonBiomassDepthCenterRoute;

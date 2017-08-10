@@ -30,7 +30,7 @@ namespace FoodWebModel{
 
 		/* Physical data*/
 		physicalType **initial_temperature;
-		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom;
+		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom, *yearlylightAtSurface;
 		unsigned int simulationCycles;
 	public:
 		ReadProcessedData();
@@ -53,6 +53,7 @@ namespace FoodWebModel{
 		template<typename T>
 		void readDataMatrix(const string& fileRoute, T** dataMatrix);
 		void readLightAtSurface(const string& lightRoute);
+		void readYearLightIntensity(const string& lightAtSurfaceYearRoute);
 		//int readTemperatureAtSurface(string temperatureAtSurfaceFileRoute);
 
 	};

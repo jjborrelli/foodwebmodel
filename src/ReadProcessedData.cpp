@@ -121,6 +121,7 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readInitialZooplanktonWeight(simArguments.initialZooplanktonWeightRoute);
 	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferentialRoute);
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
+	readYearLightIntensity(simArguments.lightAtSurfaceYearRoute);
 	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottomRoute);
 	readZooplanktonBiomassCenterDifferencePerDepth(simArguments.zooplanktonBiomassDepthCenterRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
@@ -220,6 +221,13 @@ void FoodWebModel::ReadProcessedData::readPhosphorusConcentrationAtBottom(const 
 	cout<<"Phosphorus concentration at bottom read."<<endl;
 }
 
+void FoodWebModel::ReadProcessedData::readYearLightIntensity(const string& lightAtSurfaceYearRoute){
+	cout<<"Reading yearly light at surface from file: "<<lightAtSurfaceYearRoute<<endl;
+	this->yearlylightAtSurface = new physicalType[this->simulationCycles];
+	cout<<"Allocated yearly light at surface with size "<<this->simulationCycles<<endl;
+	readValues<physicalType>(lightAtSurfaceYearRoute, this->yearlylightAtSurface, this->simulationCycles);
+	cout<<"Yearly light at surface read."<<endl;
+}
 
 void FoodWebModel::ReadProcessedData::readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute){
 	cout<<"Reading zooplankton biomass center difference per depth at hour from file: "<<zooplanktonBiomassCenterDifferencePerDepthRoute<<endl;

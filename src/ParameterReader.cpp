@@ -264,6 +264,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_reproduction_proportion_investment_intercept= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerReproductionProportionInvestmentConstant")){
+		simArguments.grazer_reproduction_proportion_investment_constant= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerReproductionProportionInvestmentMultiplier")){
+		simArguments.grazer_reproduction_proportion_investment_multiplier= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerStarvationFactor")){
 		simArguments.grazer_starvation_factor= atof(parameterValue.c_str());
 		return;

@@ -193,6 +193,9 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.reproduction_proportion_investment_amplitude=simArguments.grazer_reproduction_proportion_investment_amplitude;
 	grazerDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
 	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
+	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
+	grazerDynamics.reproduction_proportion_investment_constant=simArguments.grazer_reproduction_proportion_investment_constant;
+	grazerDynamics.reproduction_proportion_investment_multiplier=simArguments.grazer_reproduction_proportion_investment_multiplier;
 	grazerDynamics.random_seed=simArguments.grazer_random_seed;
 	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
@@ -335,8 +338,10 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 #ifdef EXPONENTIAL_GONAD_ALLOCATION
 	cout<<"Using exponential gonad allocation."<<endl;
+#elif defined(SIGMOIDAL_GONAD_ALLOCATION)
+	cout<<"Using sigmoidal gonad allocation."<<endl;
 #else
-	cout<<"Not using exponential gonad allocation."<<endl;
+	cout<<"Using exponential gonad allocation."<<endl;
 #endif
 #else
 	cout<<"Using differential equations for animal dynamics."<<endl;
@@ -371,9 +376,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer reproduction proportion investment amplitude "<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment coefficient "<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment intercept "<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
+	cout<<"Using grazer reproduction proportion investment constant "<<grazerDynamics.reproduction_proportion_investment_constant<<"."<<endl;
+	cout<<"Using grazer reproduction proportion investment multiplier "<<grazerDynamics.reproduction_proportion_investment_multiplier<<"."<<endl;
+
 	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
-
 	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
@@ -415,6 +422,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerReproductionProportionInvestmentAmplitude;"<<grazerDynamics.reproduction_proportion_investment_amplitude<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentCoefficient;"<<grazerDynamics.reproduction_proportion_investment_coefficient<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentIntercept;"<<grazerDynamics.reproduction_proportion_investment_intercept<<endl;
+		parameterFileStream<<"GrazerReproductionProportionInvestmentConstant;"<<grazerDynamics.reproduction_proportion_investment_constant<<endl;
+		parameterFileStream<<"GrazerReproductionProportionInvestmentMultiplier;"<<grazerDynamics.reproduction_proportion_investment_multiplier<<endl;
 		parameterFileStream<<"GrazerStarvationFactor;"<<grazerDynamics.starvation_factor<<endl;
 		parameterFileStream<<"GrazerDeadAnimalProportion;"<<grazerDynamics.dead_animal_proportion<<endl;
 		parameterFileStream<<"GrazerRandomSeed;"<<grazerDynamics.random_seed<<endl;

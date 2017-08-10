@@ -734,8 +734,13 @@ void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassTyp
 #ifdef EXPONENTIAL_GONAD_ALLOCATION
 	reproduction_investment_subtraction=foodBiomass*MILLILITER_TO_LITER - this->reproduction_proportion_investment_intercept;
 	reproduction_investment_exponent=-this->reproduction_proportion_investment_coefficient*(reproduction_investment_subtraction);
-	reproduction_investment_power=exp((double)reproduction_investment_exponent);
+	reproduction_investment_power=exp((biomassType)reproduction_investment_exponent);
 	reproduction_proportion_investment = this->reproduction_proportion_investment_amplitude*(1 - reproduction_investment_power);
+#elif defined(SIGMOIDAL_GONAD_ALLOCATION)
+	reproduction_investment_subtraction=-reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);
+	reproduction_investment_exponent=reproduction_investment_subtraction+this->reproduction_proportion_investment_amplitude;
+	reproduction_investment_power=exp((biomassType)reproduction_investment_exponent);
+	reproduction_proportion_investment=max<biomassType>(0,min<biomassType>(1,this->reproduction_proportion_investment_multiplier*this->reproduction_proportion_investment_intercept/(this->reproduction_proportion_investment_intercept+reproduction_investment_power))+this->reproduction_proportion_investment_constant);
 #else
 	reproduction_investment_subtraction=0;
 	reproduction_investment_exponent=reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);

@@ -359,6 +359,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Not maturing juveniles."<<endl;
 #endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<endl;
+	cout<<"Using maximum light data "<<MAX_LIGHT_DATA<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
@@ -1253,7 +1254,7 @@ void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 #ifdef USE_PHOTOPERIOD
 	light_at_top= AVERAGE_INCIDENT_LIGHT_INTENSITY*localePhotoPeriod;
 #elif defined(USE_YEARLY_LIGHT_SURFACE)
-	light_at_top= this->yearly_light_at_surface[current_hour];
+	light_at_top= this->yearly_light_at_surface[current_hour%MAX_LIGHT_DATA];
 #else
 	light_at_top= this->hourlyLightAtSurface[current_hour%HOURS_PER_DAY];
 #endif

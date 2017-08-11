@@ -141,6 +141,8 @@ static const physicalType Math_PI = 3.141593f;
 
 static const physicalType AVERAGE_INCIDENT_LIGHT_INTENSITY = 291.8653f;
 
+static const unsigned int MAX_LIGHT_DATA = 8593;
+
 
 //static const physicalType LIGHT_STEEPNESS = 0.0005f;
 

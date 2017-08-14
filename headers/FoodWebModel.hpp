@@ -37,7 +37,7 @@ namespace FoodWebModel {
 		/*Class attributes*/
 	protected:
 		ReadProcessedData readProcessedData;
-		unsigned int current_hour, ZMaxIndex, simulation_cycles;
+		unsigned int current_hour, ZMaxIndex, simulation_cycles, limiting_factor[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phosphorus_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], salinity_effect_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour, *yearly_light_at_surface;
 		unsigned int maxDepthIndex[MAX_COLUMN_INDEX];
@@ -47,8 +47,12 @@ namespace FoodWebModel {
 		/*Phytoplankton biomass concentration in micrograms/l, periphyton biomass micrograms/l and temperature in Celsius degrees*/
 		biomassType phytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomass[MAX_COLUMN_INDEX], phytoDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periDifferential[MAX_COLUMN_INDEX], localBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], verticalMigratedPeriBiomass[MAX_COLUMN_INDEX], sloughPhytoBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phytoBiomassDifferential[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periBiomassDifferential[MAX_COLUMN_INDEX], baseAlgaeBiomassDifferential[MAX_DEPTH_INDEX];
 
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+		biomassType previousDeadFloatingBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], deadFloatingBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], previousDeadBottomBiomass[MAX_COLUMN_INDEX], deadBottomBiomass[MAX_COLUMN_INDEX];
+#endif
+
 		/*Nutrient parameters*/
-		biomassType phosphorus_half_saturation, limitation_scale_weight;
+		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion;
 
 		/*Light parameters*/
 		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient, salinity_exponent;
@@ -154,6 +158,9 @@ namespace FoodWebModel {
 #ifdef INDIVIDUAL_BASED_ANIMALS
 		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal);
 		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal);
+#endif
+#ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+		void updateDeadBiomass();
 #endif
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);

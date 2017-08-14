@@ -39,6 +39,9 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 #endif
 	grazerDynamics.bottomFoodBiomass = periBiomass;
 	grazerDynamics.maxDepthIndex = maxDepthIndex;
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	grazerDynamics.deadBottomBiomass=deadBottomBiomass;
+#endif
 	grazerDynamics.current_hour = &current_hour;
 	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
 			depthIndex++) {
@@ -49,6 +52,9 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		grazerDynamics.lakeLightAtDepth[depthIndex]=lakeLightAtDepth[depthIndex];
 		grazerDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
 		grazerDynamics.temperature[depthIndex]=temperature[depthIndex];
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+		grazerDynamics.deadFloatingBiomass[depthIndex]=deadFloatingBiomass[depthIndex];
+#endif
 	}
 //	predatorDynamics.assertionViolationBuffer = &assertionViolationBuffer;
 //	predatorDynamics.bottomAnimalBiomass = bottomPredatorBiomass;
@@ -87,7 +93,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, ReproductionInvestmentSubstraction, ReproductionInvestmentExponent, ReproductionInvestmentPower, ReproductionInvestment, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
 #else
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeBiomassDifferential, AlgaeBiomass"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
@@ -162,7 +168,10 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->algal_carrying_capacity_coefficient = simArguments.algal_carrying_capacity_coefficient;
 	this->algal_carrying_capacity_intercept = simArguments.algal_carrying_capacity_intercept;
 	this->maximum_found_algal_biomass=simArguments.maximum_found_algal_biomass;
+	this->reabsorbed_algal_nutrients_proportion=simArguments.reabsorbed_algal_nutrients_proportion;
 	this->phosphorous_weight=simArguments.phosphorous_weight;
+	this->decaying_phosphorus_factor=simArguments.decaying_phosphorus_factor;
+	this->retained_phosphorus_factor=simArguments.retained_phosphorus_factor;
 	initializeGrazerAttributes(simArguments);
 }
 
@@ -199,6 +208,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.random_seed=simArguments.grazer_random_seed;
 	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
+	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 	grazerDynamics.randomGenerator=new default_random_engine(grazerDynamics.random_seed);
 	grazerDynamics.cohortID=&(this->cohortID);
 
@@ -358,8 +368,15 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not maturing juveniles."<<endl;
 #endif
-	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<endl;
-	cout<<"Using maximum light data "<<MAX_LIGHT_DATA<<endl;
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	cout<<"Reusing dead biomass."<<endl;
+#else
+	cout<<"Not reusing dead biomass."<<endl;
+#endif
+	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
+	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
+	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
+	cout<<"Using maximum light data "<<MAX_LIGHT_DATA<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
@@ -384,6 +401,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 
 	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
+	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
+
 	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
@@ -397,6 +416,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using algal carrying capacity coefficient "<<this->algal_carrying_capacity_coefficient<<"."<<endl;
 	cout<<"Using algal carrying capacity intercept "<<this->algal_carrying_capacity_intercept<<"."<<endl;
 	cout<<"Using maximum found algal biomass "<<this->maximum_found_algal_biomass<<"."<<endl;
+	cout<<"Using reabsorbed algal nutrients proportion "<<this->reabsorbed_algal_nutrients_proportion<<"."<<endl;
+
 }
 
 
@@ -406,6 +427,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 	if (parameterFileStream.is_open()){
 		cout<<"File "<<parameterSimulationRoute<<" open for simulation parameter register."<<endl;
 		parameterFileStream<<"PhosphorousWeight;"<<this->phosphorous_weight<<endl;
+		parameterFileStream<<"DecayingPhosphorusFactor;"<<this->decaying_phosphorus_factor<<endl;
+		parameterFileStream<<"RetainedPhosphorusFactor;"<<this->retained_phosphorus_factor<<endl;
 		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
 		parameterFileStream<<"AnimalBaseMortality;"<<grazerDynamics.animal_base_mortality_proportion<<endl;
 		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
@@ -429,10 +452,12 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerReproductionProportionInvestmentMultiplier;"<<grazerDynamics.reproduction_proportion_investment_multiplier<<endl;
 		parameterFileStream<<"GrazerStarvationFactor;"<<grazerDynamics.starvation_factor<<endl;
 		parameterFileStream<<"GrazerDeadAnimalProportion;"<<grazerDynamics.dead_animal_proportion<<endl;
+		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
 		parameterFileStream<<"GrazerRandomSeed;"<<grazerDynamics.random_seed<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;
 		parameterFileStream<<"AlgalMaximumFoundBiomass;"<<this->maximum_found_algal_biomass<<endl;
+		parameterFileStream<<"AlgalReabsorbedDeadNutrientsProportion;"<<this->reabsorbed_algal_nutrients_proportion<<endl;
 		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
@@ -527,6 +552,9 @@ void FoodWebModel::FoodWebModel::closeSimulationFiles(){
 void FoodWebModel::FoodWebModel::step(){
 	updateRegisterVariables();
 	updatePhysicalState();
+#ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
+	updateDeadBiomass();
+#endif
 	updateAlgaeBiomass();
 	grazerDynamics.updateAnimalBiomass();
 //	predatorDynamics.updateAnimalBiomass();
@@ -722,7 +750,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 #ifdef EXTENDED_OUTPUT
 				algaeBuffer<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex];
 #endif
-				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
+				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<this->limiting_factor[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
 
 			}
 		}
@@ -745,10 +773,27 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	normalizeLight(columnIndex);
 	lightAllowance(localPointBiomass);
 	calculateNutrientLimitation(localPointBiomass, phosphorus_concentration[depthIndex][columnIndex]);
+
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	/* Add nutrients from biomass dead in previous hours*/
+	biomassType previousDeadBiomass=periPhyton?previousDeadBottomBiomass[columnIndex]:previousDeadFloatingBiomass[depthIndex][columnIndex];
+	physicalType phosphorusFactorAddition=this->decaying_phosphorus_factor*previousDeadBiomass;
+
+	/* Remove nutrients from dead biomass that have been absorbed*/
+	if(periPhyton){
+		previousDeadBottomBiomass[columnIndex]-=phosphorusFactorAddition;
+	} else{
+		previousDeadFloatingBiomass[depthIndex][columnIndex]-=phosphorusFactorAddition;
+	}
+	nutrient_limitation+=phosphorusFactorAddition;
+#endif
 #ifdef LIMITATION_MINIMUM
 	physicalType localeLimitationProduct = min<physicalType>(light_allowance,nutrient_limitation);
+
+	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==light_allowance?1:0;
 #else
 	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
+	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==0;
 #endif
 	/* Calculate biomass differential components*/
 	localeLimitationProduct*=this->limitation_scale_weight;
@@ -768,6 +813,15 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	algaeExcretion();
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
 	algaeNaturalMortality(localeTemperature, localeLimitationProduct, localPointBiomass);
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	/* Add dead nutrients*/
+	biomassType reabsorbedNutrients = this->reabsorbed_algal_nutrients_proportion*-algae_natural_mortality;
+	if(periPhyton){
+		deadBottomBiomass[columnIndex]+= reabsorbedNutrients;
+	} else{
+		deadFloatingBiomass[depthIndex][columnIndex]+= reabsorbedNutrients;
+	}
+#endif
 	/*Add algae constant differential if grazers are present*/
 	biomassType constantBiomassDifferential=0.0f;
 #ifdef ADD_CONSTANT_BIOMASS_DIFFERENTIAL
@@ -974,6 +1028,9 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		/* Initialize periphyton and bottom feeder biomass*/
 		this->periDifferential[i] = 0;
 		this->periBiomass[i]=readProcessedData.initial_algae_biomass[maxDepthIndex[i]][i];
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+		this->previousDeadBottomBiomass[i]=this->deadBottomBiomass[i]=0.0f;
+#endif
 		/* Copy bottom grazer biomass per cell*/
 #ifdef  INDIVIDUAL_BASED_ANIMALS
 		/*Initialize cohort IDs*/
@@ -996,6 +1053,9 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 			} else {
 				/* If we are modeling any biomass that it is not at the bottom, then all initial biomass is phytoplankton*/
 					this->phytoBiomass[j][i]=readProcessedData.initial_algae_biomass[j][i];
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+					this->previousDeadFloatingBiomass[j][i]=this->deadFloatingBiomass[j][i]=0.0f;
+#endif
 					/* Copy floating grazer biomass per cell*/
 	#ifdef INDIVIDUAL_BASED_ANIMALS
 					if(readProcessedData.initial_grazer_count[j][i]>0.0f){
@@ -1346,6 +1406,20 @@ void FoodWebModel::FoodWebModel::calculateDistanceToFocus(){
 
 }
 
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+void FoodWebModel::FoodWebModel::updateDeadBiomass(){
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+			previousDeadFloatingBiomass[depthIndex][columnIndex] =deadFloatingBiomass[depthIndex][columnIndex];
+			deadFloatingBiomass[depthIndex][columnIndex]*=this->retained_phosphorus_factor;
+		}
+	}
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+		previousDeadBottomBiomass[columnIndex] =deadBottomBiomass[columnIndex];
+		deadBottomBiomass[columnIndex]*=this->retained_phosphorus_factor;
+	}
+}
+#endif
 /* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.
  * Assume that the grazing rate of Cladocerans is constant, independent of the abundance of algae biomass in the system
  * Play with the number of Cladocerans in the system, increasing them directly proportional to temperature.

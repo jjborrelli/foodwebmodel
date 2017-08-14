@@ -159,6 +159,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.phosphorous_weight = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("DecayingPhosphorusFactor")){
+		simArguments.decaying_phosphorus_factor=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("RetainedPhosphorusFactor")){
+		simArguments.retained_phosphorus_factor=atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("Respiration20Degrees")){
 		simArguments.algal_respiration_at_20_degrees = atof(parameterValue.c_str());
 		return;
@@ -197,6 +205,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("AlgalMaximumFoundBiomass")){
 		simArguments.maximum_found_algal_biomass = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("AlgalReabsorbedDeadNutrientsProportion")){
+		simArguments.reabsorbed_algal_nutrients_proportion = atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("GrazerBaseMortality")){
@@ -281,6 +293,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("GrazerDeadAnimalProportion")){
 		simArguments.grazer_dead_animal_proportion= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerReabsorbedDeadNutrientsProportion")){
+		simArguments.grazer_reabsorbed_animal_nutrients_proportion = atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("GrazerRandomSeed")){

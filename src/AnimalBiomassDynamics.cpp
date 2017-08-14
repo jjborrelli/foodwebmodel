@@ -484,6 +484,15 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	biomassType mortalityBiomass=animalBiomass;
 #endif
 	animalMortality(mortalityBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	biomassType reabsorbedAlgalNutrients=reabsorbed_animal_nutrients_proportion*animal_mortality;
+	/* Add dead animal biomass*/
+	if(bottom){
+		deadBottomBiomass[columnIndex]+=reabsorbedAlgalNutrients;
+	} else{
+		deadFloatingBiomass[depthIndex][columnIndex]+=reabsorbedAlgalNutrients;
+	}
+#endif
 	calculatePredationPressure(animalCount);
 	consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
 	biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;

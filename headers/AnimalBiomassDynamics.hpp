@@ -121,8 +121,11 @@ protected:
 
 	/* Gonad biomass metrics */
 	biomassType reproduction_investment_subtraction, reproduction_investment_exponent, reproduction_investment_power;
-
-
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	/* Dead biomass */
+	biomassType *deadFloatingBiomass[MAX_DEPTH_INDEX], *deadBottomBiomass;
+	physicalType reabsorbed_animal_nutrients_proportion;
+#endif
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
 #ifdef CHECK_ASSERTIONS

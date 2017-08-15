@@ -172,6 +172,8 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->phosphorous_weight=simArguments.phosphorous_weight;
 	this->decaying_phosphorus_factor=simArguments.decaying_phosphorus_factor;
 	this->retained_phosphorus_factor=simArguments.retained_phosphorus_factor;
+	this->wash_up_dead_biomass_proportion=simArguments.wash_up_dead_biomass_proportion;
+	this->wash_down_dead_biomass_proportion=simArguments.wash_down_dead_biomass_proportion;
 	initializeGrazerAttributes(simArguments);
 }
 
@@ -417,6 +419,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using algal carrying capacity intercept "<<this->algal_carrying_capacity_intercept<<"."<<endl;
 	cout<<"Using maximum found algal biomass "<<this->maximum_found_algal_biomass<<"."<<endl;
 	cout<<"Using reabsorbed algal nutrients proportion "<<this->reabsorbed_algal_nutrients_proportion<<"."<<endl;
+	cout<<"Using proportion of wash-up for dead biomass "<<this->wash_up_dead_biomass_proportion<<"."<<endl;
+	cout<<"Using proportion of wash-down for dead biomass "<<this->wash_down_dead_biomass_proportion<<"."<<endl;
 
 }
 
@@ -466,6 +470,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"LightSteepness;"<<this->light_steepness<<endl;
 		parameterFileStream<<"IntrinsicAlgaeMortalityRate;"<<this->intrinsic_algae_mortality_rate<<endl;
 		parameterFileStream<<"LimitationScaleWeight;"<<this->limitation_scale_weight<<endl;
+		parameterFileStream<<"WashUpDeadBiomass;"<<this->wash_up_dead_biomass_proportion<<endl;
+		parameterFileStream<<"WashDownDeadBiomass;"<<this->wash_down_dead_biomass_proportion<<endl;
 		parameterFileStream.close();
 	} else {
 		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;
@@ -782,8 +788,14 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	/* Remove nutrients from dead biomass that have been absorbed*/
 	if(periPhyton){
 		previousDeadBottomBiomass[columnIndex]-=phosphorusFactorAddition;
+		previousDeadBottomBiomass[columnIndex]=max<biomassType>(previousDeadBottomBiomass[columnIndex],0.0f);
 	} else{
 		previousDeadFloatingBiomass[depthIndex][columnIndex]-=phosphorusFactorAddition;
+		previousDeadFloatingBiomass[depthIndex][columnIndex]=max<biomassType>(previousDeadFloatingBiomass[depthIndex][columnIndex],0.0f);
+
+	}
+	if(phosphorusFactorAddition<0){
+		cout<<"Phosphorus addition: "<<phosphorusFactorAddition<<" is lower than 0."<<endl;
 	}
 	nutrient_limitation+=phosphorusFactorAddition;
 #endif
@@ -796,7 +808,13 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==0;
 #endif
 	/* Calculate biomass differential components*/
+	biomassType unweightedLocaleLimitationProduct=localeLimitationProduct;
 	localeLimitationProduct*=this->limitation_scale_weight;
+#ifdef CHECK_LOST_BIOMASS_ADDITION
+	if(unweightedLocaleLimitationProduct>1.0f){
+		cout<<"Unweighted locale limitation product: "<<unweightedLocaleLimitationProduct<<" is greater than 0."<<endl;
+	}
+#endif
 	photoSynthesis(localPointBiomass, localeLimitationProduct, periPhyton);
 	algaeSinking(depthIndex, columnIndex);
     algaeSlough(columnIndex);
@@ -812,14 +830,20 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	algaeRespiration(localPointBiomass, localeTemperature);
 	algaeExcretion();
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
-	algaeNaturalMortality(localeTemperature, localeLimitationProduct, localPointBiomass);
+	algaeNaturalMortality(localeTemperature, unweightedLocaleLimitationProduct, localPointBiomass);
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	/* Add dead nutrients*/
 	biomassType reabsorbedNutrients = this->reabsorbed_algal_nutrients_proportion*-algae_natural_mortality;
+	if(deadFloatingBiomass[depthIndex][columnIndex]<0.0f){
+		cout<<"Lower than 0 dead biomass: "<<deadFloatingBiomass[depthIndex][columnIndex]<<"."<<endl;
+	}
 	if(periPhyton){
 		deadBottomBiomass[columnIndex]+= reabsorbedNutrients;
 	} else{
 		deadFloatingBiomass[depthIndex][columnIndex]+= reabsorbedNutrients;
+	}
+	if(deadFloatingBiomass[depthIndex][columnIndex]<0.0f){
+		cout<<"Lower than 0 dead biomass: "<<deadFloatingBiomass[depthIndex][columnIndex]<<"."<<endl;
 	}
 #endif
 	/*Add algae constant differential if grazers are present*/
@@ -1175,6 +1199,11 @@ void FoodWebModel::FoodWebModel::algaeHighTemperatureMortality(physicalType loca
  * Biomass lost to stress related to resource limitation (AquaTox Documentation, page 86, equation 68)
  */
 void FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLimitationProduct){
+#ifdef CHECK_LOST_BIOMASS_ADDITION
+	if(localeLimitationProduct>1.0f){
+		cout<<"Locale limitation product: "<<localeLimitationProduct<<" is higher than 1.";
+	}
+#endif
 	resource_limitation_exponent = -this->maximum_algae_resources_death*(1-localeLimitationProduct);
 	resource_limitation_stress= 1.0f-exp(resource_limitation_exponent);
 	weighted_resource_limitation_stress = resource_limitation_stress;
@@ -1408,17 +1437,61 @@ void FoodWebModel::FoodWebModel::calculateDistanceToFocus(){
 
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 void FoodWebModel::FoodWebModel::updateDeadBiomass(){
-	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
-		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
-			previousDeadFloatingBiomass[depthIndex][columnIndex] =deadFloatingBiomass[depthIndex][columnIndex];
-			deadFloatingBiomass[depthIndex][columnIndex]*=this->retained_phosphorus_factor;
-		}
-	}
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; depthIndex++){
+#ifdef CHECK_LOST_BIOMASS_ADDITION
+			if(deadFloatingBiomass[depthIndex][columnIndex]<0.0f){
+				cout<<"Lower than 0 dead biomass: "<<deadFloatingBiomass[depthIndex][columnIndex]<<"."<<endl;
+			}
+#endif
+			biomassType washupDownPhytoplanktonBiomass = this->wash_down_dead_biomass_proportion*deadFloatingBiomass[depthIndex][columnIndex];
+			biomassType movedBiomass=washupDownPhytoplanktonBiomass;
+			if(depthIndex>0){
+				/* If not the most superficial water layer, move up washed-up biomass */
+				biomassType washupDeadPhytoplanktonBiomass = this->wash_up_dead_biomass_proportion*deadFloatingBiomass[depthIndex][columnIndex];
+				movedBiomass+=washupDeadPhytoplanktonBiomass;
+				deadFloatingBiomass[depthIndex-1][columnIndex]+= washupDeadPhytoplanktonBiomass;
+			}
+			if(depthIndex<maxDepthIndex[columnIndex]){
+				/* If not the deepest water layer, move down washed-up biomass */
+				deadFloatingBiomass[depthIndex+1][columnIndex]+= washupDownPhytoplanktonBiomass;
+			} else{
+				/*Otherwise, incorporate to periphyton*/
+				deadBottomBiomass[columnIndex]+= washupDownPhytoplanktonBiomass;
+
+			}
+#ifdef CHECK_LOST_BIOMASS_ADDITION
+			if(deadFloatingBiomass[depthIndex][columnIndex]<0.0f){
+				cout<<"Lower than 0 dead biomass: "<<deadFloatingBiomass[depthIndex][columnIndex]<<"."<<endl;
+			}
+#endif
+			/* Remove moved biomass*/
+			deadFloatingBiomass[depthIndex][columnIndex]-=movedBiomass;
+			/*Phytoplankton after degradation*/
+			previousDeadFloatingBiomass[depthIndex][columnIndex] =deadFloatingBiomass[depthIndex][columnIndex];
+
+			deadFloatingBiomass[depthIndex][columnIndex]*=this->retained_phosphorus_factor;
+#ifdef CHECK_LOST_BIOMASS_ADDITION
+			if(deadFloatingBiomass[depthIndex][columnIndex]<0.0f){
+				cout<<"Lower than 0 dead biomass: "<<deadFloatingBiomass[depthIndex][columnIndex]<<"."<<endl;
+			}
+#endif
+
+		}
+		/* Washup of periphyton*/
+		biomassType washupDeadPeriphytonBiomass = this->wash_up_dead_biomass_proportion*deadBottomBiomass[columnIndex];
+		deadFloatingBiomass[maxDepthIndex[columnIndex]][columnIndex]+= washupDeadPeriphytonBiomass;
+		deadBottomBiomass[columnIndex]-= washupDeadPeriphytonBiomass;
+
+		/*Periphyton after degradation*/
 		previousDeadBottomBiomass[columnIndex] =deadBottomBiomass[columnIndex];
 		deadBottomBiomass[columnIndex]*=this->retained_phosphorus_factor;
+
+
 	}
+
 }
+
 #endif
 /* As a first approximation, let us assume that we only have Cladocerans (Daphnia) in the system, since they are the main grazers.
  * Assume that the grazing rate of Cladocerans is constant, independent of the abundance of algae biomass in the system

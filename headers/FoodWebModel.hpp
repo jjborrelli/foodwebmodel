@@ -51,6 +51,9 @@ namespace FoodWebModel {
 		biomassType previousDeadFloatingBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], deadFloatingBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], previousDeadBottomBiomass[MAX_COLUMN_INDEX], deadBottomBiomass[MAX_COLUMN_INDEX];
 #endif
 
+		/*Vertical movement of dead biomass*/
+		biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion;
+
 		/*Nutrient parameters*/
 		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion;
 

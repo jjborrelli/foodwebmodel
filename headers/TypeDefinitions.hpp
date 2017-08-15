@@ -57,6 +57,9 @@ typedef struct {
 	intrinsic_algae_mortality_rate, maximum_algae_resources_death,
 	reabsorbed_algal_nutrients_proportion;
 
+/*Movement of dead biomass*/
+	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion;
+
 	biomassType	grazer_base_mortality_proportion, grazer_filtering_rate_per_individual,
 	grazer_basal_respiration_weight,
 	grazer_k_value_respiration,

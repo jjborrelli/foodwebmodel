@@ -99,7 +99,7 @@ protected:
 
 
 	/*Parameters for animal carrying capacity*/
-	biomassType animal_carrying_capacity_coefficient, animal_carrying_capacity_intercept, animal_carrying_capacity, maximum_found_animal_biomass;
+	biomassType animal_carrying_capacity_coefficient, animal_carrying_capacity_intercept, animal_carrying_capacity_amplitude, animal_carrying_capacity_constant, animal_carrying_capacity, maximum_found_animal_biomass;
 
 	/*Parameters for physical pointers*/
 	physicalType *temperature[MAX_DEPTH_INDEX], *lakeLightAtDepth[MAX_DEPTH_INDEX], *previousLakeLightAtDepth[MAX_DEPTH_INDEX];

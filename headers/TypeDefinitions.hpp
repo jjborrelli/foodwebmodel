@@ -65,6 +65,8 @@ typedef struct {
 	grazer_k_value_respiration,
 	grazer_carrying_capacity_coefficient,
 	grazer_carrying_capacity_intercept,
+	grazer_carrying_capacity_amplitude,
+	grazer_carrying_capacity_constant,
 	grazer_maximum_found_biomass,
 	grazer_food_starvation_threshold,
 	grazer_egg_allocation_threshold,

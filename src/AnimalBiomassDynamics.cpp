@@ -657,7 +657,10 @@ void AnimalBiomassDynamics::animalTemperatureMortality(physicalType localeTemper
 }
 
 void AnimalBiomassDynamics::calculateGrazerCarryingCapacityMortality(biomassType inputBiomass){
-	animal_carrying_capacity =  1/(1+exp(-inputBiomass/(this->maximum_found_animal_biomass*this->animal_carrying_capacity_coefficient)+this->animal_carrying_capacity_intercept));
+	biomassType animalBiomassProduct = (this->maximum_found_animal_biomass*this->animal_carrying_capacity_coefficient);
+	biomassType carryingCapacityExponent = -inputBiomass/animalBiomassProduct+this->animal_carrying_capacity_intercept;
+	biomassType carryingCapacityExponentiation = (1/(1+exp(carryingCapacityExponent)));
+	animal_carrying_capacity =  max<biomassType>(0.0f,min<biomassType>(1.0f,this->animal_carrying_capacity_amplitude*(carryingCapacityExponentiation+this->animal_carrying_capacity_constant)));
 }
 
 

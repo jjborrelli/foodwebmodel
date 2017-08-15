@@ -243,6 +243,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerCarryingCapacityAmplitude")){
+			simArguments.grazer_carrying_capacity_amplitude= atof(parameterValue.c_str());
+			return;
+		}
+	if(!parameterName.compare("GrazerCarryingCapacityConstant")){
+			simArguments.grazer_carrying_capacity_constant= atof(parameterValue.c_str());
+			return;
+		}
 	if(!parameterName.compare("GrazerMaximumFoundBiomass")){
 		simArguments.grazer_maximum_found_biomass = atof(parameterValue.c_str());
 		return;

@@ -192,6 +192,8 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
 	grazerDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
 	grazerDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
+	grazerDynamics.animal_carrying_capacity_amplitude = simArguments.grazer_carrying_capacity_amplitude;
+	grazerDynamics.animal_carrying_capacity_constant = simArguments.grazer_carrying_capacity_constant;
 	grazerDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
 	grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
 	grazerDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
@@ -387,6 +389,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using respiration K value "<<grazerDynamics.k_value_respiration<<"."<<endl;
 	cout<<"Using grazer carrying capacity coefficient "<<grazerDynamics.animal_carrying_capacity_coefficient<<"."<<endl;
 	cout<<"Using grazer carrying capacity intercept "<<grazerDynamics.animal_carrying_capacity_intercept<<"."<<endl;
+	cout<<"Using grazer carrying capacity amplitude "<<grazerDynamics.animal_carrying_capacity_amplitude<<"."<<endl;
+	cout<<"Using grazer carrying capacity constant "<<grazerDynamics.animal_carrying_capacity_constant<<"."<<endl;
 	cout<<"Using grazer max hours without food "<<grazerDynamics.max_hours_without_food<<"."<<endl;
 	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
 	cout<<"Using grazer maximum age in hours "<<grazerDynamics.maximum_age_in_hours<<"."<<endl;
@@ -441,6 +445,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"KValueRespiration;"<<grazerDynamics.k_value_respiration<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<grazerDynamics.animal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<grazerDynamics.animal_carrying_capacity_intercept<<endl;
+		parameterFileStream<<"GrazerCarryingCapacityAmplitude;"<<grazerDynamics.animal_carrying_capacity_amplitude<<endl;
+		parameterFileStream<<"GrazerCarryingCapacityConstant;"<<grazerDynamics.animal_carrying_capacity_constant<<endl;
 		parameterFileStream<<"GrazerMaxHoursWithoutFood;"<<grazerDynamics.max_hours_without_food<<endl;
 		parameterFileStream<<"GrazerFoodStarvationThreshold;"<<grazerDynamics.food_starvation_threshold<<endl;
 		parameterFileStream<<"GrazerMaximumFoundBiomass;"<<grazerDynamics.maximum_found_animal_biomass<<endl;

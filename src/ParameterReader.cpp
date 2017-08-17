@@ -219,6 +219,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.reabsorbed_algal_nutrients_proportion = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("AlgalMortalityScale")){
+		simArguments.algal_mortality_scale = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerBaseMortality")){
 		simArguments.grazer_base_mortality_proportion= atof(parameterValue.c_str());
 		return;
@@ -257,6 +261,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("GrazerMaxHoursWithoutFood")){
 		simArguments.grazer_max_hours_without_food= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerDeadAnimalsPerLostBiomassAndConcentration")){
+		simArguments.grazer_dead_animals_per_lost_biomass_and_concentration= atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("GrazerFoodStarvationThreshold")){

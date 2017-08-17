@@ -55,7 +55,8 @@ typedef struct {
 	maximum_found_algal_biomass, algal_respiration_at_20_degrees,
 	exponential_temperature_algal_respiration_coefficient,
 	intrinsic_algae_mortality_rate, maximum_algae_resources_death,
-	reabsorbed_algal_nutrients_proportion;
+	reabsorbed_algal_nutrients_proportion,
+	algal_mortality_scale;
 
 /*Movement of dead biomass*/
 	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion;
@@ -67,6 +68,7 @@ typedef struct {
 	grazer_carrying_capacity_intercept,
 	grazer_carrying_capacity_amplitude,
 	grazer_carrying_capacity_constant,
+	grazer_dead_animals_per_lost_biomass_and_concentration,
 	grazer_maximum_found_biomass,
 	grazer_food_starvation_threshold,
 	grazer_egg_allocation_threshold,

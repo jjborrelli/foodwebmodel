@@ -89,7 +89,7 @@ protected:
 	physicalType food_conversion_factor;
 
 	/* Threshold below which the concentration is considered starvation (in ug/l)*/
-	biomassType food_starvation_threshold, egg_allocation_threshold, starvation_factor;
+	biomassType food_starvation_threshold, egg_allocation_threshold, starvation_factor, dead_animals_per_lost_biomass_and_concentration;
 
 	/* Maximum number of hours that the animal can survive with food below starvation levels*/
 	unsigned int max_hours_without_food;
@@ -155,8 +155,10 @@ protected:
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 #ifdef INDIVIDUAL_BASED_ANIMALS
-#ifdef ANIMAL_STARVATION
+#ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
+#elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
+	void animalStarvationMortality(AnimalCohort& cohort);
 #endif
 #ifdef ANIMAL_AGING
 	void animalAging(AnimalCohort& cohort);

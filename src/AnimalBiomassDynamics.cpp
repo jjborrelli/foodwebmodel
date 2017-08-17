@@ -234,6 +234,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	biomassType initialAnimalBiomass = cohort.bodyBiomass;
 	animalCountType animalCount=cohort.numberOfIndividuals;
 #if defined (INDIVIDUAL_BASED_ANIMALS)&& defined (CREATE_NEW_COHORTS)
+//	if(depthIndex==126&&columnIndex==28&&*current_hour==196&&cohort.isBottomAnimal==1){
+//		cout<<"Potential negative biomass."<<endl;
+//	}
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass, cohort.stage);
 #else
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
@@ -253,8 +256,10 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
  biomassType bodyLostBiomass=consumed_biomass*(1-reproduction_proportion_investment);
 	biomassType gonadBiomassInvestment=biomassDifferential*reproduction_proportion_investment;
 	cohort.gonadBiomass+=gonadBiomassInvestment;
-#ifdef ANIMAL_STARVATION
+#ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	animalStarvationMortality(cohort, getFoodBiomass(cohort));
+#elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
+	animalStarvationMortality(cohort);
 #endif
 #ifdef CREATE_NEW_COHORTS
 	/* If there exists gonad investment, create new eggs*/
@@ -479,7 +484,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	/* Calculate mortality based on animal biomass or animal count*/
 #if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
 
-	biomassType mortalityBiomass=animalCount*this->initial_grazer_weight[stage];
+	biomassType mortalityBiomass=min<biomassType>(animalCount*this->initial_grazer_weight[stage], animalBiomass);
 #else
 	biomassType mortalityBiomass=animalBiomass;
 #endif
@@ -661,6 +666,7 @@ void AnimalBiomassDynamics::calculateGrazerCarryingCapacityMortality(biomassType
 	biomassType carryingCapacityExponent = -inputBiomass/animalBiomassProduct+this->animal_carrying_capacity_intercept;
 	biomassType carryingCapacityExponentiation = (1/(1+exp(carryingCapacityExponent)));
 	animal_carrying_capacity =  max<biomassType>(0.0f,min<biomassType>(1.0f,this->animal_carrying_capacity_amplitude*(carryingCapacityExponentiation+this->animal_carrying_capacity_constant)));
+//	animal_carrying_capacity=0.0f;
 }
 
 
@@ -692,7 +698,7 @@ void AnimalBiomassDynamics::calculatePredationPressure(animalCountType zooplankt
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
-#ifdef ANIMAL_STARVATION
+#ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 /* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, â€œFamily planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,â€ Oecologia, vol. 91, no. 4, pp. 463â€“467, Oct. 1992., page 465, Fig. 1)*/
 void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass){
 	if(foodBiomass<this->food_starvation_threshold){
@@ -706,6 +712,22 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biom
 	} else{
 		/* IF there is enough food, reset the number of hours without food*/
 		cohort.hoursWithoutFood=0;
+	}
+
+}
+#elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
+
+/* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, â€œFamily planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,â€ Oecologia, vol. 91, no. 4, pp. 463â€“467, Oct. 1992., page 465, Fig. 1)*/
+void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
+
+	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_grazer_weight[cohort.stage];
+	biomassType biomassPerIndividual = cohort.bodyBiomass/cohort.numberOfIndividuals;
+	if(maxAnimalsDeadByStarvation>0){
+		animalCountType actualAnimalsDeadByStarvation = (maxAnimalsDeadByStarvation/biomassPerIndividual)*this->dead_animals_per_lost_biomass_and_concentration;
+		cohort.numberOfIndividuals-=actualAnimalsDeadByStarvation;
+//		if(actualAnimalsDeadByStarvation>0){
+//			cout<<"The actual number of animals dead by starvation is "<<actualAnimalsDeadByStarvation<<" for "<<cohort<<endl;
+//		}
 	}
 
 }
@@ -762,7 +784,7 @@ void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassTyp
 	reproduction_investment_subtraction=-reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);
 	reproduction_investment_exponent=reproduction_investment_subtraction+this->reproduction_proportion_investment_amplitude;
 	reproduction_investment_power=exp((biomassType)reproduction_investment_exponent);
-	reproduction_proportion_investment=max<biomassType>(0,min<biomassType>(1,this->reproduction_proportion_investment_multiplier*this->reproduction_proportion_investment_intercept/(this->reproduction_proportion_investment_intercept+reproduction_investment_power))+this->reproduction_proportion_investment_constant);
+	reproduction_proportion_investment=max<biomassType>(0.0f,min<biomassType>(1.0f,this->reproduction_proportion_investment_multiplier*this->reproduction_proportion_investment_intercept/(this->reproduction_proportion_investment_intercept+reproduction_investment_power))+this->reproduction_proportion_investment_constant);
 #else
 	reproduction_investment_subtraction=0;
 	reproduction_investment_exponent=reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);

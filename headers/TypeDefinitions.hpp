@@ -111,7 +111,7 @@ typedef struct {
 //	causeOfDeath death;
 	bool isBottomAnimal;
 	animalCountType numberOfIndividuals;
-	biomassType bodyBiomass, gonadBiomass;
+	biomassType bodyBiomass, gonadBiomass, starvationBiomass;
 	cohortIDType cohortID;
 } AnimalCohort;
 

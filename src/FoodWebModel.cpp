@@ -93,7 +93,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, ReproductionInvestmentSubstraction, ReproductionInvestmentExponent, ReproductionInvestmentPower, ReproductionInvestment, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
 #else
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor, LightAllowance, NutrientLimitation, LimitationProduct"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
@@ -340,7 +340,13 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	cout<<"Using cohort-based approach for animal dynamics."<<endl;
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
-	cout<<"Modeling animal starvation."<<endl;
+	cout<<"Modeling animal starvation as hours without food."<<endl;
+#elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
+#ifdef ACCUMULATIVE_HOUR_STARVATION
+	cout<<"Modeling animal starvation as proportion of lost biomass."<<endl;
+#else
+	cout<<"Modeling animal starvation accumulative lost biomass."<<endl;
+#endif
 #else
 	cout<<"Not modeling animal starvation."<<endl;
 #endif
@@ -745,7 +751,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 #ifdef EXTENDED_OUTPUT
 			algaeBuffer<<commaString<<0.0f;
 #endif
-			algaeBuffer<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<commaString<<limiting_factor[maxDepthIndex[columnIndex]][columnIndex]<<endl;
+			algaeBuffer<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex]<<commaString<<limiting_factor[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<light_allowance_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<nutrient_limitation_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<limitation_product_matrix[maxDepthIndex[columnIndex]][columnIndex]<<endl;
 		}
 	}
 	/*Add slough biomass*/
@@ -769,7 +775,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 #ifdef EXTENDED_OUTPUT
 				algaeBuffer<<commaString<<sloughPhytoBiomass[depthIndex][columnIndex];
 #endif
-				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<this->limiting_factor[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
+				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex]<<commaString<<this->limiting_factor[depthIndex][columnIndex]<<commaString<<light_allowance_matrix[depthIndex][columnIndex]<<commaString<<nutrient_limitation_matrix[depthIndex][columnIndex]<<commaString<<limitation_product_matrix[depthIndex][columnIndex]<<endl;//Depth, Column, Type, Time, Washup, BiomassDifferential, Biomass
 
 			}
 		}
@@ -812,6 +818,8 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	}
 	nutrient_limitation+=phosphorusFactorAddition;
 #endif
+	light_allowance_matrix[depthIndex][columnIndex]=light_allowance;
+	nutrient_limitation_matrix[depthIndex][columnIndex]=nutrient_limitation;
 #ifdef LIMITATION_MINIMUM
 	physicalType localeLimitationProduct = min<physicalType>(light_allowance,nutrient_limitation);
 
@@ -820,9 +828,11 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
 	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==0;
 #endif
+
 	/* Calculate biomass differential components*/
 	biomassType unweightedLocaleLimitationProduct=localeLimitationProduct;
 	localeLimitationProduct*=this->limitation_scale_weight;
+	limitation_product_matrix[depthIndex][columnIndex]=localeLimitationProduct;
 #ifdef CHECK_LOST_BIOMASS_ADDITION
 	if(unweightedLocaleLimitationProduct>1.0f){
 		cout<<"Unweighted locale limitation product: "<<unweightedLocaleLimitationProduct<<" is greater than 0."<<endl;
@@ -1131,7 +1141,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.cohortID=-1;
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
-		newCohort.gonadBiomass=0.0f;
+		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
 		if ( animals.find(pair<int,int>(depthIndex, columnIndex)) == animals.end() ) {
 			/* If the cohort exists, increase biomass and number of eggs*/
 			animals[pair<int,int>(depthIndex, columnIndex)]=newCohort;

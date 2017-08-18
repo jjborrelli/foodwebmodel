@@ -38,6 +38,7 @@ namespace FoodWebModel {
 	protected:
 		ReadProcessedData readProcessedData;
 		unsigned int current_hour, ZMaxIndex, simulation_cycles, limiting_factor[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType light_allowance_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], nutrient_limitation_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], limitation_product_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phosphorus_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], salinity_effect_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour, *yearly_light_at_surface;
 		unsigned int maxDepthIndex[MAX_COLUMN_INDEX];

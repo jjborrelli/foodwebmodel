@@ -719,7 +719,21 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biom
 
 /* Starvation mortality ([1] Z. M. Gliwicz and C. Guisande, â€œFamily planning inDaphnia: resistance to starvation in offspring born to mothers grown at different food levels,â€ Oecologia, vol. 91, no. 4, pp. 463â€“467, Oct. 1992., page 465, Fig. 1)*/
 void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
+#ifdef ACCUMULATIVE_HOUR_STARVATION
+	biomassType biomassPerIndividual = cohort.bodyBiomass/cohort.numberOfIndividuals;
+	cohort.starvationBiomass +=consumed_biomass/biomassPerIndividual*this->dead_animals_per_lost_biomass_and_concentration;
+	animalCountType animalsDeadByStarvation = cohort.starvationBiomass/this->initial_grazer_weight[cohort.stage];
 
+	if(animalsDeadByStarvation>0){
+
+		cohort.starvationBiomass=0.0f;
+		cohort.numberOfIndividuals-=animalsDeadByStarvation;
+//			if(animalsDeadByStarvation>0){
+//				cout<<"The actual number of animals dead by starvation is "<<animalsDeadByStarvation<<" for "<<cohort<<endl;
+//			}
+
+	}
+#else
 	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_grazer_weight[cohort.stage];
 	biomassType biomassPerIndividual = cohort.bodyBiomass/cohort.numberOfIndividuals;
 	if(maxAnimalsDeadByStarvation>0){
@@ -729,7 +743,7 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 //			cout<<"The actual number of animals dead by starvation is "<<actualAnimalsDeadByStarvation<<" for "<<cohort<<endl;
 //		}
 	}
-
+#endif
 }
 #endif
 

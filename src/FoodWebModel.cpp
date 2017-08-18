@@ -158,6 +158,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->simulation_cycles = simArguments.simulationCycles;
 	this->phosphorus_half_saturation = simArguments.phosphorus_half_saturation;
 	this->light_allowance_weight = simArguments.light_allowance_weight;
+	this->light_allowance_proportion = simArguments.light_allowance_proportion;
 	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
 	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
 	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
@@ -268,6 +269,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 #ifdef LIMITATION_MINIMUM
 	cout<<"Calculating resource limitation as minimum."<<endl;
+#elif defined(WEIGHTED_RESOURCE_LIMITATION)
+	cout<<"Calculating resource limitation as weighted average."<<endl;
 #else
 	cout<<"Calculating resource limitation as product."<<endl;
 #endif
@@ -421,6 +424,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
+	cout<<"Using light allowance proortion "<<this->light_allowance_proportion<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
 	cout<<"Using algal respiration exponential base coefficient "<<this->exponential_temperature_algal_respiration_coefficient<<"."<<endl;
 	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
@@ -482,6 +486,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"AlgalMortalityScale;"<<this->algal_mortality_scale<<endl;
 		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
+		parameterFileStream<<"LightAllowanceProportion;"<<this->light_allowance_proportion<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
 		parameterFileStream<<"AlgalRespirationExponentialTemperatureCoefficient;"<<this->exponential_temperature_algal_respiration_coefficient<<endl;
 		parameterFileStream<<"MaximumAlgaeDeathResources;"<<this->maximum_algae_resources_death<<endl;
@@ -824,6 +829,9 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType localeLimitationProduct = min<physicalType>(light_allowance,nutrient_limitation);
 
 	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==light_allowance?1:0;
+#elif WEIGHTED_RESOURCE_LIMITATION
+	physicalType localeLimitationProduct = light_allowance*light_allowance_proportion+nutrient_limitation*(1-light_allowance_proportion);
+	limiting_factor[depthIndex][columnIndex]=light_allowance<nutrient_limitation?1:0;
 #else
 	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
 	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==0;

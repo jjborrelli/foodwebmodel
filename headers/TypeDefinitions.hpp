@@ -47,7 +47,7 @@ typedef struct {
 	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 
-	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor;
+	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion;
 
 	biomassType algae_biomass_differential_production_scale,
 	algal_carrying_capacity_coefficient,

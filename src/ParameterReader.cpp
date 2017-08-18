@@ -155,6 +155,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.light_allowance_weight = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("LightAllowanceProportion")){
+		simArguments.light_allowance_proportion = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PhosphorusWeight")){
 		simArguments.phosphorous_weight = atof(parameterValue.c_str());
 		return;

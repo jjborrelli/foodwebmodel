@@ -39,6 +39,7 @@ namespace FoodWebModel {
 		ReadProcessedData readProcessedData;
 		unsigned int current_hour, ZMaxIndex, simulation_cycles, limiting_factor[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType light_allowance_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], nutrient_limitation_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], limitation_product_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		biomassType phytoMortalityMatrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periMortalityMatrix[MAX_COLUMN_INDEX];
 		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phosphorus_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], salinity_effect_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour, *yearly_light_at_surface;
 		unsigned int maxDepthIndex[MAX_COLUMN_INDEX];
@@ -53,7 +54,7 @@ namespace FoodWebModel {
 #endif
 
 		/*Vertical movement of dead biomass*/
-		biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion;
+		biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion, algae_biomass_conservation_factor;
 
 		/*Nutrient parameters*/
 		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion;
@@ -205,7 +206,7 @@ namespace FoodWebModel {
 		physicalType productionLimit(physicalType localeLimitationProduct, bool periPhyton);
 		void algaeRespiration(biomassType localPointBiomass, physicalType localTemperature);
 		void algaeExcretion();
-		void algaeNaturalMortality(physicalType localTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass);
+		biomassType algaeNaturalMortality(physicalType localTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass);
 		void algaeHighTemperatureMortality(physicalType localeTemperature);
 		void resourceLimitationStress(physicalType localeLimitationProduct);
 		void calculateAlgalCarryingCapacityMortality(biomassType localPointBiomass);

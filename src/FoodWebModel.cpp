@@ -176,6 +176,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->retained_phosphorus_factor=simArguments.retained_phosphorus_factor;
 	this->wash_up_dead_biomass_proportion=simArguments.wash_up_dead_biomass_proportion;
 	this->wash_down_dead_biomass_proportion=simArguments.wash_down_dead_biomass_proportion;
+	this->algae_biomass_conservation_factor=simArguments.algae_biomass_conservation_factor;
 	initializeGrazerAttributes(simArguments);
 }
 
@@ -439,6 +440,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using algal mortality scale "<<this->algal_mortality_scale<<"."<<endl;
 	cout<<"Using proportion of wash-up for dead biomass "<<this->wash_up_dead_biomass_proportion<<"."<<endl;
 	cout<<"Using proportion of wash-down for dead biomass "<<this->wash_down_dead_biomass_proportion<<"."<<endl;
+	cout<<"Using algal biomass conservation factor "<<this->algae_biomass_conservation_factor<<"."<<endl;
 
 }
 
@@ -495,6 +497,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"LimitationScaleWeight;"<<this->limitation_scale_weight<<endl;
 		parameterFileStream<<"WashUpDeadBiomass;"<<this->wash_up_dead_biomass_proportion<<endl;
 		parameterFileStream<<"WashDownDeadBiomass;"<<this->wash_down_dead_biomass_proportion<<endl;
+		parameterFileStream<<"AlgaeBiomassConservationFactor;"<<this->wash_down_dead_biomass_proportion<<endl;
 		parameterFileStream.close();
 	} else {
 		cerr<<"File "<<parameterSimulationRoute<<" could not be opened for simulation parameter register."<<endl;
@@ -681,6 +684,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		/*Register previous biomass*/
 		/*Update biomass and output new biomass*/
 		biomassType previousPeriBiomass=periBiomass[columnIndex];
+		periBiomass[columnIndex]*=this->algae_biomass_conservation_factor;
 		periBiomassDifferential[columnIndex] = algaeBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true);
 #ifdef CHECK_ASSERTIONS
 		if(isnan((float)periBiomassDifferential[columnIndex])||isinf((float)periBiomassDifferential[columnIndex])){
@@ -702,13 +706,30 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 			} else{
 				/*Set if biomass must be registered*/
 				/*Update biomass and output new biomass*/
+
 				biomassType previousPhytoBiomass=phytoBiomass[depthIndex][columnIndex];
+				phytoBiomass[depthIndex][columnIndex]*=this->algae_biomass_conservation_factor;
 				phytoBiomassDifferential[depthIndex][columnIndex] = algaeBiomassDifferential(depthIndex, columnIndex, false);
 				phytoBiomassDifferential[depthIndex][columnIndex]+=verticalMigratedPhytoBiomass[depthIndex][columnIndex];
 				phytoBiomassDifferential[depthIndex][columnIndex]*=algae_biomass_differential_scale;
-				phytoBiomassDifferential[depthIndex][columnIndex]+=algae_natural_mortality*algae_biomass_differential_scale/this->algal_mortality_scale;
+
+				// Apply carrying capacity on algae biomass differential
+				if(phytoBiomassDifferential[depthIndex][columnIndex]>0.0f){
+//					if(phytoBiomass[depthIndex][columnIndex]>this->maximum_found_algal_biomass){
+//						phytoBiomassDifferential[depthIndex][columnIndex]=0.0f;
+//					}
+					calculateAlgalCarryingCapacityMortality(phytoBiomass[depthIndex][columnIndex]);
+					phytoBiomassDifferential[depthIndex][columnIndex]-=this->used_algal_mortality_rate*phytoBiomassDifferential[depthIndex][columnIndex];
+				}
+//				phytoBiomassDifferential[depthIndex][columnIndex]+=algae_natural_mortality*algae_biomass_differential_scale/this->algal_mortality_scale;
 				phytoBiomass[depthIndex][columnIndex]=max((double)0.0f, phytoBiomass[depthIndex][columnIndex]+phytoBiomassDifferential[depthIndex][columnIndex]);
-#ifdef CHECK_ASSERTIONS
+//				phytoBiomass[depthIndex][columnIndex]=min((double)this->maximum_found_algal_biomass,phytoBiomass[depthIndex][columnIndex]);
+				//phytoBiomass[depthIndex][columnIndex]-=phytoBiomass[depthIndex][columnIndex]/this->maximum_found_algal_biomass;
+
+				/*Apply carrying capacity*/
+				//calculateAlgalCarryingCapacityMortality(phytoBiomass[depthIndex][columnIndex]);
+				//phytoBiomass[depthIndex][columnIndex]=this->maximum_found_algal_biomass*used_algal_mortality_rate;
+				#ifdef CHECK_ASSERTIONS
 				if(isnan((float)phytoBiomass[depthIndex][columnIndex])||isinf((float)phytoBiomass[depthIndex][columnIndex])){
 					assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
 				}
@@ -736,7 +757,23 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 		/* Update vertical migration biomass*/
 		periBiomassDifferential[columnIndex]+=verticalMigratedPeriBiomass[columnIndex];
 		periBiomassDifferential[columnIndex]*=algae_biomass_differential_scale;
+		if(periBiomassDifferential[columnIndex]>0.0f){
+//			if(periBiomass[columnIndex]>this->maximum_found_algal_biomass){
+//				periBiomassDifferential[columnIndex]=0.0f;
+//			}
+			calculateAlgalCarryingCapacityMortality(periBiomass[columnIndex]);
+			periBiomassDifferential[columnIndex]-=this->used_algal_mortality_rate*periBiomassDifferential[columnIndex];
+		}
+//		periBiomass[columnIndex]+=algae_natural_mortality*algae_biomass_differential_scale/this->algal_mortality_scale;
+
 		periBiomass[columnIndex]=max((double)0.0f, periBiomass[columnIndex]+periBiomassDifferential[columnIndex]);
+		periBiomass[columnIndex]-=periBiomass[columnIndex]*periMortalityMatrix[columnIndex];
+		//periBiomass[columnIndex]-=periBiomass[columnIndex]/this->maximum_found_algal_biomass;
+		//periBiomass[columnIndex]=min((double)this->maximum_found_algal_biomass,periBiomass[columnIndex]);
+
+		/*Apply carrying capacity*/
+		//calculateAlgalCarryingCapacityMortality(periBiomass[columnIndex]);
+		//periBiomass[columnIndex]=this->maximum_found_algal_biomass*used_algal_mortality_rate;
 #ifdef CHECK_ASSERTIONS
 		if(isnan((float)periBiomass[columnIndex])||isinf((float)periBiomass[columnIndex])){
 			assertionViolationBuffer<<"NanInfPeri; Peri: "<<periBiomass[columnIndex]<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
@@ -762,8 +799,16 @@ void FoodWebModel::FoodWebModel::updateAlgaeBiomass(){
 	/*Add slough biomass*/
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+			sloughPhytoBiomass[depthIndex][columnIndex]*=algae_biomass_differential_scale;
+			if(sloughPhytoBiomass[depthIndex][columnIndex]>0.0f){
+	//			if(periBiomass[columnIndex]>this->maximum_found_algal_biomass){
+	//				periBiomassDifferential[columnIndex]=0.0f;
+	//			}
+				calculateAlgalCarryingCapacityMortality(phytoBiomass[depthIndex][columnIndex]);
+				sloughPhytoBiomass[depthIndex][columnIndex]-=this->used_algal_mortality_rate*sloughPhytoBiomass[depthIndex][columnIndex];
+			}
 			phytoBiomass[depthIndex][columnIndex]=max((double)0.0f,phytoBiomass[depthIndex][columnIndex]+sloughPhytoBiomass[depthIndex][columnIndex]);
-			phytoBiomassDifferential[depthIndex][columnIndex]+=sloughPhytoBiomass[depthIndex][columnIndex];
+			phytoBiomass[depthIndex][columnIndex]-=phytoMortalityMatrix[depthIndex][columnIndex]*phytoBiomass[depthIndex][columnIndex];
 #ifdef CHECK_ASSERTIONS
 				if(isnan((float)phytoBiomass[depthIndex][columnIndex])||isinf((float)phytoBiomass[depthIndex][columnIndex])){
 					assertionViolationBuffer<<"NanInfPhyto: "<<phytoBiomass[depthIndex][columnIndex]<<", Depth: "<<depthIndex<<", Column: "<<columnIndex<<", Time: "<<current_hour<<endl;
@@ -829,7 +874,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType localeLimitationProduct = min<physicalType>(light_allowance,nutrient_limitation);
 
 	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==light_allowance?1:0;
-#elif WEIGHTED_RESOURCE_LIMITATION
+#elif defined(WEIGHTED_RESOURCE_LIMITATION)
 	physicalType localeLimitationProduct = light_allowance*light_allowance_proportion+nutrient_limitation*(1-light_allowance_proportion);
 	limiting_factor[depthIndex][columnIndex]=light_allowance<nutrient_limitation?1:0;
 #else
@@ -861,8 +906,14 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	algaeRespiration(localPointBiomass, localeTemperature);
 	algaeExcretion();
 	/*Formula of biomass differential (AquaTox Documentation, page 67, equations 33 and 34)*/
-	algaeNaturalMortality(localeTemperature, unweightedLocaleLimitationProduct, localPointBiomass);
-#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	biomassType local_algal_mortality_factor = algaeNaturalMortality(localeTemperature, unweightedLocaleLimitationProduct, localPointBiomass);
+	local_algal_mortality_factor*=this->algae_biomass_differential_scale;
+	if(periPhyton){
+		this->periMortalityMatrix[columnIndex] = local_algal_mortality_factor;
+	} else{
+		this->phytoMortalityMatrix[depthIndex][columnIndex] = local_algal_mortality_factor;
+	}
+	#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	/* Add dead nutrients*/
 	biomassType reabsorbedNutrients = this->reabsorbed_algal_nutrients_proportion*-algae_natural_mortality;
 	if(deadFloatingBiomass[depthIndex][columnIndex]<0.0f){
@@ -1206,16 +1257,20 @@ void FoodWebModel::FoodWebModel::algaeExcretion(){
 /*
  * Biomass lost to natural mortality (AquaTox Documentation, page 86, equation 66)
  */
-void FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
+biomassType FoodWebModel::FoodWebModel::algaeNaturalMortality(physicalType localeTemperature, physicalType localeLimitationProduct, biomassType localPointBiomass){
 	algaeHighTemperatureMortality(localeTemperature);
 	resourceLimitationStress(localeLimitationProduct);
 #ifdef ALGAL_CARRYING_CAPACITY_MORTALITY
-	calculateAlgalCarryingCapacityMortality(localPointBiomass);
+	//calculateAlgalCarryingCapacityMortality(localPointBiomass);
 #else
 	this->used_algal_mortality_rate=this->intrinsic_algae_mortality_rate;
 #endif
-	algae_natural_mortality_factor = min(this->used_algal_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress,(double)1.0f);
+//	algae_natural_mortality_factor = min(this->used_algal_mortality_rate+high_temperature_mortality+weighted_resource_limitation_stress,(double)1.0f);
+	algae_natural_mortality_factor = min(used_algal_mortality_rate+this->high_temperature_mortality+weighted_resource_limitation_stress,(double)1.0f);
 	algae_natural_mortality = -algae_natural_mortality_factor*localPointBiomass;
+	/*Return the calculated mortality factor*/
+	return algae_natural_mortality_factor;
+
 }
 
 /*
@@ -1244,7 +1299,7 @@ void FoodWebModel::FoodWebModel::resourceLimitationStress(physicalType localeLim
  * Carrying capacity algal mortality. Introduce to control base mortality as a function of algal biomass
  */
 void FoodWebModel::FoodWebModel::calculateAlgalCarryingCapacityMortality(biomassType localPointBiomass){
-	 this->used_algal_mortality_rate = 1/(1+exp(-localPointBiomass/(this->maximum_found_algal_biomass*this->algal_carrying_capacity_coefficient)+this->algal_carrying_capacity_intercept));
+	 this->used_algal_mortality_rate = 1/(1+exp(-localPointBiomass*this->algal_carrying_capacity_coefficient+this->algal_carrying_capacity_intercept));
 }
 
 /*

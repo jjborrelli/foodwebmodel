@@ -59,7 +59,7 @@ typedef struct {
 	algal_mortality_scale;
 
 /*Movement of dead biomass*/
-	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion;
+	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion, algae_biomass_conservation_factor;
 
 	biomassType	grazer_base_mortality_proportion, grazer_filtering_rate_per_individual,
 	grazer_basal_respiration_weight,

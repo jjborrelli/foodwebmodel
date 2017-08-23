@@ -175,6 +175,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.wash_down_dead_biomass_proportion=atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("AlgaeBiomassConservationFactor")){
+			simArguments.algae_biomass_conservation_factor=atof(parameterValue.c_str());
+			return;
+	}
 	if(!parameterName.compare("RetainedPhosphorusFactor")){
 		simArguments.retained_phosphorus_factor=atof(parameterValue.c_str());
 		return;

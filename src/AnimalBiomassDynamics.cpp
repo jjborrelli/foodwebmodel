@@ -164,6 +164,12 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 		biomassType previousBottomAnimalBiomass = bottomAnimalBiomass[columnIndex];
 		/*Update biomass and output new biomass*/
 		biomassType bottomAnimalBiomassDifferential = animalBiomassDifferential(maxDepthIndex[columnIndex], columnIndex, true, bottomAnimalCount[columnIndex], previousBottomAnimalBiomass);
+		if(bottomAnimalBiomassDifferential>0.0f){
+			biomassType mortalityBiomass=previousBottomAnimalBiomass;
+			calculateGrazerCarryingCapacityMortality(mortalityBiomass);
+			bottomAnimalBiomassDifferential-=animal_carrying_capacity*bottomAnimalBiomassDifferential;
+		}
+
 		bottomAnimalBiomass[columnIndex]+=bottomAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 		reportAssertionError(maxDepthIndex[columnIndex], columnIndex, bottomAnimalBiomass[columnIndex], previousBottomAnimalBiomass,
@@ -192,6 +198,12 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 				biomassType previousFloatingAnimalBiomass = floatingAnimalBiomass[depthIndex][columnIndex];
 				/*Update biomass and output new biomass*/
 				biomassType floatingAnimalBiomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, false, floatingAnimalCount[depthIndex][columnIndex], previousFloatingAnimalBiomass);
+				if(floatingAnimalBiomassDifferential>0.0f){
+					biomassType mortalityBiomass=animalBiomass;
+					calculateGrazerCarryingCapacityMortality(mortalityBiomass);
+					floatingAnimalBiomassDifferential-=animal_carrying_capacity*floatingAnimalBiomassDifferential;
+				}
+
 				floatingAnimalBiomass[depthIndex][columnIndex]+=floatingAnimalBiomassDifferential;
 #ifdef CHECK_ASSERTIONS
 				reportAssertionError(depthIndex, columnIndex, floatingAnimalBiomass[depthIndex][columnIndex], previousFloatingAnimalBiomass,
@@ -241,6 +253,15 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #else
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
 #endif
+	if(biomassDifferential>0.0f){
+#if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
+		biomassType mortalityBiomass=min<biomassType>(animalCount*this->initial_grazer_weight[cohort.stage], initialAnimalBiomass);
+#else
+		biomassType mortalityBiomass=previousBottomAnimalBiomass;
+#endif
+		calculateGrazerCarryingCapacityMortality(mortalityBiomass);
+		biomassDifferential-=animal_carrying_capacity*biomassDifferential;
+	}
 #ifdef CREATE_NEW_COHORTS
 	/* If biomass differential is negative, do not invest in eggs*/
 	if(cohort.stage==AnimalStage::Mature&&biomassDifferential>0.0f){
@@ -642,8 +663,9 @@ void AnimalBiomassDynamics::animalMortality(biomassType localeBiomass, physicalT
 void AnimalBiomassDynamics::animalBaseMortality(physicalType
 		localeTemperature, biomassType localeBiomass){
 	animalTemperatureMortality(localeTemperature, localeBiomass);
-	calculateGrazerCarryingCapacityMortality(localeBiomass);
+	//
 #ifdef GRAZER_CARRYING_CAPACITY_MORTALITY
+	calculateGrazerCarryingCapacityMortality(localeBiomass);
 	animal_temp_independent_mortality = this->animal_carrying_capacity*localeBiomass;
 #else
 	animal_temp_independent_mortality = this->animal_base_mortality_proportion*localeBiomass;
@@ -662,8 +684,10 @@ void AnimalBiomassDynamics::animalTemperatureMortality(physicalType localeTemper
 }
 
 void AnimalBiomassDynamics::calculateGrazerCarryingCapacityMortality(biomassType inputBiomass){
-	biomassType animalBiomassProduct = (this->maximum_found_animal_biomass*this->animal_carrying_capacity_coefficient);
-	biomassType carryingCapacityExponent = -inputBiomass/animalBiomassProduct+this->animal_carrying_capacity_intercept;
+//	biomassType animalBiomassProduct = (this->maximum_found_animal_biomass*this->animal_carrying_capacity_coefficient);
+//	biomassType carryingCapacityExponent = -inputBiomass/animalBiomassProduct+this->animal_carrying_capacity_intercept;
+	biomassType animalBiomassProduct = inputBiomass*this->animal_carrying_capacity_coefficient;
+	biomassType carryingCapacityExponent = -animalBiomassProduct+this->animal_carrying_capacity_intercept;
 	biomassType carryingCapacityExponentiation = (1/(1+exp(carryingCapacityExponent)));
 	animal_carrying_capacity =  max<biomassType>(0.0f,min<biomassType>(1.0f,this->animal_carrying_capacity_amplitude*(carryingCapacityExponentiation+this->animal_carrying_capacity_constant)));
 //	animal_carrying_capacity=0.0f;

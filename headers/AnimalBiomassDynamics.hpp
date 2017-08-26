@@ -83,6 +83,8 @@ protected:
 	/*Parameters of daphnia migration*/
 	int maximum_distance_daphnia_swum_in_rows_per_hour, vertical_migration_buffer_size;
 	biomassType filtering_rate_per_daphnia, filtering_rate_per_individual_in_cell_volume;
+	biomassType filtering_length_coefficient, filtering_length_exponent,
+	filtering_coefficient, filtering_exponent;
 	biomassType basal_respiration_weight, k_value_respiration;
 
 	/* Animal constants*/
@@ -144,7 +146,7 @@ protected:
 #else
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 #endif
-	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms);
+	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
 	biomassType basalRespiration(biomassType zooBiomass);

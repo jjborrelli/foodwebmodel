@@ -115,6 +115,8 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readDepth(simArguments.depthRoute);
 	readInitialTemperature(simArguments.initialTemperatureRoute);
 	readTemperatureRange(simArguments.temperatureRangeRoute);
+	readTemperatureDepthProportion(simArguments.temperatureDepthProportionRoute);
+	readTemperatureAtDay(simArguments.temperatureAtTimeRoute);
 	readInitialAlgaeBiomass(simArguments.initialAlgaeBiomassRoute);
 	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
 	readInitialZooplanktonDistribution(simArguments.initialZooplanktonDistributionRoute);
@@ -227,6 +229,18 @@ void FoodWebModel::ReadProcessedData::readYearLightIntensity(const string& light
 	cout<<"Allocated yearly light at surface with size "<<this->simulationCycles<<endl;
 	readValues<physicalType>(lightAtSurfaceYearRoute, this->yearlylightAtSurface, this->simulationCycles);
 	cout<<"Yearly light at surface read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readTemperatureDepthProportion(const string& temperatureDepthProportionRoute){
+	cout<<"Reading temperature depth proportion from file: "<<temperatureDepthProportionRoute<<endl;
+	readValues<physicalType>(temperatureDepthProportionRoute, this->temperature_depth_proportion, MAX_DEPTH_INDEX);
+	cout<<"Temperature depth proportion read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readTemperatureAtDay(const string& temperatureAtDayRoute){
+	cout<<"Reading temperature at day from file: "<<temperatureAtDayRoute<<endl;
+	readValues<physicalType>(temperatureAtDayRoute, this->temperature_at_day, HOURS_PER_YEAR);
+	cout<<"Temperature at day read."<<endl;
 }
 
 void FoodWebModel::ReadProcessedData::readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute){

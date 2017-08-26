@@ -31,6 +31,7 @@ namespace FoodWebModel{
 		/* Physical data*/
 		physicalType **initial_temperature;
 		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom, *yearlylightAtSurface;
+		physicalType temperature_depth_proportion[MAX_DEPTH_INDEX], temperature_at_day[HOURS_PER_YEAR];
 		unsigned int simulationCycles;
 	public:
 		ReadProcessedData();
@@ -42,6 +43,8 @@ namespace FoodWebModel{
 		void readDepth(const string& depthFileRoute);
 		void readInitialTemperature(const string& initialTemperatureRoute);
 		void readTemperatureRange(const string& temperatureRangeRoute);
+		void readTemperatureDepthProportion(const string& temperatureDepthProportionRoute);
+		void readTemperatureAtDay(const string& temperatureAtDayRoute);
 		void readDepthScale(const string& depthScaleRoute);
 		void readInitialAlgaeBiomass(const string& initialAlgaeBiomassRoute);
 		void readBaseAlgaeBiomassDifferential(const string& biomassDifferentialRoute);

@@ -27,6 +27,8 @@ typedef struct {
 	depthScaleRoute,
 	initialTemperatureRoute,
 	temperatureRangeRoute,
+	temperatureDepthProportionRoute,
+	temperatureAtTimeRoute,
 	outputAlgaeRoute,
 	outputSloughRoute,
 	outputGrazerRoute,
@@ -62,6 +64,8 @@ typedef struct {
 	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion, algae_biomass_conservation_factor;
 
 	biomassType	grazer_base_mortality_proportion, grazer_filtering_rate_per_individual,
+	grazer_filtering_length_coefficient, grazer_filtering_length_exponent,
+	grazer_filtering_coefficient, grazer_filtering_exponent,
 	grazer_basal_respiration_weight,
 	grazer_k_value_respiration,
 	grazer_carrying_capacity_coefficient,

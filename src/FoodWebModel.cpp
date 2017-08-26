@@ -191,6 +191,10 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 			* grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour + 1;
 	grazerDynamics.filtering_rate_per_daphnia = simArguments.grazer_filtering_rate_per_individual;
 	grazerDynamics.filtering_rate_per_individual_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
+	grazerDynamics.filtering_length_coefficient = simArguments.grazer_filtering_length_coefficient;
+	grazerDynamics.filtering_length_exponent = simArguments.grazer_filtering_length_exponent;
+	grazerDynamics.filtering_coefficient = simArguments.grazer_filtering_coefficient;
+	grazerDynamics.filtering_exponent = simArguments.grazer_filtering_exponent;
 	grazerDynamics.basal_respiration_weight = simArguments.grazer_basal_respiration_weight;
 	grazerDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
 	grazerDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
@@ -354,6 +358,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not modeling animal starvation."<<endl;
 #endif
+#ifdef GRAZING_DEPENDING_ON_WEIGHT
+	cout<<"Modeling grazing dependent on weight."<<endl;
+#else
+	cout<<"Modeling grazing independent on weight."<<endl;
+#endif
 #ifdef REPORT_COHORT_INFO
 	cout<<"Reporting cohort info."<<endl;
 #else
@@ -389,12 +398,21 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not reusing dead biomass."<<endl;
 #endif
+#ifdef LAKE_DATA_TEMPERATURE
+	cout<<"Using temperature from lake data."<<endl;
+#else
+	cout<<"Using temperature from sinusoidal model."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
 	cout<<"Using maximum light data "<<MAX_LIGHT_DATA<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
+	cout<<"Using grazer filtering length coefficient "<<grazerDynamics.filtering_length_coefficient<<"."<<endl;
+	cout<<"Using grazer filtering length exponent "<<grazerDynamics.filtering_length_exponent<<" ."<<endl;
+	cout<<"Using grazer filtering coefficient "<<grazerDynamics.filtering_coefficient<<"."<<endl;
+	cout<<"Using grazer filtering exponent "<<grazerDynamics.filtering_exponent<<"."<<endl;
 	cout<<"Using algae biomass differential weight "<<this->algae_biomass_differential_production_scale<<"."<<endl;
 	cout<<"Using base grazer mortality factor "<<grazerDynamics.animal_base_mortality_proportion<<"."<<endl;
 	cout<<"Using basal respiration weight "<<grazerDynamics.basal_respiration_weight<<"."<<endl;
@@ -457,6 +475,10 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"AnimalBaseMortality;"<<grazerDynamics.animal_base_mortality_proportion<<endl;
 		parameterFileStream<<"SimulationCycles;"<<this->simulation_cycles<<endl;
 		parameterFileStream<<"FilteringRatePerDaphnia;"<<grazerDynamics.filtering_rate_per_daphnia<<endl;
+		parameterFileStream<<"GrazerFilteringLengthCoefficient;"<<grazerDynamics.filtering_length_coefficient<<endl;
+		parameterFileStream<<"GrazerFilteringLengthExponent;"<<grazerDynamics.filtering_length_exponent<<endl;
+		parameterFileStream<<"GrazerFilteringCoefficient;"<<grazerDynamics.filtering_coefficient<<endl;
+		parameterFileStream<<"GrazerFilteringExponent;"<<grazerDynamics.filtering_exponent<<endl;
 		parameterFileStream<<"BasalRespirationWeight;"<<grazerDynamics.basal_respiration_weight<<endl;
 		parameterFileStream<<"KValueRespiration;"<<grazerDynamics.k_value_respiration<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<grazerDynamics.animal_carrying_capacity_coefficient<<endl;
@@ -1106,6 +1128,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	/*Copy arrays that depend on maximum depth*/
 	for(int i=0; i<MAX_DEPTH_INDEX; i++){
 		this->temperature_range[i]=readProcessedData.temperature_range[i];
+		this->temperature_depth_proportion[i]=readProcessedData.temperature_depth_proportion[i];
 		this->indexToDepth[i]=readProcessedData.depth_scale[i];
 		this->baseAlgaeBiomassDifferential[i]=readProcessedData.baseBiomassDifferential[i];
 
@@ -1113,6 +1136,9 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	/*Copy cyclic light at surface*/
 	for(int i=0; i<HOURS_PER_DAY; i++){
 		this->hourlyLightAtSurface[i]=readProcessedData.hourlyLightAtSurface[i];
+	}
+	for(int i=0; i<HOURS_PER_YEAR; i++){
+		this->temperature_at_day[i]=readProcessedData.temperature_at_day[i];
 	}
 #ifndef INDIVIDUAL_BASED_ANIMALS
 	/*Copy zooplankton biomass center per daily hour*/
@@ -1319,6 +1345,9 @@ void FoodWebModel::FoodWebModel::algaeSlough( int columnIndex){
 }
 
 void FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int columnIndex){
+#ifdef LAKE_DATA_TEMPERATURE
+	physicalType updatedTemperature=this->temperature_at_day[current_hour%HOURS_PER_YEAR]*this->temperature_depth_proportion[depthIndex];
+#else
 	int dayOfYear = (current_hour/24)%365;
 	physicalType localeTemperature=temperature[depthIndex][columnIndex];
 	temperature_angular_frequency = TEMPERATURE_AMPLITUDE*(TEMPERATURE_DAY_FACTOR*(dayOfYear+TEMPERATURE_PHASE_SHIFT)-TEMPERATURE_DELAY);
@@ -1328,6 +1357,7 @@ void FoodWebModel::FoodWebModel::calculateTemperature(int depthIndex, int column
 	physicalType updatedTemperature = localeTemperature+(-1.0*(temperature_range[depthIndex]))*temperature_sine;
 #else
 	physicalType updatedTemperature = (1-1/(1+exp(-TEMPERATURE_SLOPE_AMPLITUDE*(indexToDepth[depthIndex]-ZMax/2)+TEMPERATURE_SLOPE_PHASE)))*TEMPERATURE_ADDITIVE_COMPONENT+TEMPERATURE_LOWER_LIMIT;
+#endif
 #endif
 	temperature[depthIndex][columnIndex] = updatedTemperature;
 }

@@ -65,6 +65,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.temperatureRangeRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("TemperatureDepthProportionRoute")){
+		simArguments.temperatureDepthProportionRoute= parameterValue;
+		return;
+	}
+	if(!parameterName.compare("TemperatureAtTimeRoute")){
+		simArguments.temperatureAtTimeRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("OutputAlgaeRoute")){
 		simArguments.outputAlgaeRoute= parameterValue;
 		return;
@@ -237,6 +245,22 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("GrazerFilteringRate")){
 		simArguments.grazer_filtering_rate_per_individual= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerFilteringLengthCoefficient")){
+		simArguments.grazer_filtering_length_coefficient= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerFilteringLengthExponent")){
+		simArguments.grazer_filtering_length_exponent= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerFilteringCoefficient")){
+		simArguments.grazer_filtering_coefficient= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerFilteringExponent")){
+		simArguments.grazer_filtering_exponent= atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("GrazerBasalRespirationWeight")){

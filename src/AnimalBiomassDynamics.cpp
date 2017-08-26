@@ -497,7 +497,12 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	biomassType localeFoodBiomassBeforeEating = getFoodBiomass(bottom, columnIndex, depthIndex);
 	biomassType localeFoodBiomassInMicrograms = localeFoodBiomassBeforeEating*this->food_conversion_factor;
 	stroganovApproximation(localeTemperature);
-	foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms);
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	biomassType usedWeight= this->initial_grazer_weight[stage];
+#else
+	biomassType usedWeight= 15;
+#endif
+	foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms, usedWeight);
 	biomassType localeFoodBiomassAfterEating =  getFoodBiomass(bottom,	columnIndex, depthIndex);
 	defecation();
 	animalRespiration(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
@@ -578,9 +583,16 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
-void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms){
+void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight){
 
-	consumption_per_individual = this->filtering_rate_per_individual_in_cell_volume*foodBiomassInMicrograms*stroganov_adjustment;
+#ifdef GRAZING_DEPENDING_ON_WEIGHT
+	/* Grazing constant taken from [1] C. W. Burns, “Relation between filtering rate, temperature, and body size in four species of Daphnia,” Limnol. Oceanogr., vol. 14, no. 5, pp. 693–700, Sep. 1969.*/
+	biomassType bodyLength = pow((individualWeight/MICROGRAM_TO_GRAM)/this->filtering_length_coefficient, this->filtering_length_exponent);
+	biomassType usedFiltering = pow(individualWeight/this->filtering_coefficient, this->filtering_exponent);
+#else
+	biomassType usedFiltering = this->filtering_rate_per_individual_in_cell_volume;
+#endif
+	consumption_per_individual = usedFiltering*foodBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
 	consumption_per_individual = min<biomassType>(FEEDING_SATURATION,MAXIMUM_GRAZING_ABSORBED);
 //	grazing_per_individual = min<biomassType>(FEEDING_SATURATION,grazing_per_individual);

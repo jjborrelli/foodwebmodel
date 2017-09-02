@@ -85,7 +85,7 @@ protected:
 	biomassType filtering_rate_per_daphnia, filtering_rate_per_individual_in_cell_volume;
 	biomassType filtering_length_coefficient, filtering_length_exponent,
 	filtering_coefficient, filtering_exponent;
-	biomassType basal_respiration_weight, k_value_respiration;
+	biomassType basal_respiration_weight, k_value_respiration, consumption_temperature_factor;
 
 	/* Animal constants*/
 	physicalType food_conversion_factor;
@@ -123,6 +123,8 @@ protected:
 
 	/* Gonad biomass metrics */
 	biomassType reproduction_investment_subtraction, reproduction_investment_exponent, reproduction_investment_power;
+
+	biomassType locale_algae_biomass_before_eating, locale_algae_biomass_after_eating;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	/* Dead biomass */
 	biomassType *deadFloatingBiomass[MAX_DEPTH_INDEX], *deadBottomBiomass;
@@ -146,7 +148,7 @@ protected:
 #else
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 #endif
-	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight);
+	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, physicalType localeTemperature);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
 	biomassType basalRespiration(biomassType zooBiomass);

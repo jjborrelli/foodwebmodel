@@ -157,7 +157,6 @@ static const unsigned int HOURS_PER_YEAR = HOURS_PER_DAY*DAYS_PER_YEAR;
 /* Nutrient derivative taken as the average difference between consecutive points*/
 //static const physicalType NUTRIENT_DERIVATIVE = 0.02527915f;
 //static const double NUTRIENT_DERIVATIVE = 0.02527915f*1.3f;
-static const double NUTRIENT_DERIVATIVE = 0.02527915f;
 
 /* Phosphorus concentration at bottom taken from lake data*/
 static const physicalType PHOSPHORUS_CONCENTRATION_AT_BOTTOM = 2.507143f;
@@ -212,9 +211,9 @@ static const unsigned int BURNIN_MAX_CYCLE=1;
 
 /* Time and spatial resolution constants for simulation*/
 #ifndef DEBUG_MODE
-static const unsigned int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10, DEPTH_OUTPUT_RESOLUTION=2, COLUMN_OUTPUT_RESOLUTION=2;
+static const unsigned int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10;
 #else
-static const unsigned int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1, DEPTH_OUTPUT_RESOLUTION=1, COLUMN_OUTPUT_RESOLUTION=1;
+static const unsigned int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1;
 #endif
 /* Set an hour where the differential is considered stable*/
 

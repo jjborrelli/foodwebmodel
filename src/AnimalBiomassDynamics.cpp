@@ -158,7 +158,7 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		lineBuffer.str("");
 		lineBuffer.clear();
-		bool registerBottomAnimalBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
+		bool registerBottomAnimalBiomass=*current_time%TIME_OUTPUT_RESOLUTION==0;
 		/*Transform grazer count to biomass*/
 		bottomAnimalBiomass[columnIndex]=((biomassType)bottomAnimalCount[columnIndex])*DAPHNIA_WEIGHT_IN_MICROGRAMS;
 		biomassType previousBottomAnimalBiomass = bottomAnimalBiomass[columnIndex];
@@ -236,19 +236,16 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	}
 
 	/* Check if biomass must be registered*/
-	bool registerBiomass=columnIndex%COLUMN_OUTPUT_RESOLUTION==0;
-	if(cohort.isBottomAnimal){
-		registerBiomass&=depthIndex%DEPTH_OUTPUT_RESOLUTION==0;
-	}
+	bool registerBiomass=*current_hour%TIME_OUTPUT_RESOLUTION==0;
 	lineBuffer.str("");
 	lineBuffer.clear();
 	biomassType initialFoodBiomass= getFoodBiomass(cohort.isBottomAnimal, cohort.y, cohort.x);
 	biomassType initialAnimalBiomass = cohort.bodyBiomass;
 	animalCountType animalCount=cohort.numberOfIndividuals;
 #if defined (INDIVIDUAL_BASED_ANIMALS)&& defined (CREATE_NEW_COHORTS)
-//	if(depthIndex==126&&columnIndex==28&&*current_hour==196&&cohort.isBottomAnimal==1){
+	if(*current_hour>=20*24){
 //		cout<<"Potential negative biomass."<<endl;
-//	}
+	}
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass, cohort.stage);
 #else
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
@@ -342,7 +339,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //	}
 	/*If biomass must be registered, register standard phytoplankton biomass*/
 	if(registerBiomass&&cohort.numberOfIndividuals>0){
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 	}
 
 	/* If the cohort is dead, register its death*/
@@ -494,16 +491,16 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	physicalType localeTemperature = temperature[depthIndex][columnIndex];
 
 		/* Get zooplankton count and biomass*/
-	biomassType localeFoodBiomassBeforeEating = getFoodBiomass(bottom, columnIndex, depthIndex);
-	biomassType localeFoodBiomassInMicrograms = localeFoodBiomassBeforeEating*this->food_conversion_factor;
+	locale_algae_biomass_before_eating = getFoodBiomass(bottom, columnIndex, depthIndex);
+	biomassType localeFoodBiomassInMicrograms = locale_algae_biomass_before_eating*this->food_conversion_factor;
 	stroganovApproximation(localeTemperature);
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	biomassType usedWeight= this->initial_grazer_weight[stage];
 #else
 	biomassType usedWeight= 15;
 #endif
-	foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms, usedWeight);
-	biomassType localeFoodBiomassAfterEating =  getFoodBiomass(bottom,	columnIndex, depthIndex);
+	foodConsumptionRate(depthIndex,columnIndex,bottom, animalCount, localeFoodBiomassInMicrograms, usedWeight, localeTemperature);
+	locale_algae_biomass_after_eating =  getFoodBiomass(bottom,	columnIndex, depthIndex);
 	defecation();
 	animalRespiration(animalBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
 	animalExcretion(salinity_corrected_animal_respiration);
@@ -534,10 +531,13 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	}
 #endif
 #endif
-	calculatePredationPressure(animalCount);
+
 	consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
 	biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
-
+	calculatePredationPressure(animalCount);
+		if(*current_hour>=20*24&&bottom){
+//			cout<<"Condition found."<<endl;
+		}
 	/* Plot grazer biomass differential*/
 	lineBuffer.str("");
 	lineBuffer.clear();
@@ -569,8 +569,8 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	lineBuffer<<commaString<<animal_mortality;
 	lineBuffer<<commaString<<animal_predatory_pressure;
 	lineBuffer<<commaString<<animal_carrying_capacity;
-	lineBuffer<<commaString<<localeFoodBiomassBeforeEating;
-	lineBuffer<<commaString<<localeFoodBiomassAfterEating;
+	lineBuffer<<commaString<<locale_algae_biomass_before_eating;
+	lineBuffer<<commaString<<locale_algae_biomass_after_eating;
 	lineBuffer<<commaString<<reproduction_investment_subtraction;
 	lineBuffer<<commaString<<reproduction_investment_exponent;
 	lineBuffer<<commaString<<reproduction_investment_power;
@@ -583,15 +583,19 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 
 
 /* Food consumption (AquaTox Documentation, page 105, equation 98)*/
-void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight){
+void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight, physicalType localeTemperature){
 
 #ifdef GRAZING_DEPENDING_ON_WEIGHT
 	/* Grazing constant taken from [1] C. W. Burns, “Relation between filtering rate, temperature, and body size in four species of Daphnia,” Limnol. Oceanogr., vol. 14, no. 5, pp. 693–700, Sep. 1969.*/
-	biomassType bodyLength = pow((individualWeight/MICROGRAM_TO_GRAM)/this->filtering_length_coefficient, this->filtering_length_exponent);
-	biomassType usedFiltering = pow(individualWeight/this->filtering_coefficient, this->filtering_exponent);
+	biomassType bodyLength = pow((individualWeight*MICROGRAM_TO_GRAM)/this->filtering_length_coefficient, this->filtering_length_exponent);
+	biomassType usedFiltering = this->filtering_coefficient*pow(bodyLength, this->filtering_exponent);
 #else
 	biomassType usedFiltering = this->filtering_rate_per_individual_in_cell_volume;
 #endif
+#ifdef TEMPERATURE_MEDIATED_GRAZING
+	usedFiltering*=localeTemperature*this->consumption_temperature_factor;
+#endif
+//	usedFiltering=0.0f;
 	consumption_per_individual = usedFiltering*foodBiomassInMicrograms*stroganov_adjustment;
 #ifdef SATURATION_GRAZING
 	consumption_per_individual = min<biomassType>(FEEDING_SATURATION,MAXIMUM_GRAZING_ABSORBED);

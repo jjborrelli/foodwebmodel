@@ -49,7 +49,7 @@ typedef struct {
 	zooplanktonBiomassDepthCenterRoute;
 	unsigned int simulationCycles;
 
-	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion;
+	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion, nutrient_derivative;
 
 	biomassType algae_biomass_differential_production_scale,
 	algal_carrying_capacity_coefficient,
@@ -58,7 +58,9 @@ typedef struct {
 	exponential_temperature_algal_respiration_coefficient,
 	intrinsic_algae_mortality_rate, maximum_algae_resources_death,
 	reabsorbed_algal_nutrients_proportion,
-	algal_mortality_scale;
+	algal_mortality_scale,
+	intrinsic_settling_rate,
+	algal_fraction_sloughed;
 
 /*Movement of dead biomass*/
 	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion, algae_biomass_conservation_factor;
@@ -78,7 +80,8 @@ typedef struct {
 	grazer_egg_allocation_threshold,
 	grazer_starvation_factor,
 	grazer_dead_animal_proportion,
-	grazer_reabsorbed_animal_nutrients_proportion;
+	grazer_reabsorbed_animal_nutrients_proportion,
+	grazer_consumption_temperature_factor;
 
 	double grazer_reproduction_proportion_investment_amplitude,
 	grazer_reproduction_proportion_investment_coefficient,

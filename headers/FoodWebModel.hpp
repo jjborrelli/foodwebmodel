@@ -71,12 +71,13 @@ namespace FoodWebModel {
 		/*Algae differential growth*/
 		biomassType algae_biomass_differential_production_scale;
 		/* Grazer biomass in micrograms*/
+		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
+
 #ifdef INDIVIDUAL_BASED_ANIMALS
 		map<pair<int,int>,AnimalCohort> zooplankton, bottomGrazers;
 		map<pair<int,int>,AnimalCohort> floatingPredator, bottomPredator;
 #else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
-		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 		biomassType verticalMigrationZooplanktonBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 

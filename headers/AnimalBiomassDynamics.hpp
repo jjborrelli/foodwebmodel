@@ -32,6 +32,8 @@ protected:
 #endif
 	/* Animal count summing. The simulation halts below a given number*/
 	animalCountType floating_animal_count_summing;
+	/* Migration of animal biomass per hour*/
+		int zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	map<pair<int,int>,AnimalCohort> *floatingAnimals, *bottomAnimals;
 
@@ -159,6 +161,11 @@ protected:
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 #ifdef INDIVIDUAL_BASED_ANIMALS
+	void migrateAnimalCohorts();
+	void migrateAdultCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
+	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
+	bool migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrateStep, vector<AnimalCohort>& modificatedCohort);
+	void migrateJuvenileCohortStructurally(vector<AnimalCohort>& animals, AnimalCohort& cohort, int migrateStep);
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
 #elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
@@ -168,13 +175,13 @@ protected:
 	void animalAging(AnimalCohort& cohort);
 #endif
 #ifdef CREATE_NEW_COHORTS
-	void calculateReproductionProportionInvestment(biomassType foodBiomass);
-	biomassType createNewCohort(AnimalCohort& parentCohort, biomassType eggBiomass);
+	void calculateReproductionProportionInvestment(biomassType foodBiomass, biomassType foodBiomassDifferential);
+	biomassType createNewCohort(AnimalCohort& parentCohort, biomassType eggBiomass, vector<AnimalCohort>* juveniles);
 #ifdef MATURE_JUVENILES
 	void matureEggs(vector<EggCohort>& eggs, vector<AnimalCohort>& adultAnimals);
 	void matureJuveniles(vector<AnimalCohort>& juveniles, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #else
-	void matureEggs(vector<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
+	void matureEggs(set<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #endif
 #endif
 	biomassType getFoodBiomass(AnimalCohort& cohort);

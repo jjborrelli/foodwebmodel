@@ -47,6 +47,7 @@ typedef struct {
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
 	zooplanktonBiomassDepthCenterRoute;
+
 	unsigned int simulationCycles;
 
 	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion, nutrient_derivative;
@@ -112,20 +113,22 @@ typedef enum {Egg=0, Juvenile=1, Mature=2} AnimalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
-	int x, y, ageInHours;// ageInHours, hoursWithoutFood;
-
-	AnimalStage stage;
+	mutable int x, y, ageInHours;// ageInHours, hoursWithoutFood;
+	mutable int originalX, originalY;
+	mutable AnimalStage stage;
 //	causeOfDeath death;
 	bool isBottomAnimal;
-	animalCountType numberOfIndividuals;
-	biomassType bodyBiomass, gonadBiomass, starvationBiomass;
+	mutable animalCountType numberOfIndividuals;
+	mutable biomassType bodyBiomass, gonadBiomass, starvationBiomass;
 	cohortIDType cohortID;
 } AnimalCohort;
 
 typedef struct {
-	int x, y, ageInHours;
+	 int x, y;
+	 mutable int ageInHours;
 	cohortIDType cohortID;
-	bool isBottomAnimal, hasHatched;
+	bool isBottomAnimal;
+	mutable int hasHatched;
 	animalCountType numberOfEggs;
 	biomassType biomass;
 } EggCohort;
@@ -133,8 +136,11 @@ typedef struct {
 std::ostream& operator<<(std::ostream& os, const AnimalCohort& cohort);
 std::ostream& operator<<(std::ostream& os, const EggCohort& cohort);
 void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2);
+void operator-=(AnimalCohort& cohort1, const AnimalCohort& cohort2);
 void operator+=(EggCohort& cohort1, const EggCohort& cohort2);
 void operator+=(AnimalCohort& cohort1, const EggCohort& cohort2);
+void operator*=(AnimalCohort& cohort1, const double number);
+
 #endif
 
 #endif /* TYPEDEFINITIONS_HPP_ */

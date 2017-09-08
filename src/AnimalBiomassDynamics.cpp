@@ -6,6 +6,7 @@
  */
 #include <algorithm> // for remove_if
 #include <functional> // for unary_function
+#include <iterator>
 #include "../headers/AnimalBiomassDynamics.hpp"
 
 using namespace std;
@@ -27,22 +28,44 @@ std::ostream& operator<<(std::ostream& os, const EggCohort& cohort){
 void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
 	cohort1.bodyBiomass+=cohort2.bodyBiomass;
 	cohort1.numberOfIndividuals+=cohort2.numberOfIndividuals;
+	cohort1.gonadBiomass+=cohort2.gonadBiomass;
 	cohort1.ageInHours=0;
 
 }
 
+void operator-=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
+	cohort1.bodyBiomass -= cohort2.bodyBiomass;
+	cohort1.numberOfIndividuals -= cohort2.numberOfIndividuals;
+	cohort1.gonadBiomass -= cohort2.gonadBiomass;
+	cohort1.ageInHours=0;
+
+}
+
+
 void operator+=(EggCohort& cohort1, const EggCohort& cohort2){
-	cohort1.biomass+=cohort2.biomass;
-	cohort1.numberOfEggs+=cohort2.numberOfEggs;
+	cohort1.biomass += cohort2.biomass;
+	cohort1.numberOfEggs += cohort2.numberOfEggs;
 }
 
 void operator+=(AnimalCohort& cohort1, const EggCohort& cohort2){
-	cohort1.bodyBiomass+=cohort2.biomass;
-	cohort1.numberOfIndividuals+=cohort2.numberOfEggs;
+	cohort1.bodyBiomass += cohort2.biomass;
+	cohort1.numberOfIndividuals += cohort2.numberOfEggs;
 	cohort1.ageInHours=0;
+	 if(cohort1.numberOfIndividuals<0){
+		 cout<<"Error."<<endl;
+	 }
 
 }
 
+void operator*=(AnimalCohort& cohort1, const double number){
+	cohort1.bodyBiomass*=number;
+	cohort1.gonadBiomass*=number;
+	cohort1.numberOfIndividuals*=number;
+	 if(cohort1.numberOfIndividuals<0){
+		 cout<<"Error."<<endl;
+	 }
+
+}
 
 
 namespace FoodWebModel {
@@ -118,11 +141,6 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 	}
 #endif
 	/*Migrate verically zooplankton according to current time */
-#ifdef MIGRATE_ZOOPLANKTON_AT_HOUR
-	verticalMigrateAnimalCount();
-#elif defined(LOCALE_SEARCH_ZOOPLANKTON_MIGRATION)
-	verticalMigrateAnimalAlgae();
-#endif
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Update biomass in bottom and floating grazer cohorts*/
@@ -261,15 +279,26 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	}
 #ifdef CREATE_NEW_COHORTS
 	/* If biomass differential is negative, do not invest in eggs*/
-	if(cohort.stage==AnimalStage::Mature&&biomassDifferential>0.0f){
-		calculateReproductionProportionInvestment(initialFoodBiomass);
+	if(cohort.stage==AnimalStage::Egg){
+		cout<<"Error."<<endl;
+	}
+
+	//if(cohort.stage!=AnimalStage::Juvenile&&biomassDifferential>0.0f){
+		if(biomassDifferential>0.0f){
+
+		biomassType biomassDifferential=cohort.isBottomAnimal?this->bottomFoodBiomassDifferential[cohort.y]:this->floatingFoodBiomassDifferential[cohort.x][cohort.y];
+		calculateReproductionProportionInvestment(initialFoodBiomass, biomassDifferential);
 	} else{
 		reproduction_proportion_investment=0.0f;
+	}
+	if(cohort.x>maxDepthIndex[cohort.y]){
+		cout<<"Lower overflow."<<endl;
 	}
 #else
 	reproduction_proportion_investment=0.0f;
 #endif
 	/* Amount of biomass invested in body and gonad weight*/
+//	reproduction_proportion_investment=0.0f;
 	biomassType bodyBiomassInvestment=biomassDifferential*(1-reproduction_proportion_investment);
  biomassType bodyLostBiomass=consumed_biomass*(1-reproduction_proportion_investment);
 	biomassType gonadBiomassInvestment=biomassDifferential*reproduction_proportion_investment;
@@ -288,7 +317,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(*this->cohortID)<<", biomass: "<<cohort.gonadBiomass<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
 	#endif
-				biomassType newCohortBiomass = createNewCohort(cohort, cohort.gonadBiomass);
+				biomassType newCohortBiomass = createNewCohort(cohort, cohort.gonadBiomass, cohort.isBottomAnimal?&(this->bottomJuveniles):&(this->floatingJuveniles));
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Cohort created."<<endl;
 	#endif
@@ -302,11 +331,26 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	animalAging(cohort);
 #endif
 	cohort.bodyBiomass+=bodyBiomassInvestment;
-
+//	cohort.numberOfIndividuals=cohort.bodyBiomass/(biomassType)initial_grazer_weight[cohort.stage];
 	/*Remove dead animals in the cohort*/
 	if(animal_mortality>0){
-		animalCountType deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
+		biomassType biomassAfterEating = getFoodBiomass(cohort);
+		animalCountType deadIndividuals;
+		if(biomassAfterEating==0){
+			/* If there is no food, all individuals die*/
+			deadIndividuals=cohort.numberOfIndividuals;
+//			deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
+		} else{
+			/* Otherwise, only a number die*/
+			biomassType starvationProportion = (cohort.numberOfIndividuals/biomassAfterEating);
+			starvationProportion*=this->starvation_factor;
+			deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+		}
+//		deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-deadIndividuals);
+		if(cohort.numberOfIndividuals<0){
+			cout<<"Error."<<endl;
+		}
 	}
 
 	/*Remove starved animals in the cohort*/
@@ -331,6 +375,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	  // Include removal of starved grazers multiplied by a weight
 	cohort.numberOfIndividuals-=ceil(this->dead_animal_proportion*bodyLostBiomass/initial_grazer_weight[cohort.stage]);
 	cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals);
+	if(cohort.numberOfIndividuals<0){
+		cout<<"Error."<<endl;
+	}
   }
 	this->floating_animal_count_summing+=cohort.numberOfIndividuals;
 	/* If the number of individuals or total biomass in the cohort is 0, consider it dead of starvation */
@@ -339,7 +386,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //	}
 	/*If biomass must be registered, register standard phytoplankton biomass*/
 	if(registerBiomass&&cohort.numberOfIndividuals>0){
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 	}
 
 	/* If the cohort is dead, register its death*/
@@ -512,6 +559,10 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	biomassType mortalityBiomass=animalBiomass;
 #endif
 	animalMortality(mortalityBiomass, localeTemperature, salinity_effect_matrix[depthIndex][columnIndex]);
+#ifdef STARVATION_MORTALITY
+//	animal_mortality/=min<biomassType>(1.0f,locale_algae_biomass_before_eating/142.0f);
+//	animal_mortality=min<biomassType>(animal_mortality, animalBiomass);
+#endif
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	biomassType reabsorbedAlgalNutrients=reabsorbed_animal_nutrients_proportion*animal_mortality;
 #ifdef CHECK_LOST_BIOMASS_ADDITION
@@ -533,6 +584,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 #endif
 
 	consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
+//	consumed_biomass=0.0f;
 	biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
 	calculatePredationPressure(animalCount);
 		if(*current_hour>=20*24&&bottom){
@@ -588,7 +640,7 @@ void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex,
 #ifdef GRAZING_DEPENDING_ON_WEIGHT
 	/* Grazing constant taken from [1] C. W. Burns, “Relation between filtering rate, temperature, and body size in four species of Daphnia,” Limnol. Oceanogr., vol. 14, no. 5, pp. 693–700, Sep. 1969.*/
 	biomassType bodyLength = pow((individualWeight*MICROGRAM_TO_GRAM)/this->filtering_length_coefficient, this->filtering_length_exponent);
-	biomassType usedFiltering = this->filtering_coefficient*pow(bodyLength, this->filtering_exponent);
+	biomassType usedFiltering = this->filtering_coefficient*pow(bodyLength, this->filtering_exponent)*MILLILITER_TO_VOLUME_PER_CELL;
 #else
 	biomassType usedFiltering = this->filtering_rate_per_individual_in_cell_volume;
 #endif
@@ -611,6 +663,9 @@ void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex,
 #endif
 	 used_consumption=min<biomassType>(foodBiomassInMicrograms, used_consumption);
 	 biomassType updatedAlgaeBiomassInMicrograms = foodBiomassInMicrograms - used_consumption;
+	 if(used_consumption<0){
+		 cout<<"Error."<<endl;
+	 }
 	 biomassType updatedConcentration = updatedAlgaeBiomassInMicrograms/CELL_VOLUME_IN_LITER;
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
 	if(bottom){
@@ -672,6 +727,7 @@ void AnimalBiomassDynamics::animalMortality(biomassType localeBiomass, physicalT
 	salinityMortality(localeBiomass);
 	calculateLowOxigenMortality(localeBiomass);
 	animal_mortality = animal_base_mortality+salinity_mortality+low_oxigen_animal_mortality;
+
 
 }
 
@@ -768,6 +824,7 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 
 		cohort.starvationBiomass=0.0f;
 		cohort.numberOfIndividuals-=animalsDeadByStarvation;
+		cohort.numberOfIndividuals=max<animalCountType>(cohort.numberOfIndividuals, 0);
 //			if(animalsDeadByStarvation>0){
 //				cout<<"The actual number of animals dead by starvation is "<<animalsDeadByStarvation<<" for "<<cohort<<endl;
 //			}
@@ -814,8 +871,8 @@ void AnimalBiomassDynamics::animalAging(AnimalCohort& cohort){
 /* Remove dead animals*/
 
 
-/* Iterate over animal vectors and remove those that are dead*/
-//void AnimalBiomassDynamics::removeDeadCohorts(vector<AnimalCohort> *animalCohorts){
+/* Iterate over animal collections and remove those that are dead*/
+//void AnimalBiomassDynamics::removeDeadCohorts(set<AnimalCohort> *animalCohorts){
 //	animalCohorts->erase(std::remove_if(animalCohorts->begin(), animalCohorts->end(), removeDeadCohort()), animalCohorts->end());
 //}
 //
@@ -827,7 +884,7 @@ void AnimalBiomassDynamics::animalAging(AnimalCohort& cohort){
 
 #ifdef CREATE_NEW_COHORTS
 
-void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassType foodBiomass){
+void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassType foodBiomass, biomassType foodBiomassDifferential){
 	/* Proportion of investment to eggs taken from ([1] M. Lynch, â€œThe Life History Consequences of Resource Depression in Daphnia Pulex,â€ Ecology, vol. 70, no. 1, pp. 246â€“256, Feb. 1989.)*/
 #ifdef EXPONENTIAL_GONAD_ALLOCATION
 	reproduction_investment_subtraction=foodBiomass*MILLILITER_TO_LITER - this->reproduction_proportion_investment_intercept;
@@ -839,20 +896,25 @@ void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassTyp
 	reproduction_investment_exponent=reproduction_investment_subtraction+this->reproduction_proportion_investment_amplitude;
 	reproduction_investment_power=exp((biomassType)reproduction_investment_exponent);
 	reproduction_proportion_investment=max<biomassType>(0.0f,min<biomassType>(1.0f,this->reproduction_proportion_investment_multiplier*this->reproduction_proportion_investment_intercept/(this->reproduction_proportion_investment_intercept+reproduction_investment_power))+this->reproduction_proportion_investment_constant);
-#else
+#elif defined(DIFFERENTIAL_ALLOCATION)
+	reproduction_proportion_investment=foodBiomassDifferential/0.012f;
+	#else
 	reproduction_investment_subtraction=0;
 	reproduction_investment_exponent=reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);
 	reproduction_investment_power=reproduction_investment_exponent+this->reproduction_proportion_investment_amplitude;
-	reproduction_proportion_investment=max<biomassType>(0,min<biomassType>(1,reproduction_investment_power));
+	reproduction_proportion_investment=max<biomassType>(0,min<biomassType>(0.4f,reproduction_investment_power));
 #endif
 
 }
 
-biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, biomassType initialBiomass){
+biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, biomassType initialBiomass, vector<AnimalCohort> *juveniles){
 	/* The attributes from the child cohort are inherited from the parent cohort*/
 	EggCohort eggCohort;
 	eggCohort.x=parentCohort.x;
 	eggCohort.y=parentCohort.y;
+	if(eggCohort.x<0||eggCohort.y<0){
+		cout<<"Error."<<endl;
+	}
 	eggCohort.isBottomAnimal=parentCohort.isBottomAnimal;
 	/*The others are attributes for newborn cohorts*/
 	eggCohort.ageInHours=0;
@@ -866,12 +928,20 @@ biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, b
 	} else {
 		floatingEggs.push_back(eggCohort);
 	}
+	AnimalCohort juvenileCohort=parentCohort;
+	pair<int,int> cohortCoordinates(parentCohort.x, parentCohort.y);
+	juvenileCohort.bodyBiomass=initialBiomass;
+	juvenileCohort.stage=AnimalStage::Juvenile;
+	juvenileCohort.gonadBiomass=0.0f;
+	juvenileCohort.numberOfIndividuals=(animalCountType)(initialBiomass/initial_grazer_weight[AnimalStage::Juvenile]);
+	juvenileCohort.cohortID=(*this->cohortID)++;
+//	juveniles->push_back(juvenileCohort);
 	return eggCohort.biomass;
 }
 #ifdef MATURE_JUVENILES
-void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, vector<AnimalCohort>& adultAnimals){
+void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, vector<AnimalCohort>& juveniles){
 #else
-void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals){
+void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *juveniles){
 #endif
 	for (std::vector<EggCohort>::iterator it=eggs.begin(); it!=eggs.end(); ++it){
 		/* Increase egg age and check if the egg has hatched*/
@@ -923,7 +993,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 
 #ifndef MATURE_JUVENILES
 	    	pair<int,int> cohortCoordinates(eggCohort.x, eggCohort.y);
-	    	if ( adultAnimals->find(cohortCoordinates) == adultAnimals->end() ) {
+	    	if ( juveniles->find(cohortCoordinates) == juveniles->end() ) {
 #endif
 	    		AnimalCohort animalCohort;
 	    		animalCohort.x=eggCohort.x;
@@ -936,14 +1006,14 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.ageInHours=0;
 #ifdef MATURE_JUVENILES
 	    		animalCohort.stage=AnimalStage::Juvenile;
-	    		adultAnimals.push_back(animalCohort);
+	    		juveniles.push_back(animalCohort);
 #else
 	    		animalCohort.stage=AnimalStage::Mature;
 	    		/* If the adult cohort exists, increase biomass and number of eggs*/
-	    		(*adultAnimals)[cohortCoordinates]=animalCohort;
+	    		(*juveniles)[cohortCoordinates]=animalCohort;
 	    	} else{
 	    		/* Otherwise, add number of individuals and biomass to the existing cohort*/
-	    		(*adultAnimals)[cohortCoordinates]+=eggCohort;
+	    		(*juveniles)[cohortCoordinates]+=animalCohort;
 	    	}
 //	    	animalCohort.death=causeOfDeath::None;
 //	    	animalCohort.hoursWithoutFood=animalCohort.ageInHours=0;
@@ -975,7 +1045,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 		/* Remove cohort if the number of animals or its biomass is 0*/
 		/*Mature age*/
 		if(++it->ageInHours>=this->maturation_hours){
-			/* Create a copy of the cohort to store in adult animals. After erasing it from the juveniles vector, the original cohort will be deleted*/
+			/* Create a copy of the cohort to store in adult animals. After erasing it from the juveniles collection, the original cohort will be deleted*/
 			it->stage=AnimalStage::Mature;
 			AnimalCohort cohortCopy;
 			cohortCopy.ageInHours=it->ageInHours;
@@ -1005,8 +1075,137 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 
 #endif
 
+/* If the migration index is greater than 0, migrate adult and juvenile cohorts*/
+
+void AnimalBiomassDynamics::migrateAnimalCohorts(){
+	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
+	if(migrationStep!=0){
+		migrateAdultCohortsStructurally(floatingAnimals,migrationStep);
+		migrateJuvenileCohortsStructurally(floatingJuveniles,migrationStep);
+
+//
+//		if(migrationStep>0){
+//			for(int i=1; i<=migrationStep; i++){
+//				migrateAdultCohortsStructurally(floatingAnimals,i);
+//						//migrateJuvenileCohortsStructurally(floatingJuveniles,i);
+//			}
+//		} else{
+//			for(int i=migrationStep; i<0; i++){
+//							migrateAdultCohortsStructurally(floatingAnimals,i+migrationStep);
+//									//migrateJuvenileCohortsStructurally(floatingJuveniles,i+migrationStep);
+//						}
+//		}
+
+	}
+}
+
+/* Migate the center of mass of the adult cohorts*/
+void AnimalBiomassDynamics::migrateAdultCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep){
+	vector<AnimalCohort> modificatedCohorts;
+	AnimalCohort& cohortAlias=(*animals)[pair<int,int>(11,0)];
+	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
+				it != animals->end(); ++it) {
+		bool migratedBiomass = migrateAdultCohortStructurally(animals, it->second, migrationStep, modificatedCohorts);
+		/*If the cohort has migrated, remove it from its previous location*/
+		if(migratedBiomass){
+//			it->second.bodyBiomass*=0.1f;
+//			it->second.gonadBiomass*=0.1f;
+//			it->second.numberOfIndividuals*=0.1f;
+//			animals->erase(it);
+//			modificatedCohorts.push_back(it->second);
+		}
+	}
+	for (std::vector<AnimalCohort>::iterator it = modificatedCohorts.begin();
+					it != modificatedCohorts.end(); ++it) {
+		/* Store original coordinates */
+		pair<int,int> cohortCoordinates(it->x, it->y), originalCoordinates(it->originalX, it->originalY);
+		if(animals->find(cohortCoordinates)==animals->end()){
+			if(it->stage!=Mature){
+				cout<<"Error."<<endl;
+			}
+			if(it->x<0||it->y<0){
+				cout<<"Error."<<endl;
+			}
+//			(*animals)[cohortCoordinates] = *it;
+		} else{
+			(*animals)[cohortCoordinates] += *it;
+			if((*animals)[cohortCoordinates].numberOfIndividuals<0){
+						cout<<"Error."<<endl;
+					}
+		}
+		AnimalCohort originalCohort = (*animals)[originalCoordinates];
+		/*Remove migrated individuals*/
+		animalCountType originalCount = it->numberOfIndividuals;
+		(*animals)[originalCoordinates]-=*it;
+		if((*animals)[originalCoordinates].numberOfIndividuals<0){
+			cout<<"Error."<<endl;
+		}
+	}
+	/* Remove empty cohorts */
+	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
+					it != animals->end(); ++it) {
+		if(it->second.numberOfIndividuals<=0){
+			animals->erase(it);
+		}
+	}
+}
+
+
+void AnimalBiomassDynamics::migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrationStep){
+	for (std::vector<AnimalCohort>::iterator it = juveniles.begin();
+			it != juveniles.end(); ++it) {
+		migrateJuvenileCohortStructurally(juveniles, *it, migrationStep);
+		//(*it)*=0.9f;
+	}
+
+}
+
+bool AnimalBiomassDynamics::migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrationStep, vector<AnimalCohort>& modificatedCohort){
+	/*Migrate the center of biomass of the animal cohorts*/
+	int destinationX =cohort.x+migrationStep;
+	destinationX=max<int>(0,min<int>(maxDepthIndex[cohort.y], destinationX));
+	/*Check the limits of the new depth of the cohort*/
+	bool verticalMigrationOccurred = destinationX>=0&&destinationX<MAX_DEPTH_INDEX&&destinationX<=maxDepthIndex[cohort.y]&&destinationX!=cohort.x;
+	if(verticalMigrationOccurred){
+		pair<int,int> cohortCoordinates(destinationX, cohort.y);
+		AnimalCohort migratedCohort=cohort;
+		int previousDepth = migratedCohort.x;
+		migratedCohort.originalX=cohort.x;
+		migratedCohort.originalY=cohort.y;
+		migratedCohort.x=destinationX;
+
+		if(migratedCohort.stage!=Mature){
+						cout<<"Error."<<endl;
+					}
+					if(migratedCohort.x<0||migratedCohort.y<0){
+						cout<<"Error."<<endl;
+					}
+		/*Update the cohort numbers*/
+//		if(animals->find(cohortCoordinates)==animals->end()){
+//			(*animals)[cohortCoordinates] = migratedCohort;
+//		} else{
+//			(*animals)[cohortCoordinates] += migratedCohort;
+//		}
+		modificatedCohort.push_back(migratedCohort);
+	}
+	return verticalMigrationOccurred;
+}
+
+void AnimalBiomassDynamics::migrateJuvenileCohortStructurally(vector<AnimalCohort>& juveniles, AnimalCohort& cohort, int migrationStep){
+	/*Migrate the center of biomass of the animal cohorts*/
+	int destinationX =cohort.x+migrationStep;
+	destinationX=max<int>(0,min<int>(maxDepthIndex[cohort.y], destinationX));
+	/*Check the limits of the new depth of the cohort*/
+	if(destinationX>=0&&destinationX<MAX_DEPTH_INDEX&&destinationX<=maxDepthIndex[cohort.y]&&destinationX!=cohort.x){
+		cohort.x=destinationX;
+	}
+}
+
+
 #endif
 
+
+/* Set the maximum allocation biomass to 0.5 and set that the grazers left behind do not eat nor reproduce*/
 
 
 } /* namespace FoodWebModel */

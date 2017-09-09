@@ -107,16 +107,34 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 
 void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals) {//
 
+	int iteratorCounter=0;
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
-			it != animals->end(); ++it) {
-		updateCohortBiomass(it->second);
-		/* Remove cohort if the number of animals or its biomass is 0*/
-		if(it->second.numberOfIndividuals<=0||it->second.bodyBiomass<=0.0f){
-			animals->erase(it);
+			it != animals->end();++it) {
+		if(it->second.stage==AnimalStage::Egg){
+			cout<<"Error."<<endl;
 		}
-
+		iteratorCounter++;
+		if(it->second.numberOfIndividuals>0&&it->second.bodyBiomass>0){
+			/* Update biomass of non-empty cohorts */
+			updateCohortBiomass(it->second);
+		}
 	}
-
+//	std::vector<pair<int,int>> emptyCohorts;
+//	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
+//				it != animals->end();++it) {
+//		/* Remove cohort if the number of animals or its biomass is 0*/
+//		if(it->second.numberOfIndividuals<=0||it->second.bodyBiomass<=0.0f){
+//			/*We cannot remove elements while iterating map entries, so we store them for later deletion*/
+//			emptyCohorts.push_back(it->first);
+//		}
+//	}
+	/*Remove empty cohorts*/
+//	iteratorCounter=0;
+//	for (std::vector<pair<int,int>>::iterator it = emptyCohorts.begin();
+//					it != emptyCohorts.end();++it) {
+//		iteratorCounter++;
+////		animals->erase(*it);
+//	}
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
@@ -1002,7 +1020,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.numberOfIndividuals=eggCohort.numberOfEggs;
 	    		animalCohort.cohortID=eggCohort.cohortID;
 	    		animalCohort.isBottomAnimal=eggCohort.isBottomAnimal;
-	    		animalCohort.gonadBiomass=0.0f;
+	    		animalCohort.gonadBiomass=animalCohort.starvationBiomass=0.0f;
 	    		animalCohort.ageInHours=0;
 #ifdef MATURE_JUVENILES
 	    		animalCohort.stage=AnimalStage::Juvenile;
@@ -1082,72 +1100,75 @@ void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	if(migrationStep!=0){
 		migrateAdultCohortsStructurally(floatingAnimals,migrationStep);
 		migrateJuvenileCohortsStructurally(floatingJuveniles,migrationStep);
-
-//
-//		if(migrationStep>0){
-//			for(int i=1; i<=migrationStep; i++){
-//				migrateAdultCohortsStructurally(floatingAnimals,i);
-//						//migrateJuvenileCohortsStructurally(floatingJuveniles,i);
-//			}
-//		} else{
-//			for(int i=migrationStep; i<0; i++){
-//							migrateAdultCohortsStructurally(floatingAnimals,i+migrationStep);
-//									//migrateJuvenileCohortsStructurally(floatingJuveniles,i+migrationStep);
-//						}
-//		}
-
 	}
 }
 
 /* Migate the center of mass of the adult cohorts*/
 void AnimalBiomassDynamics::migrateAdultCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep){
-	vector<AnimalCohort> modificatedCohorts;
 	AnimalCohort& cohortAlias=(*animals)[pair<int,int>(11,0)];
+	/* Set migration parameters to 0*/
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+				this->migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex]=this->migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex] = this->migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex] =0.0f;
+				this->migratedFloatingAnimalCount[depthIndex][columnIndex]=0;
+			}
+		}
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
 				it != animals->end(); ++it) {
-		bool migratedBiomass = migrateAdultCohortStructurally(animals, it->second, migrationStep, modificatedCohorts);
+		if(it->second.numberOfIndividuals>0&&it->second.bodyBiomass>0.0f){
+			/* Migrate non-empty cohorts */
+			bool migratedBiomass = migrateAdultCohortStructurally(animals, it->second, migrationStep);
+		}
 		/*If the cohort has migrated, remove it from its previous location*/
-		if(migratedBiomass){
-//			it->second.bodyBiomass*=0.1f;
-//			it->second.gonadBiomass*=0.1f;
-//			it->second.numberOfIndividuals*=0.1f;
-//			animals->erase(it);
-//			modificatedCohorts.push_back(it->second);
-		}
+
 	}
-	for (std::vector<AnimalCohort>::iterator it = modificatedCohorts.begin();
-					it != modificatedCohorts.end(); ++it) {
-		/* Store original coordinates */
-		pair<int,int> cohortCoordinates(it->x, it->y), originalCoordinates(it->originalX, it->originalY);
-		if(animals->find(cohortCoordinates)==animals->end()){
-			if(it->stage!=Mature){
-				cout<<"Error."<<endl;
-			}
-			if(it->x<0||it->y<0){
-				cout<<"Error."<<endl;
-			}
-//			(*animals)[cohortCoordinates] = *it;
-		} else{
-			(*animals)[cohortCoordinates] += *it;
-			if((*animals)[cohortCoordinates].numberOfIndividuals<0){
-						cout<<"Error."<<endl;
+	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
+			for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+				/* If there exists migration, change animal metrics*/
+				if(this->migratedFloatingAnimalCount[depthIndex][columnIndex]!=0){
+					pair<int,int> migratedCoordinates(depthIndex, columnIndex);
+
+					if(animals->find(migratedCoordinates)==animals->end()){
+						/* If the coordinate is not occupied, create a new cohort*/
+						if(migratedFloatingAnimalCount[depthIndex][columnIndex]<0||migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex]<0.0f||migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex]<0.0f||(*animals)[migratedCoordinates].starvationBiomass<0.0f){
+							cout<<"Error."<<endl;
+						}
+						AnimalCohort createdCohort;
+						createdCohort.x=depthIndex;
+						createdCohort.y=columnIndex;
+						createdCohort.bodyBiomass=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
+						createdCohort.gonadBiomass=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
+						createdCohort.numberOfIndividuals=migratedFloatingAnimalCount[depthIndex][columnIndex];
+						createdCohort.stage=AnimalStage::Mature;
+						createdCohort.starvationBiomass=0.0f;
+						createdCohort.isBottomAnimal=false;
+						createdCohort.ageInHours=0;
+						createdCohort.cohortID=(*this->cohortID)++;
+						(*animals)[migratedCoordinates]=createdCohort;
+						if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){
+							cout<<"Error."<<endl;
+						}
+					} else{
+						/* If the coordinate is occupied, update the values*/
+						(*animals)[migratedCoordinates].numberOfIndividuals+=migratedFloatingAnimalCount[depthIndex][columnIndex];
+						(*animals)[migratedCoordinates].bodyBiomass+=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
+						(*animals)[migratedCoordinates].gonadBiomass+=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
+						if((*animals)[migratedCoordinates].numberOfIndividuals<0||(*animals)[migratedCoordinates].bodyBiomass<0.0f||(*animals)[migratedCoordinates].gonadBiomass<0.0f||(*animals)[migratedCoordinates].starvationBiomass<0.0f){
+							cout<<"Error."<<endl;
+						}
+						if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){
+							cout<<"Error."<<endl;
+						}
+//						if((*animals)[migratedCoordinates].numberOfIndividuals==0||(*animals)[migratedCoordinates].bodyBiomass==0.0f){
+//							AnimalCohort migratedCohort = (*animals)[migratedCoordinates];
+//							/*Remove empty cohorts*/
+////							animals->erase(migratedCoordinates);
+//						}
 					}
+
+				}
+			}
 		}
-		AnimalCohort originalCohort = (*animals)[originalCoordinates];
-		/*Remove migrated individuals*/
-		animalCountType originalCount = it->numberOfIndividuals;
-		(*animals)[originalCoordinates]-=*it;
-		if((*animals)[originalCoordinates].numberOfIndividuals<0){
-			cout<<"Error."<<endl;
-		}
-	}
-	/* Remove empty cohorts */
-	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
-					it != animals->end(); ++it) {
-		if(it->second.numberOfIndividuals<=0){
-			animals->erase(it);
-		}
-	}
 }
 
 
@@ -1160,33 +1181,26 @@ void AnimalBiomassDynamics::migrateJuvenileCohortsStructurally(vector<AnimalCoho
 
 }
 
-bool AnimalBiomassDynamics::migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrationStep, vector<AnimalCohort>& modificatedCohort){
+bool AnimalBiomassDynamics::migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrationStep){
 	/*Migrate the center of biomass of the animal cohorts*/
 	int destinationX =cohort.x+migrationStep;
 	destinationX=max<int>(0,min<int>(maxDepthIndex[cohort.y], destinationX));
 	/*Check the limits of the new depth of the cohort*/
 	bool verticalMigrationOccurred = destinationX>=0&&destinationX<MAX_DEPTH_INDEX&&destinationX<=maxDepthIndex[cohort.y]&&destinationX!=cohort.x;
 	if(verticalMigrationOccurred){
-		pair<int,int> cohortCoordinates(destinationX, cohort.y);
-		AnimalCohort migratedCohort=cohort;
-		int previousDepth = migratedCohort.x;
-		migratedCohort.originalX=cohort.x;
-		migratedCohort.originalY=cohort.y;
-		migratedCohort.x=destinationX;
+		int originalX=cohort.x, originalY=cohort.y;
+		int destinationY=cohort.y;
+		/*Increment the biological values of the destination cohort with the migrated cohort*/
+		this->migratedFloatingAnimalBodyBiomass[destinationX][destinationY]+=cohort.bodyBiomass;
+		this->migratedFloatingAnimalGonadBiomass[destinationX][destinationY]+=cohort.gonadBiomass;
+		this->migratedFloatingAnimalCount[destinationX][destinationY]+=cohort.numberOfIndividuals;
+		this->migratedFloatingAnimalStarvationBiomass[destinationX][destinationY]+=cohort.starvationBiomass;
+		/*Decrement the biological values of the origin cohort with the migrated cohort*/
 
-		if(migratedCohort.stage!=Mature){
-						cout<<"Error."<<endl;
-					}
-					if(migratedCohort.x<0||migratedCohort.y<0){
-						cout<<"Error."<<endl;
-					}
-		/*Update the cohort numbers*/
-//		if(animals->find(cohortCoordinates)==animals->end()){
-//			(*animals)[cohortCoordinates] = migratedCohort;
-//		} else{
-//			(*animals)[cohortCoordinates] += migratedCohort;
-//		}
-		modificatedCohort.push_back(migratedCohort);
+		this->migratedFloatingAnimalBodyBiomass[originalX][originalY]-=cohort.bodyBiomass;
+		this->migratedFloatingAnimalGonadBiomass[originalX][originalY]-=cohort.gonadBiomass;
+		this->migratedFloatingAnimalCount[originalX][originalY]-=cohort.numberOfIndividuals;
+		this->migratedFloatingAnimalStarvationBiomass[originalX][originalY]-=cohort.starvationBiomass;
 	}
 	return verticalMigrationOccurred;
 }
@@ -1198,6 +1212,9 @@ void AnimalBiomassDynamics::migrateJuvenileCohortStructurally(vector<AnimalCohor
 	/*Check the limits of the new depth of the cohort*/
 	if(destinationX>=0&&destinationX<MAX_DEPTH_INDEX&&destinationX<=maxDepthIndex[cohort.y]&&destinationX!=cohort.x){
 		cohort.x=destinationX;
+		if(cohort.stage!=AnimalStage::Juvenile){
+			cout<<"Error."<<endl;
+		}
 	}
 }
 

@@ -114,7 +114,6 @@ typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
 	mutable int x, y, ageInHours;// ageInHours, hoursWithoutFood;
-	mutable int originalX, originalY;
 	mutable AnimalStage stage;
 //	causeOfDeath death;
 	bool isBottomAnimal;

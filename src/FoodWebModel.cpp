@@ -653,7 +653,7 @@ void FoodWebModel::FoodWebModel::step(){
 	updateAlgaeBiomass();
 	updateAlgaeVerticalMigration();
 	grazerDynamics.updateAnimalBiomass();
-//	grazerDynamics.migrateAnimalCohorts();
+	grazerDynamics.migrateAnimalCohorts();
 //	predatorDynamics.updateAnimalBiomass();
 }
 

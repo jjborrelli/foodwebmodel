@@ -54,7 +54,9 @@ protected:
 	        return cohort.numberOfIndividuals<=0||cohort.bodyBiomass<=0.0f||cohort.stage==AnimalStage::Mature;
 	    }
 	};
-
+	biomassType migratedFloatingAnimalBodyBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], migratedFloatingAnimalGonadBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	animalCountType migratedFloatingAnimalCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	biomassType migratedFloatingAnimalStarvationBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 #ifdef CREATE_NEW_COHORTS
 	vector<EggCohort> floatingEggs, bottomEggs;
@@ -164,7 +166,7 @@ protected:
 	void migrateAnimalCohorts();
 	void migrateAdultCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
-	bool migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrateStep, vector<AnimalCohort>& modificatedCohort);
+	bool migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrateStep);
 	void migrateJuvenileCohortStructurally(vector<AnimalCohort>& animals, AnimalCohort& cohort, int migrateStep);
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);

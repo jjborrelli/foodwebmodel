@@ -602,7 +602,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 #endif
 
 	consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
-//	consumed_biomass=0.0f;
+	consumed_biomass=0.0f;
 	biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
 	calculatePredationPressure(animalCount);
 		if(*current_hour>=20*24&&bottom){

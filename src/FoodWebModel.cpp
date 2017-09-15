@@ -984,6 +984,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	constantBiomassDifferential = this->baseAlgaeBiomassDifferential[depthIndex]*VARIABLE_ALGAE_BIOMASS_DIFFERENTIAL_WEIGHT;
 #endif
 	biomassType localeConstantBiomassDifferential = localPointBiomass>0.0f?constantBiomassDifferential:0.0f;
+	algae_respiration_value=algae_excretion_value=0.0f;
 	biomassType totalAlgaeBiomassDifferential =  localeConstantBiomassDifferential + photosynthesis_value+algae_respiration_value+algae_excretion_value;
 //			+algae_natural_mortality*10.0f;
 	/* Register differential*/

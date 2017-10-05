@@ -108,13 +108,13 @@ protected:
 	biomassType animal_carrying_capacity_coefficient, animal_carrying_capacity_intercept, animal_carrying_capacity_amplitude, animal_carrying_capacity_constant, animal_carrying_capacity, maximum_found_animal_biomass;
 
 	/*Parameters for physical pointers*/
-	physicalType *temperature[MAX_DEPTH_INDEX], *lakeLightAtDepth[MAX_DEPTH_INDEX], *previousLakeLightAtDepth[MAX_DEPTH_INDEX];
+	physicalType *temperature[MAX_DEPTH_INDEX], *lakeLightAtDepth[MAX_DEPTH_INDEX], *previousLakeLightAtDepth[MAX_DEPTH_INDEX], *indexToDepth;
 
 	/* Animal attributes*/
 	biomassType used_consumption, consumption_per_individual, locale_consumption, consumed_biomass, locale_defecation, base_animal_respiration, salinity_corrected_animal_respiration, basal_animal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, animal_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_mortality, locale_consumption_salt_adjusted, animal_mortality, animal_predatory_pressure, low_oxigen_animal_mortality;
 
 	/* Animal physical attributes*/
-	physicalType stroganov_adjustment;
+	physicalType stroganov_adjustment, ZMax;
 
 	/* Animal migration attributes*/
 	biomassType floatingAnimalBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
@@ -132,8 +132,8 @@ protected:
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	/* Dead biomass */
 	biomassType *deadFloatingBiomass[MAX_DEPTH_INDEX], *deadBottomBiomass;
-	physicalType reabsorbed_animal_nutrients_proportion;
 #endif
+	physicalType reabsorbed_animal_nutrients_proportion, critical_depth, critical_light_intensity, velocity_downward_pull;
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
 #ifdef CHECK_ASSERTIONS
@@ -164,10 +164,18 @@ protected:
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	void migrateAnimalCohorts();
-	void migrateAdultCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
+	void migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep);
+	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
-	bool migrateAdultCohortStructurally(std::map<pair<int,int>,AnimalCohort> *animals, AnimalCohort& cohort, int migrateStep);
+	bool migrateAdultCohortStructurally(AnimalCohort& cohort, int migrateStep);
 	void migrateJuvenileCohortStructurally(vector<AnimalCohort>& animals, AnimalCohort& cohort, int migrateStep);
+	void clearMigrationParameters();
+	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
+	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
+	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
+	int migrateCohortsDepthDependent(AnimalCohort& cohort);
+	int migrateCohortsFixedFrequency(AnimalCohort& cohort);
+
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
 #elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)

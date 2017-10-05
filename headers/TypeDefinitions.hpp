@@ -51,6 +51,7 @@ typedef struct {
 	unsigned int simulationCycles;
 
 	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion, nutrient_derivative;
+	physicalType light_lower_quantile, light_upper_quantile, light_steepness_factor;
 
 	biomassType algae_biomass_differential_production_scale,
 	algal_carrying_capacity_coefficient,
@@ -82,7 +83,10 @@ typedef struct {
 	grazer_starvation_factor,
 	grazer_dead_animal_proportion,
 	grazer_reabsorbed_animal_nutrients_proportion,
-	grazer_consumption_temperature_factor;
+	grazer_consumption_temperature_factor,
+	grazer_velocity_downward_pull,
+	grazer_critical_depth,
+	grazer_critical_light_intensity;
 
 	double grazer_reproduction_proportion_investment_amplitude,
 	grazer_reproduction_proportion_investment_coefficient,
@@ -116,7 +120,7 @@ typedef struct {
 	mutable int x, y, ageInHours;// ageInHours, hoursWithoutFood;
 	mutable AnimalStage stage;
 //	causeOfDeath death;
-	bool isBottomAnimal;
+	bool isBottomAnimal, upDirection;
 	mutable animalCountType numberOfIndividuals;
 	mutable biomassType bodyBiomass, gonadBiomass, starvationBiomass;
 	cohortIDType cohortID;

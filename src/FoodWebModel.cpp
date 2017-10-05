@@ -49,6 +49,7 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	grazerDynamics.deadBottomBiomass=deadBottomBiomass;
 #endif
 	grazerDynamics.current_hour = &current_hour;
+	grazerDynamics.indexToDepth=indexToDepth;
 	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
 			depthIndex++) {
 		grazerDynamics.floatingFoodBiomass[depthIndex] =
@@ -101,7 +102,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, ReproductionInvestmentSubstraction, ReproductionInvestmentExponent, ReproductionInvestmentPower, ReproductionInvestment, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
 #else
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, VerticalLostBiomass, VerticalGainedBiomass, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor, LightAllowance, NutrientLimitation, LimitationProduct, PhotoSynthesis, Respiration, Excretion"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, VerticalLostBiomass, VerticalGainedBiomass, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor, LightAllowance, LightAtDepth, NutrientLimitation, LimitationProduct, PhotoSynthesis, Respiration, Excretion"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
@@ -175,6 +176,9 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->algal_fraction_sloughed= simArguments.algal_fraction_sloughed;
 	this->maximum_algae_resources_death = simArguments.maximum_algae_resources_death;
 	this->light_steepness = simArguments.light_steepness;
+	this->light_lower_quantile = simArguments.light_lower_quantile;
+	this->light_upper_quantile = simArguments.light_upper_quantile;
+	this->light_steepness_factor = simArguments.light_steepness_factor;
 	this->diatom_attenuation_coefficient = simArguments.diatom_attenuation_coefficient;
 	this->limitation_scale_weight = simArguments.limitation_scale_weight;
 	this->algal_carrying_capacity_coefficient = simArguments.algal_carrying_capacity_coefficient;
@@ -234,6 +238,9 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.random_seed=simArguments.grazer_random_seed;
 	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
+	grazerDynamics.critical_depth=simArguments.grazer_critical_depth;
+	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
+	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
@@ -429,6 +436,13 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not using starvation mortality."<<endl;
 #endif
+#ifdef LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY
+	cout<<"Using light-based migration with variable frequency."<<endl;
+#elif defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
+	cout<<"Using light-based migration with fixed frequency."<<endl;
+#else
+	cout<<"Not using light-based migration."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
@@ -466,6 +480,10 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 
 	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
+	cout<<"Using grazer critical depth "<<grazerDynamics.critical_depth<<"."<<endl;
+	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
+	cout<<"Using grazer velocity downward pull "<<grazerDynamics.velocity_downward_pull<<"."<<endl;
+
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
@@ -478,6 +496,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using intrinsic algae mortality rate "<<this->intrinsic_algae_mortality_rate<<"."<<endl;
 	cout<<"Using maximum algae dead to stress due to lack of resources "<<this->maximum_algae_resources_death<<"."<<endl;
 	cout<<"Using light steepness "<<this->light_steepness<<"."<<endl;
+	cout<<"Using light lower quantile "<<this->light_lower_quantile<<"."<<endl;
+	cout<<"Using light upper quantile "<<this->light_upper_quantile<<"."<<endl;
+	cout<<"Using light steepness factor"<<this->light_steepness_factor<<"."<<endl;
 	cout<<"Using diatom attenuation coefficient "<<this->diatom_attenuation_coefficient<<"."<<endl;
 	cout<<"Using limitation product scale weight "<<this->limitation_scale_weight<<"."<<endl;
 	cout<<"Using algal carrying capacity coefficient "<<this->algal_carrying_capacity_coefficient<<"."<<endl;
@@ -536,6 +557,9 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerReproductionProportionInvestmentMultiplier;"<<grazerDynamics.reproduction_proportion_investment_multiplier<<endl;
 		parameterFileStream<<"GrazerStarvationFactor;"<<grazerDynamics.starvation_factor<<endl;
 		parameterFileStream<<"GrazerDeadAnimalProportion;"<<grazerDynamics.dead_animal_proportion<<endl;
+		parameterFileStream<<"GrazerVelocityDownwardPull;"<<grazerDynamics.velocity_downward_pull<<endl;
+		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
+		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
 #endif
@@ -1061,7 +1085,15 @@ void FoodWebModel::FoodWebModel::lightAtDepth(int depthIndex, int columnIndex){
 	light_at_depth =  light_at_top*ALGAE_ATTENUATION_WEIGHT*(ALGAE_ATTENUATION_PROPORTION*exp(-algae_biomass_to_depth)+TURBIDITY_PROPORTION*exp(-turbidity_at_depth));
 
 #else
-	light_at_depth =  light_at_top*exp(this->light_steepness*light_at_depth_exponent);
+	/* Adjust light steepness according to light at top*/
+	physicalType quantileProduct=1.0f;
+	if(light_at_top>=light_upper_quantile){
+		quantileProduct=1.0f/light_steepness_factor;
+	}
+	if(light_at_top<=light_lower_quantile){
+		quantileProduct=light_steepness_factor;
+	}
+	light_at_depth =  light_at_top*exp(quantileProduct*this->light_steepness*light_at_depth_exponent);
 
 #endif
 	previousLakeLightAtDepth[depthIndex][columnIndex] = lakeLightAtDepth[depthIndex][columnIndex];
@@ -1231,6 +1263,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
+		newCohort.upDirection=false;
 		if ( animals.find(pair<int,int>(depthIndex, columnIndex)) == animals.end() ) {
 			/* If the cohort exists, increase biomass and number of eggs*/
 			animals[pair<int,int>(depthIndex, columnIndex)]=newCohort;
@@ -1258,6 +1291,7 @@ FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments
  */
 void FoodWebModel::FoodWebModel::setBathymetricParameters(){
 	calculatePhysicalLakeDescriptors();
+	grazerDynamics.ZMax=this->ZMax;
 	/*
 	 *  (AquaTox Documentation, page 45, equation 8)
 	 */
@@ -1658,7 +1692,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeVerticalMigration(){
 			algaeBuffer<<this->maxDepthIndex[columnIndex]<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<1<<commaString<<depthVector[columnIndex];//Depth, Column, Type, Time, Washup
 			algaeBuffer<<commaString<<verticalLostPeriBiomass[columnIndex]<<commaString<<verticalGainedPeriBiomass[columnIndex];
 			algaeBuffer<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex];
-			algaeBuffer<<commaString<<limiting_factor[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<light_allowance_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<nutrient_limitation_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<limitation_product_matrix[maxDepthIndex[columnIndex]][columnIndex];
+			algaeBuffer<<commaString<<limiting_factor[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<light_allowance_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<lakeLightAtDepth[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<nutrient_limitation_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<limitation_product_matrix[maxDepthIndex[columnIndex]][columnIndex];
 			algaeBuffer<<commaString<<photosynthesis_peri_matrix[columnIndex]<<commaString<<respiration_peri_matrix[columnIndex]<<commaString<<excretion_peri_matrix[columnIndex]<<endl;
 		}
 		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; depthIndex++){
@@ -1674,7 +1708,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeVerticalMigration(){
 				algaeBuffer<<depthIndex<<commaString<<columnIndex<<commaString<<current_hour<<commaString<<0<<commaString<<indexToDepth[depthIndex];
 				algaeBuffer<<commaString<<verticalLostPhytoBiomass[depthIndex][columnIndex]<<commaString<<verticalGainedPhytoBiomass[depthIndex][columnIndex];
 				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex];
-				algaeBuffer<<commaString<<this->limiting_factor[depthIndex][columnIndex]<<commaString<<light_allowance_matrix[depthIndex][columnIndex]<<commaString<<nutrient_limitation_matrix[depthIndex][columnIndex]<<commaString<<limitation_product_matrix[depthIndex][columnIndex];
+				algaeBuffer<<commaString<<this->limiting_factor[depthIndex][columnIndex]<<commaString<<light_allowance_matrix[depthIndex][columnIndex]<<commaString<<lakeLightAtDepth[depthIndex][columnIndex]<<commaString<<nutrient_limitation_matrix[depthIndex][columnIndex]<<commaString<<limitation_product_matrix[depthIndex][columnIndex];
 				algaeBuffer<<commaString<<photosynthesis_phyto_matrix[depthIndex][columnIndex]<<commaString<<respiration_phyto_matrix[depthIndex][columnIndex]<<commaString<<excretion_phyto_matrix[depthIndex][columnIndex]<<endl;
 
 			}

@@ -215,6 +215,18 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.light_steepness = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("LightLowerQuantile")){
+		simArguments.light_lower_quantile = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("LightUpperQuantile")){
+		simArguments.light_upper_quantile = atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("LightSteepnessFactor")){
+		simArguments.light_steepness_factor = atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("DiatomAttenuationCoefficient")){
 		simArguments.diatom_attenuation_coefficient = atof(parameterValue.c_str());
 		return;
@@ -373,6 +385,18 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("GrazerRandomSeed")){
 		simArguments.grazer_random_seed= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerVelocityDownwardPull")){
+		simArguments.grazer_velocity_downward_pull= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerCriticalLightIntensity")){
+		simArguments.grazer_critical_light_intensity= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerCriticalDepth")){
+		simArguments.grazer_critical_depth= atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("PredatorBaseMortality")){

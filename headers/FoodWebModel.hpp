@@ -63,7 +63,7 @@ namespace FoodWebModel {
 		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion, nutrient_derivative;
 
 		/*Light parameters*/
-		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient, salinity_exponent, light_allowance_proportion;
+		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient, salinity_exponent, light_allowance_proportion, light_lower_quantile, light_upper_quantile, light_steepness_factor;
 
 		/*Algal respiration and mortality parameters*/
 		biomassType algal_respiration_at_20_degrees, exponential_temperature_algal_respiration_coefficient, algae_natural_mortality_factor, algal_mortality_scale;

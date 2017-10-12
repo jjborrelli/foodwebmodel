@@ -136,6 +136,11 @@ protected:
 	physicalType reabsorbed_animal_nutrients_proportion, critical_depth, critical_light_intensity, velocity_downward_pull;
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
+
+	/*Special traced adult cohort and flag to set that it has been created*/
+	bool traceCohort;
+	AnimalCohort tracedCohort;
+	int tracedCohortID;
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
 #endif
@@ -168,13 +173,17 @@ protected:
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
 	bool migrateAdultCohortStructurally(AnimalCohort& cohort, int migrateStep);
-	void migrateJuvenileCohortStructurally(vector<AnimalCohort>& animals, AnimalCohort& cohort, int migrateStep);
+	void migrateJuvenileCohortStructurally(AnimalCohort& cohort, int migrateStep);
 	void clearMigrationParameters();
 	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
 	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
+	void migrateJuvenileCohortDepthDependent(AnimalCohort& cohort);
+	void migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it);
 	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
 	int migrateCohortsDepthDependent(AnimalCohort& cohort);
 	int migrateCohortsFixedFrequency(AnimalCohort& cohort);
+	void migrateAdultCohort(AnimalCohort& cohort);
+	void migrateExistingAdultCohort(AnimalCohort& cohort, int depthIndex, int columnIndex);
 
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);

@@ -13,6 +13,8 @@
 	#define DEBUG_MODE
 #endif
 
+//#define DEBUG_MODE
+
 #include "SimulationModes.hpp"
 #include <string>
 /*
@@ -326,6 +328,8 @@ static const biomassType TEMPERATURE_SLOPE_PHASE = -7.0f;
 static const biomassType TEMPERATURE_UPPER_LIMIT=25, TEMPERATURE_LOWER_LIMIT=2;
 
 static const biomassType TEMPERATURE_ADDITIVE_COMPONENT=TEMPERATURE_UPPER_LIMIT-TEMPERATURE_LOWER_LIMIT;
+
+static const int TRACED_COHORT_COLUMN=MAX_COLUMN_INDEX/2;
 
 static const std::string commaString(", ");
 #endif /* MODELCONSTANTS_HPP_ */

@@ -403,7 +403,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 		cout<<"Error."<<endl;
 	}
   }
-	this->floating_animal_count_summing+=cohort.numberOfIndividuals;
+    if(!cohort.isBottomAnimal){
+    	this->floating_animal_count_summing+=cohort.numberOfIndividuals;
+    }
 	/* If the number of individuals or total biomass in the cohort is 0, consider it dead of starvation */
 //	if((cohort.bodyBiomass<=0||cohort.numberOfIndividuals<=0)&&cohort.death==None){
 //		cohort.death=causeOfDeath::Starvation;
@@ -413,7 +415,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		if(cohort.cohortID==this->tracedCohortID){
 //			cout<<"Traced individual."<<endl;
 //		}
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 	}
 
 	/* If the cohort is dead, register its death*/
@@ -1010,7 +1012,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 		lineBuffer<<commaString<<0;
 		lineBuffer<<commaString<<0;
 #endif
-		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
+		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
 		animalBiomassBuffer<<lineBuffer.str();
 #endif
 		/*If the egg has hatched, add to the adult cohort*/
@@ -1094,7 +1096,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 				traceCohort=true;
 				tracedCohort=cohortCopy;
 				this->tracedCohortID=tracedCohort.cohortID;
-//				cout<<"Traced cohort: "<<tracedCohort.cohortID<<"."<<endl;
+				cout<<"Traced cohort: "<<tracedCohort.cohortID<<"."<<endl;
 			} else{
 				/*Add cohort to the collection of adult cohorts*/
 				if ( adultAnimals->find(cohortCoordinates) == adultAnimals->end() ) {

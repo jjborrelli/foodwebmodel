@@ -107,7 +107,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, Stage, CohortID"<<endl;
+	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, StroganovAdjustment, ReproductionInvestment, Stage, CohortID"<<endl;
 	grazerTraceFile<<"Depth, Column, Time, AlgaeType, GrazerStage, GrazerIndividuals, GrazerBodyBiomass, GrazerGonadBiomass, GrazerCohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif

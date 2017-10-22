@@ -415,7 +415,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		if(cohort.cohortID==this->tracedCohortID){
 //			cout<<"Traced individual."<<endl;
 //		}
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 	}
 
 	/* If the cohort is dead, register its death*/
@@ -1012,7 +1012,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 		lineBuffer<<commaString<<0;
 		lineBuffer<<commaString<<0;
 #endif
-		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
+		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->lakeLightAtDepth[eggCohort.x][eggCohort.y]<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
 		animalBiomassBuffer<<lineBuffer.str();
 #endif
 		/*If the egg has hatched, add to the adult cohort*/
@@ -1096,7 +1096,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 				traceCohort=true;
 				tracedCohort=cohortCopy;
 				this->tracedCohortID=tracedCohort.cohortID;
-				cout<<"Traced cohort: "<<tracedCohort.cohortID<<"."<<endl;
+				cout<<"Traced cohort: "<<this->tracedCohortID<<"."<<endl;
 			} else{
 				/*Add cohort to the collection of adult cohorts*/
 				if ( adultAnimals->find(cohortCoordinates) == adultAnimals->end() ) {
@@ -1121,25 +1121,26 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
-	if(migrationStep!=0){
 		migrateAdultCohorts(floatingAnimals,migrationStep);
 #if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
 		migrateJuvenileCohortsDepthDependent(floatingJuveniles);
 #else
 		migrateJuvenileCohortsStructurally(floatingJuveniles,migrationStep);
 #endif
-	}
+
 }
 
 /* Migrate the center of mass of the adult cohorts*/
 void AnimalBiomassDynamics::migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep){
-	clearMigrationParameters();
-#if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
-	migrateAdultCohortsDepthDependent(animals);
-#else
-	migrateAdultsCohortsStructurally(animals, migrationStep);
-#endif
-	updateMigratedCohorts(animals);
+	if(migrationStep!=0){
+		clearMigrationParameters();
+	#if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
+		migrateAdultCohortsDepthDependent(animals);
+	#else
+		migrateAdultsCohortsStructurally(animals, migrationStep);
+	#endif
+		updateMigratedCohorts(animals);
+	}
 }
 
 void AnimalBiomassDynamics::migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep){
@@ -1224,16 +1225,17 @@ void AnimalBiomassDynamics::migrateExistingAdultCohort(AnimalCohort& cohort, int
 	}
 }
 void AnimalBiomassDynamics::migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrationStep){
-	for (std::vector<AnimalCohort>::iterator it = juveniles.begin();
-			it != juveniles.end(); ++it) {
-		migrateJuvenileCohortStructurally(*it, migrationStep);
-		//(*it)*=0.9f;
+	if(migrationStep!=0){
+		for (std::vector<AnimalCohort>::iterator it = juveniles.begin();
+				it != juveniles.end(); ++it) {
+			migrateJuvenileCohortStructurally(*it, migrationStep);
+			//(*it)*=0.9f;
+		}
+		/*Migrate traced cohort as a special case*/
+		if(traceCohort){
+			migrateJuvenileCohortStructurally(tracedCohort, migrationStep);
+		}
 	}
-	/*Migrate traced cohort as a special case*/
-	if(traceCohort){
-		migrateJuvenileCohortStructurally(tracedCohort, migrationStep);
-	}
-
 }
 
 bool AnimalBiomassDynamics::migrateAdultCohortStructurally(AnimalCohort& cohort, int migrationStep){

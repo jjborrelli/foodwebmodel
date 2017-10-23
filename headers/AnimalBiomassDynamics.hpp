@@ -151,6 +151,7 @@ protected:
 //	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
 //	void removeDeadAnimals();
 	void updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals);
+	void registerMigration();
 #endif
 #if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass, AnimalStage stage);
@@ -172,7 +173,7 @@ protected:
 	void migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep);
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
-	bool migrateAdultCohortStructurally(AnimalCohort& cohort, int migrateStep);
+	bool updateMigrationTable(AnimalCohort& cohort, int migrateStep);
 	void migrateJuvenileCohortStructurally(AnimalCohort& cohort, int migrateStep);
 	void clearMigrationParameters();
 	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);

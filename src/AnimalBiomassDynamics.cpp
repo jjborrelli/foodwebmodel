@@ -30,6 +30,7 @@ void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
 	cohort1.numberOfIndividuals+=cohort2.numberOfIndividuals;
 	cohort1.gonadBiomass+=cohort2.gonadBiomass;
 	cohort1.ageInHours=0;
+	cohort1.latestMigrationIndex=cohort2.latestMigrationIndex;
 
 }
 
@@ -145,9 +146,7 @@ void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>
 void AnimalBiomassDynamics::updateAnimalBiomass(){
 /* Clear string buffers */
 	animalBiomassBuffer.str("");
-#ifdef INDIVIDUAL_BASED_ANIMALS
-	animalTraceBuffer.str("");
-#endif
+
 	/* Clear zooplankton count summing. This will be compared with threshold upper number as a halting condition*/
 	this->floating_animal_count_summing=0;
 	/*Matrix to store the decision of biomass must be saved. It will be read when registering slough to output slough file*/
@@ -415,7 +414,13 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		if(cohort.cohortID==this->tracedCohortID){
 //			cout<<"Traced individual."<<endl;
 //		}
+
 		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+//#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
+//		if(lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
+					//cout<<"Juvenile lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
+//				}
+//#endif
 	}
 
 	/* If the cohort is dead, register its death*/
@@ -1033,6 +1038,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.cohortID=eggCohort.cohortID;
 	    		animalCohort.isBottomAnimal=eggCohort.isBottomAnimal;
 	    		animalCohort.gonadBiomass=animalCohort.starvationBiomass=0.0f;
+	    		animalCohort.latestMigrationIndex=0;
 	    		animalCohort.ageInHours=0;
 	    		animalCohort.upDirection = false;
 #ifdef MATURE_JUVENILES
@@ -1090,6 +1096,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 			cohortCopy.x=it->x;
 			cohortCopy.y=it->y;
 			cohortCopy.starvationBiomass=it->starvationBiomass;
+			cohortCopy.latestMigrationIndex=it->latestMigrationIndex;
 			pair<int,int> cohortCoordinates(cohortCopy.x, cohortCopy.y);
 			if(cohortCopy.y==TRACED_COHORT_COLUMN&&!traceCohort){
 				/*Create traced cohort*/
@@ -1121,26 +1128,35 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
-		migrateAdultCohorts(floatingAnimals,migrationStep);
+	migrateAdultCohorts(floatingAnimals,migrationStep);
 #if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
-		migrateJuvenileCohortsDepthDependent(floatingJuveniles);
+	migrateJuvenileCohortsDepthDependent(floatingJuveniles);
 #else
-		migrateJuvenileCohortsStructurally(floatingJuveniles,migrationStep);
+	migrateJuvenileCohortsStructurally(floatingJuveniles,migrationStep);
 #endif
-
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	/* Register the migration movement*/
+	registerMigration();
+#endif
 }
 
 /* Migrate the center of mass of the adult cohorts*/
 void AnimalBiomassDynamics::migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep){
+#if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
+	/*Light-dependent migration occurs even when the migration step set is 0*/
+	clearMigrationParameters();
+	migrateAdultCohortsDepthDependent(animals);
+	updateMigratedCohorts(animals);
+
+#else
 	if(migrationStep!=0){
 		clearMigrationParameters();
-	#if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
-		migrateAdultCohortsDepthDependent(animals);
-	#else
 		migrateAdultsCohortsStructurally(animals, migrationStep);
-	#endif
 		updateMigratedCohorts(animals);
 	}
+#endif
+
+
 }
 
 void AnimalBiomassDynamics::migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep){
@@ -1150,7 +1166,7 @@ void AnimalBiomassDynamics::migrateAdultsCohortsStructurally(std::map<pair<int,i
 				it != animals->end(); ++it) {
 			if(it->second.numberOfIndividuals>0&&it->second.bodyBiomass>0.0f){
 				/* Migrate non-empty cohorts */
-				bool migratedBiomass = migrateAdultCohortStructurally(it->second, migrationStep);
+				bool migratedBiomass = updateMigrationTable(it->second, migrationStep);
 			}
 			/*If the cohort has migrated, remove it from its previous location*/
 
@@ -1172,8 +1188,9 @@ void AnimalBiomassDynamics::clearMigrationParameters(){
 /*Update cohort coordinates using the migration arrays*/
 void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals){
 
-	for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
-		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
+		/* Migrate only above the max depth*/
+		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; depthIndex++){
 			/* If there exists migration, change animal metrics*/
 			if(this->migratedFloatingAnimalCount[depthIndex][columnIndex]!=0){
 				pair<int,int> migratedCoordinates(depthIndex, columnIndex);
@@ -1193,6 +1210,7 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 					createdCohort.starvationBiomass=0.0f;
 					createdCohort.isBottomAnimal=false;
 					createdCohort.ageInHours=0;
+					createdCohort.latestMigrationIndex = 0;
 					createdCohort.cohortID=(*this->cohortID)++;
 					(*animals)[migratedCoordinates]=createdCohort;
 					if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){
@@ -1208,6 +1226,7 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 				}
 
 			}
+
 		}
 	}
 }
@@ -1223,6 +1242,11 @@ void AnimalBiomassDynamics::migrateExistingAdultCohort(AnimalCohort& cohort, int
 	if(cohort.stage!=AnimalStage::Mature){
 		cout<<"Error."<<endl;
 	}
+#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
+//	if(lakeLightAtDepth[depthIndex][columnIndex]<this->critical_light_intensity){
+//		cout<<"Adult lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
+//	}
+#endif
 }
 void AnimalBiomassDynamics::migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrationStep){
 	if(migrationStep!=0){
@@ -1238,15 +1262,25 @@ void AnimalBiomassDynamics::migrateJuvenileCohortsStructurally(vector<AnimalCoho
 	}
 }
 
-bool AnimalBiomassDynamics::migrateAdultCohortStructurally(AnimalCohort& cohort, int migrationStep){
+bool AnimalBiomassDynamics::updateMigrationTable(AnimalCohort& cohort, int migrationStep){
 	/*Migrate the center of biomass of the animal cohorts*/
 	int destinationX =cohort.x+migrationStep;
+	/* Register the latest migration step*/
+	cohort.latestMigrationIndex = migrationStep;
 	destinationX=max<int>(0,min<int>(maxDepthIndex[cohort.y], destinationX));
 	/*Check the limits of the new depth of the cohort*/
 	bool verticalMigrationOccurred = destinationX>=0&&destinationX<MAX_DEPTH_INDEX&&destinationX<=maxDepthIndex[cohort.y]&&destinationX!=cohort.x;
 	if(verticalMigrationOccurred){
+
 		int originalX=cohort.x, originalY=cohort.y;
 		int destinationY=cohort.y;
+		if(destinationX != 0 && migrationStep != -this->velocity_downward_pull &&lakeLightAtDepth[destinationX][destinationY]<this->critical_light_intensity){
+			/*If the cohort is not at the surface (destination!=0), and the migration speed is not maximum upwards, and it is too dark for the cohort, report an error*/
+			cout<<"Adult lake light at coordinates: "<<destinationX<<", "<<destinationY<<" is "<<critical_light_intensity<<"."<<endl;
+		}
+//		if(destinationX== 150){
+//			cout<<"Lake light "<<lakeLightAtDepth[destinationX][destinationY]<<" at coordinates: ("<<destinationX<<", "<<destinationY<<")."<<endl;
+//		}
 		/*Increment the biological values of the destination cohort with the migrated cohort*/
 		this->migratedFloatingAnimalBodyBiomass[destinationX][destinationY]+=cohort.bodyBiomass;
 		this->migratedFloatingAnimalGonadBiomass[destinationX][destinationY]+=cohort.gonadBiomass;
@@ -1291,20 +1325,25 @@ void AnimalBiomassDynamics::migrateJuvenileCohortsDepthDependent(vector<AnimalCo
 
 void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it){
 	if(it->numberOfIndividuals>0&&it->bodyBiomass>0.0f){
-				/* Migrate non-empty cohorts */
-	#ifdef LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY
-				int migratedDepth = migrateCohortsDepthDependent(*it);
-	#elif defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
-				int migratedDepth = migrateCohortsFixedFrequency(*it);
-	#else
-				int migratedDepth = 0;
-	#endif
-				if(migratedDepth!=0){
-					it->x+=migratedDepth;
-					it->x=max<int>(0, min<int>(maxDepthIndex[it->y], it->x));
-				}
-
+		/* Migrate non-empty cohorts */
+#ifdef LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY
+		int migratedDepth = migrateCohortsDepthDependent(*it);
+#elif defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
+		int migratedDepth = migrateCohortsFixedFrequency(*it);
+#else
+		int migratedDepth = 0;
+#endif
+		if(migratedDepth!=0){
+			it->x+=migratedDepth;
+			it->x=max<int>(0, min<int>(maxDepthIndex[it->y], it->x));
+#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
+			if(it->x != 0 && migratedDepth != -this->velocity_downward_pull && lakeLightAtDepth[it->x][it->y]<this->critical_light_intensity){
+				cout<<"Juvenile lake light at coordinates: "<<it->x<<", "<<it->y<<" is "<<critical_light_intensity<<"."<<endl;
 			}
+#endif
+		}
+
+	}
 }
 
 
@@ -1321,6 +1360,12 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(AnimalCohort& co
 				if(migratedDepth!=0){
 					cohort.x+=migratedDepth;
 					cohort.x=max<int>(0, min<int>(maxDepthIndex[cohort.y], cohort.x));
+#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
+					if(cohort.x != 0 && migratedDepth != -this->velocity_downward_pull && lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
+						/*If the cohort is not at the surface (cohort.x!=0), and the migration speed is not maximum upwards, and it is too dark for the cohort, report an error*/
+						cout<<"Juvenile lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
+					}
+#endif
 				}
 
 			}
@@ -1343,6 +1388,9 @@ void AnimalBiomassDynamics::migrateAdultCohort(AnimalCohort& cohort){
 		int migratedDepth = migrateCohortsDepthDependent(cohort);
 #elif defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
 		int migratedDepth = migrateCohortsFixedFrequency(cohort);
+		/*Update the migration table*/
+		updateMigrationTable(cohort, migratedDepth);
+
 #else
 		int migratedDepth = 0;
 #endif
@@ -1401,7 +1449,13 @@ int AnimalBiomassDynamics::migrateCohortsFixedFrequency(AnimalCohort& cohort){
 	int depthChange=0;
 
 	/*We assume constant upward and downward migration velocity*/
+
 	int indexMoved = this->velocity_downward_pull;
+	physicalType cohortLightIntensity = lakeLightAtDepth[cohort.x][cohort.y];
+	if((cohortLightIntensity>=this->critical_light_intensity)&&(((*this->current_hour%HOURS_PER_DAY>=HOURS_PER_DAY/4)&&(*this->current_hour%HOURS_PER_DAY<HOURS_PER_DAY/2))||((*this->current_hour%HOURS_PER_DAY>=HOURS_PER_DAY*3/4)&&(*this->current_hour%HOURS_PER_DAY<HOURS_PER_DAY)))){
+		/*If the current time is not a flank (moving upward or downward) and the light is not too dark, the cohort remains at the same depth*/
+		indexMoved = 0;
+	}
 
 	/*The clock whose flanks trigger upward and downward migration has a period of 24 hours*/
 	if(*this->current_hour%HOURS_PER_DAY==0){
@@ -1413,25 +1467,30 @@ int AnimalBiomassDynamics::migrateCohortsFixedFrequency(AnimalCohort& cohort){
 			cohort.upDirection=true;
 		}
 	}
-	int destinationDepth=cohort.x;
+
 	if(cohort.upDirection){
-		destinationDepth=cohort.x-indexMoved;
-		if(destinationDepth>=0){
-			/* If the cohort is moving upwards and the migration does not overflow the surface, the cohort migrates upwards*/
-			depthChange = -indexMoved;
-		}
+		int destinationDepth=cohort.x;
+		/* If the cohort is moving upwards and the migration does not overflow the surface, the cohort migrates upwards*/
+		destinationDepth=max<int>(0,cohort.x-indexMoved);
+		depthChange = -indexMoved;
 //		else{
 //			cout<<"Upward migration not completed at origin depth: "<<cohort.x<<" and destination depth "<<destinationDepth<<"."<<endl;
 //		}
 	} else{
-		destinationDepth = cohort.x+indexMoved;
-		if(destinationDepth<=maxDepthIndex[cohort.y]){
-			/* If the lake bottom is not reached*/
-			physicalType destinationLightIntensity  = lakeLightAtDepth[destinationDepth][cohort.y];
+		/* Migration downwards is limited by the depth of the lake*/
+		int movementDownwards= min<int>(cohort.x+indexMoved,maxDepthIndex[cohort.y]);
+		/* The destination depth is the final depth minus the current depth*/
+		movementDownwards-=cohort.x;
+			physicalType destinationLightIntensity  = lakeLightAtDepth[cohort.x+movementDownwards][cohort.y];
 			if(destinationLightIntensity>=this->critical_light_intensity){
 				/* If the cohort is moving downwards and the migration does not reach too dark areas, the cohort migrates downwards*/
+				depthChange = movementDownwards;
+			} else{
+				/* If the cohort is moving downwards and the migration reaches too dark areas, downward migration stops at the deepest area that it is not too dark*/
+				int i=cohort.x+movementDownwards-1;
+				for(;lakeLightAtDepth[i][cohort.y]<this->critical_light_intensity&&i-cohort.x>= -(this->velocity_downward_pull-1) ;i--);
+				depthChange = i-cohort.x;
 
-				depthChange = indexMoved;
 			}
 //			else{
 ////				cout<<"Downward migration not completed at origin depth: "<<cohort.x<<", destination depth "<<destinationDepth<<" and destination light intensity "<<destinationLightIntensity<<"."<<endl;
@@ -1439,8 +1498,14 @@ int AnimalBiomassDynamics::migrateCohortsFixedFrequency(AnimalCohort& cohort){
 ////					cout<<"Traced cohort moved."<<endl;
 ////				}
 //			}
-		}
+
+
 	}
+	if(cohort.x + depthChange != 0 && !cohort.upDirection&&(depthChange!= -this->velocity_downward_pull &&lakeLightAtDepth[cohort.x + depthChange][cohort.y]<this->critical_light_intensity)){
+		/*If the cohort is not at the surface (cohort.x!=0), and the migration speed is not maximum upwards, and it is too dark for the cohort, report an error*/
+			cout<<"Adult lake light at coordinates: "<<cohort.x+depthChange<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
+		}
+	cohort.latestMigrationIndex = depthChange;
 	return depthChange;
 
 }
@@ -1448,6 +1513,26 @@ int AnimalBiomassDynamics::migrateCohortsFixedFrequency(AnimalCohort& cohort){
 
 
 /* Set the maximum allocation biomass to 0.5 and set that the grazers left behind do not eat nor reproduce*/
+#ifdef INDIVIDUAL_BASED_ANIMALS
+void AnimalBiomassDynamics::registerMigration(){
+	animalTraceBuffer.str("");
+	/*Register migration for floating adults*/
+	for (std::map<pair<int,int>,AnimalCohort>::iterator it = floatingAnimals->begin();
+						it != floatingAnimals->end(); ++it) {
+			AnimalCohort& iteratedCohort = it->second;
+			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<iteratedCohort.cohortID<<endl;
+		}
+	/*Register migration for floating juveniles*/
+	for (std::vector<AnimalCohort>::iterator it = floatingJuveniles.begin();
+						it != floatingJuveniles.end(); ++it) {
+			AnimalCohort& iteratedCohort = *it;
+			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<iteratedCohort.cohortID<<endl;
+		}
+	/*Register migration for traced cohort*/
+	if(traceCohort){
+		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.cohortID<<endl;
+	}
 
-
+}
+#endif
 } /* namespace FoodWebModel */

@@ -13,7 +13,7 @@
 	#define DEBUG_MODE
 #endif
 
-//#define DEBUG_MODE
+#define DEBUG_MODE
 
 #include "SimulationModes.hpp"
 #include <string>

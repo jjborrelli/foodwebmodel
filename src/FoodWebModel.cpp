@@ -108,7 +108,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, LightAtDepth, Stage, CohortID"<<endl;
-	grazerTraceFile<<"Depth, Column, Time, AlgaeType, GrazerStage, GrazerIndividuals, GrazerBodyBiomass, GrazerGonadBiomass, GrazerCohortID"<<endl;
+	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;
@@ -134,12 +134,13 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			outputAlgaeFile<<algaeBuffer.str();
 			outputGrazerFile<<grazerDynamics.animalBiomassBuffer.str();
 			outputPredatorFile<<predatorDynamics.animalBiomassBuffer.str();
-		}
 #ifdef INDIVIDUAL_BASED_ANIMALS
+			grazerTraceFile<<grazerDynamics.animalTraceBuffer.str();
 #ifdef EXTENDED_OUTPUT
-		grazerTraceFile<<grazerDynamics.animalTraceBuffer.str();
-		predatorTraceFile<<predatorDynamics.animalTraceBuffer.str();
+			predatorTraceFile<<predatorDynamics.animalTraceBuffer.str();
 #endif
+		}
+
 
 #endif
 #ifdef CHECK_ASSERTIONS
@@ -1260,6 +1261,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 //		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
 //		newCohort.death=None;
 		newCohort.cohortID=-1;
+		newCohort.latestMigrationIndex=0;
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;

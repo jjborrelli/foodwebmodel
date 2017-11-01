@@ -20,7 +20,9 @@ string operator+(string arg1, int arg2){
 }
 
 void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
+#ifdef CHECK_ASSERTIONS
 	grazerDynamics.assertionViolationBuffer = &assertionViolationBuffer;
+#endif
 	/* Set grazer count and biomass pointers to the grazer dynamics objects*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
@@ -103,7 +105,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
 #else
 	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, VerticalLostBiomass, VerticalGainedBiomass, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor, LightAllowance, LightAtDepth, NutrientLimitation, LimitationProduct, PhotoSynthesis, Respiration, Excretion"<<endl;
-	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
+	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, AnimalsDeadByStarvation, NaturalDeadAnimals, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -919,8 +921,8 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType localeLimitationProduct = light_allowance*light_allowance_proportion+nutrient_limitation*(1-light_allowance_proportion);
 	limiting_factor[depthIndex][columnIndex]=light_allowance<nutrient_limitation?1:0;
 #else
-	physicalType localeLimitationProduct = light_allowance*nutrient_limitation;
-	limiting_factor[depthIndex][columnIndex]=localeLimitationProduct==0;
+	physicalType localeLimitationProduct = light_at_top*light_allowance*nutrient_limitation;
+	limiting_factor[depthIndex][columnIndex]=light_allowance<nutrient_limitation?1:0;
 #endif
 
 	/* Calculate biomass differential components*/
@@ -1574,6 +1576,8 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 		nutrient_limitation=(double)max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT);
 
 #endif
+		nutrient_limitation=1.0f;
+
 //	}
 	//returnedValue=1.0f;
 }

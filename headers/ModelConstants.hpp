@@ -13,7 +13,7 @@
 	#define DEBUG_MODE
 #endif
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 #include "SimulationModes.hpp"
 #include <string>
@@ -111,7 +111,9 @@ static const biomassType FRACTION_SLOUGHED=0.1f;
 
 /* Set an arbitrary index for max depth index. Depth will be normalized according to this max index*/
 
-static const unsigned int MAX_DEPTH_INDEX = 254;
+//static const unsigned int MAX_DEPTH_INDEX = 254;
+
+static const unsigned int MAX_DEPTH_INDEX = 23;
 
 /* Set an arbitrary index for max columns. Depth will be normalized according to this max index*/
 
@@ -213,7 +215,7 @@ static const unsigned int BURNIN_MAX_CYCLE=1;
 
 /* Time and spatial resolution constants for simulation*/
 #ifndef DEBUG_MODE
-static const unsigned int TIME_MESSAGE_RESOLUTION=10, TIME_OUTPUT_RESOLUTION=10;
+static const unsigned int TIME_MESSAGE_RESOLUTION=5, TIME_OUTPUT_RESOLUTION=5;
 #else
 static const unsigned int TIME_MESSAGE_RESOLUTION=1, TIME_OUTPUT_RESOLUTION=1;
 #endif

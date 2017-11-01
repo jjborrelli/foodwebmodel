@@ -31,7 +31,7 @@ protected:
 	std::ostringstream animalTraceBuffer;
 #endif
 	/* Animal count summing. The simulation halts below a given number*/
-	animalCountType floating_animal_count_summing;
+	animalCountType floating_animal_count_summing, animals_dead_by_starvation, natural_dead_individuals;
 	/* Migration of animal biomass per hour*/
 		int zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 #ifdef INDIVIDUAL_BASED_ANIMALS

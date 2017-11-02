@@ -179,6 +179,22 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.decaying_phosphorus_factor=atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PhosphorusFunctionalFactor")){
+		simArguments.phosphorus_functional_factor=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PhosphorusFunctionalConstantlResponse1")){
+		simArguments.phosphorus_functional_constant_response_1=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PhosphorusFunctionalConstantlResponse2")){
+		simArguments.phosphorus_functional_constant_response_2=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PhosphorusFunctionalStep1")){
+		simArguments.phosphorus_functional_step_1=atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("WashUpDeadBiomass")){
 		simArguments.wash_up_dead_biomass_proportion=atof(parameterValue.c_str());
 		return;

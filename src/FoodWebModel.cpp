@@ -169,6 +169,10 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 
 	this->simulation_cycles = simArguments.simulationCycles;
 	this->phosphorus_half_saturation = simArguments.phosphorus_half_saturation;
+	this->phosphorus_functional_factor = simArguments.phosphorus_functional_factor;
+	this->phosphorus_functional_constant_response_1 = simArguments.phosphorus_functional_constant_response_1;
+	this->phosphorus_functional_constant_response_2 = simArguments.phosphorus_functional_constant_response_2;
+	this->phosphorus_functional_step_1 = simArguments.phosphorus_functional_step_1;
 	this->light_allowance_weight = simArguments.light_allowance_weight;
 	this->light_allowance_proportion = simArguments.light_allowance_proportion;
 	this->nutrient_derivative = simArguments.nutrient_derivative;
@@ -368,6 +372,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using GLM nutrient limitation."<<endl;
 #elif defined(NUTRIENT_LIMITATION_QUOTIENT)
 	cout<<"Using quotient-based nutrient limitation."<<endl;
+#elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
+	cout<<"Using several levels nutrient limitation."<<endl;
 #else
 	cout<<"Using simple linear nutrient limitation."<<endl;
 #endif
@@ -492,6 +498,10 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
+	cout<<"Using phosphorus functional factor "<<this->phosphorus_functional_factor<<"."<<endl;
+	cout<<"Using phosphorus functional constant response 1 "<<this->phosphorus_functional_constant_response_1<<"."<<endl;
+	cout<<"Using phosphorus functional constant response 2 "<<this->phosphorus_functional_constant_response_2<<"."<<endl;
+	cout<<"Using phosphorus functional step 1 "<<this->phosphorus_functional_step_1<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using light allowance proortion "<<this->light_allowance_proportion<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
@@ -577,6 +587,10 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"AlgalIntrinsicSettlingRate;"<<this->intrinsic_settling_rate<<endl;
 		parameterFileStream<<"AlgalFractionSloughed"<<this->algal_fraction_sloughed<<endl;
 		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
+		parameterFileStream<<"PhosphorusFunctionalFactor;"<<this->phosphorus_functional_factor<<endl;
+		parameterFileStream<<"PhosphorusFunctionalConstantlResponse1;"<<this->phosphorus_functional_constant_response_1<<endl;
+		parameterFileStream<<"PhosphorusFunctionalConstantlResponse2;"<<this->phosphorus_functional_constant_response_2<<endl;
+		parameterFileStream<<"PhosphorusFunctionalStep1;"<<this->phosphorus_functional_step_1<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"LightAllowanceProportion;"<<this->light_allowance_proportion<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
@@ -1571,12 +1585,17 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 #elif defined(NUTRIENT_LIMITATION_QUOTIENT)
 		biomassType chemical_concentration_in_grams=phosphorusConcentration*MICROGRAM_TO_GRAM*M3_TO_LITER;
 		nutrient_limitation=chemical_concentration_in_grams/(chemical_concentration_in_grams+this->phosphorus_half_saturation);
+#elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
+		nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorus_concentration_at_bottom_in_hour[current_hour%HOURS_PER_YEAR]*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
+		  if(phosphorusConcentration>this->phosphorus_functional_step_1){
+			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorus_concentration_at_bottom_in_hour[current_hour%HOURS_PER_YEAR]*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
+		  }
 #else
 //		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
 		nutrient_limitation=(double)max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT);
 
 #endif
-		nutrient_limitation=1.0f;
+//		nutrient_limitation=1.0f;
 
 //	}
 	//returnedValue=1.0f;

@@ -62,6 +62,13 @@ namespace FoodWebModel {
 		/*Nutrient parameters*/
 		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion, nutrient_derivative;
 
+		/*Staircase phosphorus functional response parameters*/
+		physicalType
+		phosphorus_functional_factor,
+		phosphorus_functional_constant_response_1,
+		phosphorus_functional_constant_response_2,
+		phosphorus_functional_step_1;
+
 		/*Light parameters*/
 		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient, salinity_exponent, light_allowance_proportion, light_lower_quantile, light_upper_quantile, light_steepness_factor;
 

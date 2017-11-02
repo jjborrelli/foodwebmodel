@@ -106,6 +106,10 @@ typedef struct {
 
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,
 	phosphorus_half_saturation,
+	phosphorus_functional_factor,
+	phosphorus_functional_constant_response_1,
+	phosphorus_functional_constant_response_2,
+	phosphorus_functional_step_1,
 	light_allowance_weight;
 
 	unsigned int predator_random_seed;

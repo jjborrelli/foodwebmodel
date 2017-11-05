@@ -1404,7 +1404,7 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(std::vector<Anim
 		if(abs(it->migrationConstant)>2){
 			cout<<"Error on migration constant: "<<it->migrationConstant<<"."<<endl;
 		}
-		int migratedDepth = it->migrationConstant + optimalDepthIndex[it->y]-it->x;
+		int migratedDepth = it->migrationConstant + optimalDepthIndexes[it->y]-it->x;
 #else
 		int migratedDepth = 0;
 #endif
@@ -1437,7 +1437,7 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(AnimalCohort& co
 				if(abs(cohort.migrationConstant)>2){
 					cout<<"Error on migration constant: "<<cohort.migrationConstant<<"."<<endl;
 				}
-		int migratedDepth = cohort.migrationConstant + optimalDepthIndex[cohort.y]-cohort.x;
+		int migratedDepth = cohort.migrationConstant + optimalDepthIndexes[cohort.y]-cohort.x;
 	#else
 				int migratedDepth = 0;
 	#endif
@@ -1486,7 +1486,7 @@ void AnimalBiomassDynamics::migrateAdultCohort(AnimalCohort& cohort){
 		if(abs(cohort.migrationConstant)>2){
 			cout<<"Error on migration constant: "<<cohort.migrationConstant<<"."<<endl;
 		}
-		int migratedDepth = cohort.migrationConstant + optimalDepthIndex[cohort.y]-cohort.x;
+		int migratedDepth = cohort.migrationConstant + optimalDepthIndexes[cohort.y]-cohort.x;
 		cohort.latestMigrationIndex = migratedDepth;
 #else
 		int migratedDepth = 0;
@@ -1629,17 +1629,25 @@ void AnimalBiomassDynamics::findOptimalLightDepthIndexes(){
 //	}
 }
 void AnimalBiomassDynamics::findOptimalLightDepthIndex(unsigned int columnIndex){
-	int optimalLightDepthIndex=0;
-	physicalType minimumLightDifference=fabs(lakeLightAtDepth[0][columnIndex]-light_optimal_value);
+	int optimalDepthIndex=0;
+#ifdef OPTIMIZE_LIGHT
+	physicalType valueToOptimize=1.0f/fabs(lakeLightAtDepth[0][columnIndex]-light_optimal_value);
+#else
+	physicalType valueToOptimize=floatingFoodBiomass[0][columnIndex];
+#endif
 	for (int depthIndex = 1; depthIndex <= maxDepthIndex[columnIndex]; ++depthIndex) {
-		physicalType localeDifference = fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value);
-		if(localeDifference<minimumLightDifference){
-			minimumLightDifference = localeDifference;
-			optimalLightDepthIndex=depthIndex;
+#ifdef OPTIMIZE_LIGHT
+		physicalType localeDifference = 1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value);
+#else
+		physicalType localeDifference=floatingFoodBiomass[depthIndex][columnIndex];
+#endif
+		if(localeDifference>valueToOptimize){
+			valueToOptimize = localeDifference;
+			optimalDepthIndex=depthIndex;
 		}
 	}
 
-	optimalDepthIndex[columnIndex] = optimalLightDepthIndex;
+	optimalDepthIndexes[columnIndex] = optimalDepthIndex;
 }
 
 #endif

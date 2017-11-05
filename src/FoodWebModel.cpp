@@ -462,6 +462,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not consuming biomass during migration."<<endl;
 #endif
+#ifdef OPTIMIZE_LIGHT
+	cout<<"Optimizing light for migration."<<endl;
+#else
+	cout<<"Optimizing food for migration."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;

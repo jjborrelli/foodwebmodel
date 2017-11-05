@@ -143,7 +143,7 @@ protected:
 
 	/* Best depth index per column*/
 
-	int optimalDepthIndex[MAX_COLUMN_INDEX];
+	int optimalDepthIndexes[MAX_COLUMN_INDEX];
 
 	/*Special traced adult cohort and flag to set that it has been created*/
 	AnimalCohort tracedCohort;

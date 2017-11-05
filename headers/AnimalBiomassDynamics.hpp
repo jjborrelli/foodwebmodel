@@ -57,6 +57,7 @@ protected:
 	biomassType migratedFloatingAnimalBodyBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], migratedFloatingAnimalGonadBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	animalCountType migratedFloatingAnimalCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType migratedFloatingAnimalStarvationBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	int migratedFloatingMigrationConstant[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 #ifdef CREATE_NEW_COHORTS
 	vector<EggCohort> floatingEggs, bottomEggs;
@@ -97,6 +98,8 @@ protected:
 	/* Threshold below which the concentration is considered starvation (in ug/l)*/
 	biomassType food_starvation_threshold, egg_allocation_threshold, starvation_factor, dead_animals_per_lost_biomass_and_concentration;
 
+	unsigned int layer_center_index;
+
 	/* Maximum number of hours that the animal can survive with food below starvation levels*/
 	unsigned int max_hours_without_food;
 
@@ -112,6 +115,7 @@ protected:
 
 	/* Animal attributes*/
 	biomassType used_consumption, consumption_per_individual, locale_consumption, consumed_biomass, locale_defecation, base_animal_respiration, salinity_corrected_animal_respiration, basal_animal_respiration, active_respiration_exponent, active_respiration_factor, active_respiration, metabolic_respiration, animal_excretion_loss, animal_base_mortality, animal_temperature_mortality, animal_temp_independent_mortality, salinity_mortality, locale_consumption_salt_adjusted, animal_mortality, animal_predatory_pressure, low_oxigen_animal_mortality;
+	double migration_consumption;
 
 	/* Animal physical attributes*/
 	physicalType stroganov_adjustment, ZMax;
@@ -133,14 +137,19 @@ protected:
 	/* Dead biomass */
 	biomassType *deadFloatingBiomass[MAX_DEPTH_INDEX], *deadBottomBiomass;
 #endif
-	physicalType reabsorbed_animal_nutrients_proportion, critical_depth, critical_light_intensity, velocity_downward_pull;
+	physicalType reabsorbed_animal_nutrients_proportion, critical_depth, critical_light_intensity, velocity_downward_pull, light_optimal_value;
 	std::default_random_engine* randomGenerator;
 	unsigned int random_seed;
 
+	/* Best depth index per column*/
+
+	int optimalDepthIndex[MAX_COLUMN_INDEX];
+
 	/*Special traced adult cohort and flag to set that it has been created*/
-	bool traceCohort;
 	AnimalCohort tracedCohort;
 	int tracedCohortID;
+
+
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
 #endif
@@ -158,7 +167,7 @@ protected:
 #else
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 #endif
-	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, physicalType localeTemperature);
+	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, double consumedProportion=1.0f);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
 	biomassType basalRespiration(biomassType zooBiomass);
@@ -183,8 +192,13 @@ protected:
 	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
 	int migrateCohortsDepthDependent(AnimalCohort& cohort);
 	int migrateCohortsFixedFrequency(AnimalCohort& cohort);
+	int migrateCohortsOptimizedDepth(AnimalCohort& cohort);
 	void migrateAdultCohort(AnimalCohort& cohort);
 	void migrateExistingAdultCohort(AnimalCohort& cohort, int depthIndex, int columnIndex);
+	void findOptimalLightDepthIndex(unsigned int column);
+	void findOptimalLightDepthIndexes();
+	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
+	void consumeDuringMigration(int initialDepth, int finalDepth, std::vector<AnimalCohort>::iterator it);
 
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);

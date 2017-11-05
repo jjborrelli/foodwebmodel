@@ -134,7 +134,7 @@ namespace FoodWebModel {
 
 		biomassType photosynthesis_value, algae_respiration_value, algae_excretion_value, algae_sinking_value, algae_slough_value, algae_natural_mortality;
 
-
+		unsigned int grazer_layer_center_index;
 
 		/* Buffer line to write simulation results*/
 		std::ostringstream lineBuffer, initialAlgaeBuffer, algaeBuffer;

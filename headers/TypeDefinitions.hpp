@@ -87,6 +87,9 @@ typedef struct {
 	grazer_velocity_downward_pull,
 	grazer_critical_depth,
 	grazer_critical_light_intensity;
+	double grazer_migration_consumption;
+
+	physicalType grazer_light_optimal_value;
 
 	double grazer_reproduction_proportion_investment_amplitude,
 	grazer_reproduction_proportion_investment_coefficient,
@@ -96,6 +99,8 @@ typedef struct {
 
 	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours,
 	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours;
+
+	int grazer_layer_center_index;
 
 	biomassType	predator_base_mortality_proportion, predator_filtering_rate_per_individual,
 	predator_basal_respiration_weight,
@@ -121,7 +126,9 @@ typedef enum {Egg=0, Juvenile=1, Mature=2} AnimalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 
 typedef struct {
-	mutable int x, y, ageInHours, latestMigrationIndex;// ageInHours, hoursWithoutFood;
+	mutable int x, y, ageInHours, latestMigrationIndex;
+	/* The relative difference between the depth of the center of mass and the depth of the cohort */
+	int migrationConstant;
 	mutable AnimalStage stage;
 //	causeOfDeath death;
 	bool isBottomAnimal, upDirection;
@@ -133,6 +140,8 @@ typedef struct {
 typedef struct {
 	 int x, y;
 	 mutable int ageInHours;
+	 /* The relative difference between the depth of the center of mass and the depth of the cohort */
+	 int migrationConstant;
 	cohortIDType cohortID;
 	bool isBottomAnimal;
 	mutable int hasHatched;

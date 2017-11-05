@@ -323,6 +323,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_carrying_capacity_intercept = atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerLayerCenterIndex")){
+		simArguments.grazer_layer_center_index = atoi(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerCarryingCapacityAmplitude")){
 			simArguments.grazer_carrying_capacity_amplitude= atof(parameterValue.c_str());
 			return;
@@ -413,6 +417,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("GrazerCriticalDepth")){
 		simArguments.grazer_critical_depth= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerLightOptimalValue")){
+		simArguments.grazer_light_optimal_value= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazerMigrationConsumption")){
+		simArguments.grazer_migration_consumption= atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("PredatorBaseMortality")){

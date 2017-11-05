@@ -91,7 +91,6 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 
 int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments){
 	/*Read numeric parameters*/
-	setFileParameters(simArguments);
 	printSimulationMode();
 
 	/*CSV file to write the output. Useful for calibration*/
@@ -201,6 +200,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->wash_up_dead_biomass_proportion=simArguments.wash_up_dead_biomass_proportion;
 	this->wash_down_dead_biomass_proportion=simArguments.wash_down_dead_biomass_proportion;
 	this->algae_biomass_conservation_factor=simArguments.algae_biomass_conservation_factor;
+	this->grazer_layer_center_index=simArguments.grazer_layer_center_index;
 	initializeGrazerAttributes(simArguments);
 }
 
@@ -226,6 +226,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
 	grazerDynamics.animal_carrying_capacity_amplitude = simArguments.grazer_carrying_capacity_amplitude;
 	grazerDynamics.animal_carrying_capacity_constant = simArguments.grazer_carrying_capacity_constant;
+	grazerDynamics.migration_consumption = simArguments.grazer_migration_consumption;
 	grazerDynamics.dead_animals_per_lost_biomass_and_concentration = simArguments.grazer_dead_animals_per_lost_biomass_and_concentration;
 	grazerDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
 	grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
@@ -247,7 +248,9 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
 	grazerDynamics.critical_depth=simArguments.grazer_critical_depth;
 	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
+	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
 	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
+	grazerDynamics.layer_center_index=simArguments.grazer_layer_center_index;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
@@ -449,8 +452,15 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using light-based migration with variable frequency."<<endl;
 #elif defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY)
 	cout<<"Using light-based migration with fixed frequency."<<endl;
+#elif defined(OPTIMAL_VALUE_MIGRATION)
+	cout<<"Using optimal migration index."<<endl;
 #else
 	cout<<"Not using light-based migration."<<endl;
+#endif
+#ifdef CONSUME_DURING_MIGRATION
+	cout<<"Consuming biomass during migration."<<endl;
+#else
+	cout<<"Not consuming biomass during migration."<<endl;
 #endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
@@ -468,10 +478,12 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using base grazer mortality factor "<<grazerDynamics.animal_base_mortality_proportion<<"."<<endl;
 	cout<<"Using basal respiration weight "<<grazerDynamics.basal_respiration_weight<<"."<<endl;
 	cout<<"Using respiration K value "<<grazerDynamics.k_value_respiration<<"."<<endl;
+	cout<<"Using grazer layer center index "<<this->grazer_layer_center_index<<"."<<endl;
 	cout<<"Using grazer carrying capacity coefficient "<<grazerDynamics.animal_carrying_capacity_coefficient<<"."<<endl;
 	cout<<"Using grazer carrying capacity intercept "<<grazerDynamics.animal_carrying_capacity_intercept<<"."<<endl;
 	cout<<"Using grazer carrying capacity amplitude "<<grazerDynamics.animal_carrying_capacity_amplitude<<"."<<endl;
 	cout<<"Using grazer carrying capacity constant "<<grazerDynamics.animal_carrying_capacity_constant<<"."<<endl;
+	cout<<"Using grazer migration consumption "<<grazerDynamics.migration_consumption<<"."<<endl;
 	cout<<"Using grazer dead animals per lost biomass and concentration "<<grazerDynamics.dead_animals_per_lost_biomass_and_concentration<<"."<<endl;
 	cout<<"Using grazer max hours without food "<<grazerDynamics.max_hours_without_food<<"."<<endl;
 	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
@@ -491,6 +503,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
 	cout<<"Using grazer critical depth "<<grazerDynamics.critical_depth<<"."<<endl;
 	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
+	cout<<"Using grazer light optimal value "<<grazerDynamics.light_optimal_value<<"."<<endl;
 	cout<<"Using grazer velocity downward pull "<<grazerDynamics.velocity_downward_pull<<"."<<endl;
 
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
@@ -550,10 +563,12 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerFilteringExponent;"<<grazerDynamics.filtering_exponent<<endl;
 		parameterFileStream<<"BasalRespirationWeight;"<<grazerDynamics.basal_respiration_weight<<endl;
 		parameterFileStream<<"KValueRespiration;"<<grazerDynamics.k_value_respiration<<endl;
+		parameterFileStream<<"GrazerLayerCenterIndex;"<<grazer_layer_center_index<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityCoefficient;"<<grazerDynamics.animal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityIntercept;"<<grazerDynamics.animal_carrying_capacity_intercept<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityAmplitude;"<<grazerDynamics.animal_carrying_capacity_amplitude<<endl;
 		parameterFileStream<<"GrazerCarryingCapacityConstant;"<<grazerDynamics.animal_carrying_capacity_constant<<endl;
+		parameterFileStream<<"GrazerMigrationConsumption;"<<grazerDynamics.migration_consumption<<endl;
 		parameterFileStream<<"GrazerDeadAnimalsPerLostBiomassAndConcentration"<<grazerDynamics.dead_animals_per_lost_biomass_and_concentration<<endl;
 		parameterFileStream<<"GrazerMaxHoursWithoutFood;"<<grazerDynamics.max_hours_without_food<<endl;
 		parameterFileStream<<"GrazerFoodStarvationThreshold;"<<grazerDynamics.food_starvation_threshold<<endl;
@@ -572,6 +587,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerDeadAnimalProportion;"<<grazerDynamics.dead_animal_proportion<<endl;
 		parameterFileStream<<"GrazerVelocityDownwardPull;"<<grazerDynamics.velocity_downward_pull<<endl;
 		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
+		parameterFileStream<<"GrazerLightOptimalValue;"<<grazerDynamics.light_optimal_value<<endl;
+
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
@@ -1278,6 +1295,10 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 //		newCohort.death=None;
 		newCohort.cohortID=-1;
 		newCohort.latestMigrationIndex=0;
+		newCohort.migrationConstant=-(this->grazer_layer_center_index-depthIndex);
+		if(abs((int)newCohort.migrationConstant)>2){
+			cout<<"Far away elements."<<endl;
+		}
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
@@ -1300,7 +1321,9 @@ FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments
 	cout<<"Reading parameters."<<endl;
 	readProcessedData.readModelData(simArguments);
 	cout<<"Parameters read."<<endl;
-
+	cout<<"Setting parameters from file."<<endl;
+	setFileParameters(simArguments);
+	cout<<"Parameters from file set."<<endl;
 
 }
 

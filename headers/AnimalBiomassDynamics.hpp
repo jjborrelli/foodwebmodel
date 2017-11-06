@@ -207,6 +207,7 @@ protected:
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
 	void consumeDuringMigration(int initialDepth, int finalDepth, std::vector<AnimalCohort>::iterator it);
 	void findNormalizingFactors();
+	physicalType calculateLightPropensity(int initialDepth, int finalDepth);
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
 #elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)

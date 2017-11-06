@@ -128,6 +128,9 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 		if(current_hour%TIME_MESSAGE_RESOLUTION==0)
 			cout<<"Simulation hour: "<<current_hour<<endl;
 		step();
+#ifdef INDIVIDUAL_BASED_ANIMALS
+			grazerTraceFile<<grazerDynamics.animalTraceBuffer.str();
+#endif
 		if(current_hour%TIME_OUTPUT_RESOLUTION==0){
 #ifdef EXTENDED_OUTPUT
 			outputInitialAlgaeFile<<initialAlgaeBuffer.str();
@@ -135,15 +138,12 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			outputAlgaeFile<<algaeBuffer.str();
 			outputGrazerFile<<grazerDynamics.animalBiomassBuffer.str();
 			outputPredatorFile<<predatorDynamics.animalBiomassBuffer.str();
-#ifdef INDIVIDUAL_BASED_ANIMALS
-			grazerTraceFile<<grazerDynamics.animalTraceBuffer.str();
+
 #ifdef EXTENDED_OUTPUT
 			predatorTraceFile<<predatorDynamics.animalTraceBuffer.str();
 #endif
 		}
 
-
-#endif
 #ifdef CHECK_ASSERTIONS
 		outputAssertionViolationFile<<assertionViolationBuffer.str();
 		assertionViolationBuffer.str("");
@@ -462,6 +462,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Consuming biomass during migration."<<endl;
 #else
 	cout<<"Not consuming biomass during migration."<<endl;
+#endif
+#ifdef REGISTER_ALL_COHORTS
+	cout<<"Registering all cohorts."<<endl;
+#else
+	cout<<"Registering traced cohorts."<<endl;
 #endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;

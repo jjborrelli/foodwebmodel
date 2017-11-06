@@ -1633,10 +1633,12 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 
 	int optimalDepthIndex=0;
 	/*Calculate the value to optimize as the weighted sum of the inverse of the distance to optimal light normalized and the amount of food normalized*/
-	physicalType valueToOptimize=(light_migration_weight)/(fabs(lakeLightAtDepth[0][columnIndex]-light_optimal_value)*sumOptimalLightValues) + (1-light_migration_weight)*floatingFoodBiomass[0][columnIndex]/sumOptimalFoodValues;
+	physicalType lightValueToOptimize=(light_migration_weight)*calculateLightPropensity(0,columnIndex)/sumOptimalLightValues;
+	physicalType foodValueToOptimize =(1-light_migration_weight)*floatingFoodBiomass[0][columnIndex]/sumOptimalFoodValues;
+	physicalType valueToOptimize = lightValueToOptimize+foodValueToOptimize;
 	for (int depthIndex = 1; depthIndex <= maxDepthIndex[columnIndex]; ++depthIndex) {
 		/*Inverse of the distance to optimal light normalized*/
-		physicalType localeLight = light_migration_weight/(fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value)*sumOptimalLightValues);
+		physicalType localeLight = light_migration_weight*calculateLightPropensity(depthIndex,columnIndex)/sumOptimalLightValues;
 		/*Amount of food normalized*/
 		physicalType localeFood=(1-light_migration_weight)*floatingFoodBiomass[depthIndex][columnIndex]/sumOptimalFoodValues;
 		physicalType localeComposedValue = localeLight+localeFood;
@@ -1644,6 +1646,9 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 			/* Update of the new value is greater than the previous*/
 			valueToOptimize = localeComposedValue;
 			optimalDepthIndex=depthIndex;
+//			if(tracedCohort.numberOfIndividuals!=0){
+//				cout<<"Better food detected."<<endl;
+//			}
 		}
 	}
 	optimalDepthIndexes[columnIndex] = optimalDepthIndex;
@@ -1657,6 +1662,7 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 #ifdef INDIVIDUAL_BASED_ANIMALS
 void AnimalBiomassDynamics::registerMigration(){
 	animalTraceBuffer.str("");
+#ifdef REGISTER_ALL_COHORTS
 	/*Register migration for floating adults*/
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = floatingAnimals->begin();
 						it != floatingAnimals->end(); ++it) {
@@ -1669,9 +1675,13 @@ void AnimalBiomassDynamics::registerMigration(){
 			AnimalCohort& iteratedCohort = *it;
 			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<iteratedCohort.cohortID<<endl;
 		}
+#endif
 	/*Register migration for traced cohort*/
 	if(tracedCohort.numberOfIndividuals!=0){
 		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.cohortID<<endl;
+//		if(tracedCohort.x!=0){
+//			cout<<"Non-zero depth detected."<<endl;
+//		}
 	}
 
 }
@@ -1682,11 +1692,17 @@ void AnimalBiomassDynamics::findNormalizingFactors(){
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
 		for(int depthIndex=0; depthIndex<maxDepthIndex[columnIndex]; ++depthIndex){
 			/*Sum the inverse of the distance to optimal light*/
-			sumOptimalLightValues+=1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value);
+			sumOptimalLightValues+=calculateLightPropensity(depthIndex, columnIndex);
 			/*Sum the value of food*/
 			sumOptimalFoodValues+=floatingFoodBiomass[depthIndex][columnIndex];
 		}
 	}
 }
+
+physicalType AnimalBiomassDynamics::calculateLightPropensity(int depthIndex, int columnIndex){
+	return 1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value+1);
+}
+
+
 #endif
 } /* namespace FoodWebModel */

@@ -89,7 +89,7 @@ typedef struct {
 	grazer_critical_light_intensity;
 	double grazer_migration_consumption;
 
-	physicalType grazer_light_optimal_value;
+	physicalType grazer_light_optimal_value, grazer_light_migration_weight;
 
 	double grazer_reproduction_proportion_investment_amplitude,
 	grazer_reproduction_proportion_investment_coefficient,

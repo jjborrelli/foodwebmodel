@@ -129,6 +129,7 @@ protected:
 	/* Gonad biomass allocation */
 	double reproduction_proportion_investment_amplitude, reproduction_proportion_investment_coefficient, reproduction_proportion_investment_intercept, reproduction_proportion_investment_constant, reproduction_proportion_investment_multiplier, dead_animal_proportion;
 
+
 	/* Gonad biomass metrics */
 	biomassType reproduction_investment_subtraction, reproduction_investment_exponent, reproduction_investment_power;
 
@@ -144,6 +145,12 @@ protected:
 	/* Best depth index per column*/
 
 	int optimalDepthIndexes[MAX_COLUMN_INDEX];
+
+	/*Summing of optimal values for normalization*/
+	physicalType sumOptimalLightValues, sumOptimalFoodValues;
+
+	/*Migration score weight*/
+	physicalType light_migration_weight;
 
 	/*Special traced adult cohort and flag to set that it has been created*/
 	AnimalCohort tracedCohort;
@@ -195,11 +202,11 @@ protected:
 	int migrateCohortsOptimizedDepth(AnimalCohort& cohort);
 	void migrateAdultCohort(AnimalCohort& cohort);
 	void migrateExistingAdultCohort(AnimalCohort& cohort, int depthIndex, int columnIndex);
-	void findOptimalLightDepthIndex(unsigned int column);
-	void findOptimalLightDepthIndexes();
+	void findOptimalDepthIndex(unsigned int column);
+	void findOptimalDepthIndexes();
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
 	void consumeDuringMigration(int initialDepth, int finalDepth, std::vector<AnimalCohort>::iterator it);
-
+	void findNormalizingFactors();
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
 #elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)

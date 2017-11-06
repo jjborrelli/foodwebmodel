@@ -423,6 +423,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_light_optimal_value= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerMigrationLightWeight")){
+		simArguments.grazer_light_migration_weight= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerMigrationConsumption")){
 		simArguments.grazer_migration_consumption= atof(parameterValue.c_str());
 		return;

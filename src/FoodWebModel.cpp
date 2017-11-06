@@ -251,6 +251,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
 	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
 	grazerDynamics.layer_center_index=simArguments.grazer_layer_center_index;
+	grazerDynamics.light_migration_weight=simArguments.grazer_light_migration_weight;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
@@ -462,11 +463,6 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not consuming biomass during migration."<<endl;
 #endif
-#ifdef OPTIMIZE_LIGHT
-	cout<<"Optimizing light for migration."<<endl;
-#else
-	cout<<"Optimizing food for migration."<<endl;
-#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
@@ -503,7 +499,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer reproduction proportion investment intercept "<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment constant "<<grazerDynamics.reproduction_proportion_investment_constant<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment multiplier "<<grazerDynamics.reproduction_proportion_investment_multiplier<<"."<<endl;
-
+	cout<<"Using grazer light migration weight "<<grazerDynamics.light_migration_weight<<"."<<endl;
 	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
 	cout<<"Using grazer critical depth "<<grazerDynamics.critical_depth<<"."<<endl;
@@ -593,7 +589,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerVelocityDownwardPull;"<<grazerDynamics.velocity_downward_pull<<endl;
 		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
 		parameterFileStream<<"GrazerLightOptimalValue;"<<grazerDynamics.light_optimal_value<<endl;
-
+		parameterFileStream<<"GrazerMigrationLightWeight;"<<grazerDynamics.light_migration_weight<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;

@@ -1137,7 +1137,8 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
-	findOptimalLightDepthIndexes();
+	findNormalizingFactors();
+	findOptimalDepthIndexes();
 	migrateAdultCohorts(floatingAnimals,migrationStep);
 #if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY) || defined(OPTIMAL_VALUE_MIGRATION)
 	migrateJuvenileCohortsDepthDependent(floatingJuveniles);
@@ -1618,9 +1619,9 @@ int AnimalBiomassDynamics::migrateCohortsFixedFrequency(AnimalCohort& cohort){
 }
 
 
-void AnimalBiomassDynamics::findOptimalLightDepthIndexes(){
+void AnimalBiomassDynamics::findOptimalDepthIndexes(){
 	for (int columnIndex = 0; columnIndex <= MAX_COLUMN_INDEX; ++columnIndex) {
-		findOptimalLightDepthIndex(columnIndex);
+		findOptimalDepthIndex(columnIndex);
 	}
 //	for (int columnIndex = 0; columnIndex <= MAX_COLUMN_INDEX; ++columnIndex) {
 //		if(maxDepthIndex[columnIndex]!=optimalDepthIndex[columnIndex]){
@@ -1628,26 +1629,25 @@ void AnimalBiomassDynamics::findOptimalLightDepthIndexes(){
 //		}
 //	}
 }
-void AnimalBiomassDynamics::findOptimalLightDepthIndex(unsigned int columnIndex){
+void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
+
 	int optimalDepthIndex=0;
-#ifdef OPTIMIZE_LIGHT
-	physicalType valueToOptimize=1.0f/fabs(lakeLightAtDepth[0][columnIndex]-light_optimal_value);
-#else
-	physicalType valueToOptimize=floatingFoodBiomass[0][columnIndex];
-#endif
+	/*Calculate the value to optimize as the weighted sum of the inverse of the distance to optimal light normalized and the amount of food normalized*/
+	physicalType valueToOptimize=(light_migration_weight)/(fabs(lakeLightAtDepth[0][columnIndex]-light_optimal_value)*sumOptimalLightValues) + (1-light_migration_weight)*floatingFoodBiomass[0][columnIndex]/sumOptimalFoodValues;
 	for (int depthIndex = 1; depthIndex <= maxDepthIndex[columnIndex]; ++depthIndex) {
-#ifdef OPTIMIZE_LIGHT
-		physicalType localeDifference = 1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value);
-#else
-		physicalType localeDifference=floatingFoodBiomass[depthIndex][columnIndex];
-#endif
-		if(localeDifference>valueToOptimize){
-			valueToOptimize = localeDifference;
+		/*Inverse of the distance to optimal light normalized*/
+		physicalType localeLight = light_migration_weight/(fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value)*sumOptimalLightValues);
+		/*Amount of food normalized*/
+		physicalType localeFood=(1-light_migration_weight)*floatingFoodBiomass[depthIndex][columnIndex]/sumOptimalFoodValues;
+		physicalType localeComposedValue = localeLight+localeFood;
+		if(localeComposedValue>valueToOptimize){
+			/* Update of the new value is greater than the previous*/
+			valueToOptimize = localeComposedValue;
 			optimalDepthIndex=depthIndex;
 		}
 	}
-
 	optimalDepthIndexes[columnIndex] = optimalDepthIndex;
+
 }
 
 #endif
@@ -1674,6 +1674,19 @@ void AnimalBiomassDynamics::registerMigration(){
 		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.cohortID<<endl;
 	}
 
+}
+
+/*Calculate the summing of all light and food values*/
+void AnimalBiomassDynamics::findNormalizingFactors(){
+	sumOptimalLightValues=sumOptimalFoodValues=0.0f;
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
+		for(int depthIndex=0; depthIndex<maxDepthIndex[columnIndex]; ++depthIndex){
+			/*Sum the inverse of the distance to optimal light*/
+			sumOptimalLightValues+=1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value);
+			/*Sum the value of food*/
+			sumOptimalFoodValues+=floatingFoodBiomass[depthIndex][columnIndex];
+		}
+	}
 }
 #endif
 } /* namespace FoodWebModel */

@@ -1405,6 +1405,9 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(std::vector<Anim
 		if(abs(it->migrationConstant)>2){
 			cout<<"Error on migration constant: "<<it->migrationConstant<<"."<<endl;
 		}
+//		if(optimalDepthIndexes[it->y]>3){
+//			cout<<"Deep index."<<endl;
+//		}
 		int migratedDepth = it->migrationConstant + optimalDepthIndexes[it->y]-it->x;
 #else
 		int migratedDepth = 0;
@@ -1415,6 +1418,9 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(std::vector<Anim
 			it->x+=migratedDepth;
 			it->x=max<int>(0, min<int>(maxDepthIndex[it->y], it->x));
 			int finalDepth=it->x;
+			if(finalDepth!=0){
+				cout<<"Traced cohort moved."<<endl;
+			}
 			consumeDuringMigration(initialDepth, finalDepth, it);
 #ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 			if(it->x != 0 && migratedDepth != -this->velocity_downward_pull && lakeLightAtDepth[it->x][it->y]<this->critical_light_intensity){
@@ -1652,6 +1658,9 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 		}
 	}
 	optimalDepthIndexes[columnIndex] = optimalDepthIndex;
+//	if(tracedCohort.numberOfIndividuals>0&&columnIndex==tracedCohort.y&&optimalDepthIndex>2){
+//		cout<<"Index for traced cohort is "<<optimalDepthIndex<<"."<<endl;
+//	}
 
 }
 
@@ -1667,18 +1676,18 @@ void AnimalBiomassDynamics::registerMigration(){
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = floatingAnimals->begin();
 						it != floatingAnimals->end(); ++it) {
 			AnimalCohort& iteratedCohort = it->second;
-			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<iteratedCohort.cohortID<<endl;
+			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<iteratedCohort.cohortID<<endl;
 		}
 	/*Register migration for floating juveniles*/
 	for (std::vector<AnimalCohort>::iterator it = floatingJuveniles.begin();
 						it != floatingJuveniles.end(); ++it) {
 			AnimalCohort& iteratedCohort = *it;
-			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<iteratedCohort.cohortID<<endl;
+			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<iteratedCohort.cohortID<<endl;
 		}
 #endif
 	/*Register migration for traced cohort*/
 	if(tracedCohort.numberOfIndividuals!=0){
-		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.cohortID<<endl;
+		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
 //		if(tracedCohort.x!=0){
 //			cout<<"Non-zero depth detected."<<endl;
 //		}

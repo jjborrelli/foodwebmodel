@@ -109,7 +109,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, LightAtDepth, Stage, CohortID"<<endl;
-	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, CohortID"<<endl;
+	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, MigrationConstant, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;
@@ -1305,6 +1305,9 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		if(abs((int)newCohort.migrationConstant)>2){
 			cout<<"Far away elements."<<endl;
 		}
+//		if(abs((int)newCohort.migrationConstant)==0){
+//					cout<<"Centered elements."<<endl;
+//				}
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;

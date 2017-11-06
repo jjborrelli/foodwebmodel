@@ -331,7 +331,7 @@ static const biomassType TEMPERATURE_UPPER_LIMIT=25, TEMPERATURE_LOWER_LIMIT=2;
 
 static const biomassType TEMPERATURE_ADDITIVE_COMPONENT=TEMPERATURE_UPPER_LIMIT-TEMPERATURE_LOWER_LIMIT;
 
-static const physicalType TRACED_COHORT_DEPTH=2.0f;
+static const physicalType TRACED_COHORT_DEPTH=10.0f;
 
 static const std::string commaString(", ");
 #endif /* MODELCONSTANTS_HPP_ */

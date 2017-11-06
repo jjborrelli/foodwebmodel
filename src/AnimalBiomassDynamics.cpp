@@ -1108,7 +1108,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 			cohortCopy.latestMigrationIndex=it->latestMigrationIndex;
 			cohortCopy.migrationConstant=it->migrationConstant;
 			pair<int,int> cohortCoordinates(cohortCopy.x, cohortCopy.y);
-			if(cohortCopy.y==TRACED_COHORT_COLUMN&&tracedCohort.numberOfIndividuals==0){
+			if(indexToDepth[maxDepthIndex[cohortCopy.y]]>=TRACED_COHORT_DEPTH&&tracedCohort.numberOfIndividuals==0){
 				/*Create traced cohort*/
 				tracedCohort=cohortCopy;
 				this->tracedCohortID=tracedCohort.cohortID;

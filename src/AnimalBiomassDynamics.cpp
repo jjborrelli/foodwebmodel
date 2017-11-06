@@ -1108,12 +1108,12 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 			cohortCopy.latestMigrationIndex=it->latestMigrationIndex;
 			cohortCopy.migrationConstant=it->migrationConstant;
 			pair<int,int> cohortCoordinates(cohortCopy.x, cohortCopy.y);
-			if(indexToDepth[maxDepthIndex[cohortCopy.y]]>=TRACED_COHORT_DEPTH&&tracedCohort.numberOfIndividuals==0){
-				/*Create traced cohort*/
-				tracedCohort=cohortCopy;
-				this->tracedCohortID=tracedCohort.cohortID;
-				cout<<"Traced cohort: "<<this->tracedCohortID<<"."<<endl;
-			} else{
+//			if(indexToDepth[maxDepthIndex[cohortCopy.y]]>=TRACED_COHORT_DEPTH&&tracedCohort.numberOfIndividuals==0){
+//				/*Create traced cohort*/
+//				tracedCohort=cohortCopy;
+//				this->tracedCohortID=tracedCohort.cohortID;
+//				cout<<"Traced cohort: "<<this->tracedCohortID<<"."<<endl;
+//			} else{
 				/*Add cohort to the collection of adult cohorts*/
 				if ( adultAnimals->find(cohortCoordinates) == adultAnimals->end() ) {
 					cohortCopy.upDirection=false;
@@ -1121,7 +1121,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 				} else{
 					(*adultAnimals)[cohortCoordinates]+=cohortCopy;
 				}
-			}
+//			}
 		}
 
 

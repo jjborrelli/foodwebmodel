@@ -1299,7 +1299,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.isBottomAnimal=isBottomAnimal;
 //		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
 //		newCohort.death=None;
-		newCohort.cohortID=-1;
+		newCohort.cohortID=this->cohortID++;
 		newCohort.latestMigrationIndex=0;
 		newCohort.migrationConstant=-(this->grazer_layer_center_index-depthIndex);
 		if(abs((int)newCohort.migrationConstant)>2){
@@ -1312,12 +1312,19 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
 		newCohort.upDirection=false;
-		if ( animals.find(pair<int,int>(depthIndex, columnIndex)) == animals.end() ) {
-			/* If the cohort exists, increase biomass and number of eggs*/
-			animals[pair<int,int>(depthIndex, columnIndex)]=newCohort;
+		if(indexToDepth[maxDepthIndex[newCohort.y]]>=TRACED_COHORT_DEPTH&&grazerDynamics.tracedCohort.numberOfIndividuals==0){
+			/*Create traced cohort*/
+			grazerDynamics.tracedCohort=newCohort;
+			cout<<"Traced cohort: "<<grazerDynamics.tracedCohortID<<"."<<endl;
 		} else{
-			animals[pair<int,int>(depthIndex, columnIndex)]+=newCohort;
+			if ( animals.find(pair<int,int>(depthIndex, columnIndex)) == animals.end() ) {
+				/* If the cohort exists, increase biomass and number of eggs*/
+				animals[pair<int,int>(depthIndex, columnIndex)]=newCohort;
+			} else{
+				animals[pair<int,int>(depthIndex, columnIndex)]+=newCohort;
+			}
 		}
+
 	}
 }
 

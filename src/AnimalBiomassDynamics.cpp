@@ -174,7 +174,13 @@ void AnimalBiomassDynamics::updateAnimalBiomass(){
 	updateCohortBiomassForAnimals(floatingAnimals);
 	if(tracedCohort.numberOfIndividuals!=0){
 		/*Update biomass for traced cohort*/
+		if(*current_hour==5){
+			cout<<"Traced cohort empty."<<endl;
+		}
 		updateCohortBiomass(tracedCohort);
+		if(tracedCohort.numberOfIndividuals==0){
+			cout<<"Traced cohort empty."<<endl;
+		}
 	}
 	/* Increase egg age*/
 
@@ -1343,7 +1349,7 @@ void AnimalBiomassDynamics::migrateJuvenileCohortsDepthDependent(vector<AnimalCo
 void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDepth,
 		AnimalCohort& it) {
 #ifdef CONSUME_DURING_MIGRATION
-	if(initialDepth!=finalDepth){
+	if(this->migration_consumption>0.0f&&initialDepth!=finalDepth){
 		/* If initialDepth=finalDepth, there is no migration*/
 		if (initialDepth > finalDepth) {
 			/* Initial depth< final depth */
@@ -1369,7 +1375,7 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDepth,
 		std::vector<AnimalCohort>::iterator it) {
 #ifdef CONSUME_DURING_MIGRATION
-	if(initialDepth!=finalDepth){
+	if(this->migration_consumption>0.0f&&initialDepth!=finalDepth){
 		/* If initialDepth=finalDepth, there is no migration*/
 		if (initialDepth > finalDepth) {
 			/* Initial depth< final depth */
@@ -1418,9 +1424,9 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(std::vector<Anim
 			it->x+=migratedDepth;
 			it->x=max<int>(0, min<int>(maxDepthIndex[it->y], it->x));
 			int finalDepth=it->x;
-			if(finalDepth!=0){
-				cout<<"Traced cohort moved."<<endl;
-			}
+//			if(finalDepth!=0){
+//				cout<<"Traced cohort moved."<<endl;
+//			}
 			consumeDuringMigration(initialDepth, finalDepth, it);
 #ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 			if(it->x != 0 && migratedDepth != -this->velocity_downward_pull && lakeLightAtDepth[it->x][it->y]<this->critical_light_intensity){
@@ -1686,6 +1692,9 @@ void AnimalBiomassDynamics::registerMigration(){
 		}
 #endif
 	/*Register migration for traced cohort*/
+//	if(*current_hour>220){
+//		cout<<"Hour limit reached."<<endl;
+//	}
 	if(tracedCohort.numberOfIndividuals!=0){
 		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
 //		if(tracedCohort.x!=0){

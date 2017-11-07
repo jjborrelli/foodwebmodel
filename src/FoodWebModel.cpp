@@ -129,7 +129,10 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 			cout<<"Simulation hour: "<<current_hour<<endl;
 		step();
 #ifdef INDIVIDUAL_BASED_ANIMALS
+		if(grazerDynamics.tracedCohort.numberOfIndividuals!=0){
 			grazerTraceFile<<grazerDynamics.animalTraceBuffer.str();
+		}
+
 #endif
 		if(current_hour%TIME_OUTPUT_RESOLUTION==0){
 #ifdef EXTENDED_OUTPUT

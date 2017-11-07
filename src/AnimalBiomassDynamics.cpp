@@ -1348,7 +1348,6 @@ void AnimalBiomassDynamics::migrateJuvenileCohortsDepthDependent(vector<AnimalCo
 
 void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDepth,
 		AnimalCohort& it) {
-#ifdef CONSUME_DURING_MIGRATION
 	if(this->migration_consumption>0.0f&&initialDepth!=finalDepth){
 		/* If initialDepth=finalDepth, there is no migration*/
 		if (initialDepth > finalDepth) {
@@ -1369,12 +1368,10 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 		}
 	}
 
-#endif
 }
 
 void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDepth,
 		std::vector<AnimalCohort>::iterator it) {
-#ifdef CONSUME_DURING_MIGRATION
 	if(this->migration_consumption>0.0f&&initialDepth!=finalDepth){
 		/* If initialDepth=finalDepth, there is no migration*/
 		if (initialDepth > finalDepth) {
@@ -1395,7 +1392,6 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 		}
 	}
 
-#endif
 }
 
 
@@ -1427,7 +1423,9 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(std::vector<Anim
 //			if(finalDepth!=0){
 //				cout<<"Traced cohort moved."<<endl;
 //			}
+#ifdef CONSUME_DURING_MIGRATION
 			consumeDuringMigration(initialDepth, finalDepth, it);
+#endif
 #ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 			if(it->x != 0 && migratedDepth != -this->velocity_downward_pull && lakeLightAtDepth[it->x][it->y]<this->critical_light_intensity){
 				cout<<"Juvenile lake light at coordinates: "<<it->x<<", "<<it->y<<" is "<<critical_light_intensity<<"."<<endl;
@@ -1460,7 +1458,9 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(AnimalCohort& co
 					cohort.x+=migratedDepth;
 					cohort.x=max<int>(0, min<int>(maxDepthIndex[cohort.y], cohort.x));
 					int finalDepth=cohort.x;
+#ifdef CONSUME_DURING_MIGRATION
 					consumeDuringMigration(initialDepth, finalDepth, cohort);
+#endif
 #ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 					if(cohort.x != 0 && migratedDepth != -this->velocity_downward_pull && lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
 						/*If the cohort is not at the surface (cohort.x!=0), and the migration speed is not maximum upwards, and it is too dark for the cohort, report an error*/
@@ -1510,7 +1510,9 @@ void AnimalBiomassDynamics::migrateAdultCohort(AnimalCohort& cohort){
 			migratedDepth=destinationDepth-cohort.x;
 			if(migratedDepth!=0){
 				/*After limiting to upper and lower depth boundaries, the updated migration depth can be 0*/
+#ifdef CONSUME_DURING_MIGRATION
 				consumeDuringMigration(cohort.x, destinationDepth, cohort);
+#endif
 				updateMigrationTable(cohort, migratedDepth);
 			}
 		}

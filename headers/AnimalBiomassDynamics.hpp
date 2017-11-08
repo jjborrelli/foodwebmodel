@@ -58,6 +58,7 @@ protected:
 	animalCountType migratedFloatingAnimalCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType migratedFloatingAnimalStarvationBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	int migratedFloatingMigrationConstant[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	int migratedFloatingAnimalCohortID[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 #ifdef CREATE_NEW_COHORTS
 	vector<EggCohort> floatingEggs, bottomEggs;

@@ -55,7 +55,7 @@ void operator+=(AnimalCohort& cohort1, const EggCohort& cohort2){
 	cohort1.numberOfIndividuals += cohort2.numberOfEggs;
 	cohort1.ageInHours=0;
 	 if(cohort1.numberOfIndividuals<0){
-		 cout<<"Error."<<endl;
+		 cout<<"Error. Negative number of individuals."<<endl;
 	 }
 
 }
@@ -65,7 +65,7 @@ void operator*=(AnimalCohort& cohort1, const double number){
 	cohort1.gonadBiomass*=number;
 	cohort1.numberOfIndividuals*=number;
 	 if(cohort1.numberOfIndividuals<0){
-		 cout<<"Error."<<endl;
+		 cout<<"Error. Negative product of individuals."<<endl;
 	 }
 
 }
@@ -117,7 +117,7 @@ void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
 			it != animals->end();++it) {
 		if(it->second.stage==AnimalStage::Egg){
-			cout<<"Error."<<endl;
+			cout<<"Error. Egg cohort updated."<<endl;
 		}
 		iteratorCounter++;
 		if(it->second.numberOfIndividuals>0&&it->second.bodyBiomass>0){
@@ -312,7 +312,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #ifdef CREATE_NEW_COHORTS
 	/* If biomass differential is negative, do not invest in eggs*/
 	if(cohort.stage==AnimalStage::Egg){
-		cout<<"Error."<<endl;
+		cout<<"Error. Egg biomass uodated."<<endl;
 	}
 
 	//if(cohort.stage!=AnimalStage::Juvenile&&biomassDifferential>0.0f){
@@ -380,7 +380,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-natural_dead_individuals);
 		if(cohort.numberOfIndividuals<0){
-			cout<<"Error."<<endl;
+			cout<<"Error. Negative dying individuals."<<endl;
 		}
 	}
 
@@ -407,7 +407,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	cohort.numberOfIndividuals-=ceil(this->dead_animal_proportion*bodyLostBiomass/initial_grazer_weight[cohort.stage]);
 	cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals);
 	if(cohort.numberOfIndividuals<0){
-		cout<<"Error."<<endl;
+		cout<<"Error. Negative lost individuals."<<endl;
 	}
   }
     if(!cohort.isBottomAnimal){
@@ -707,7 +707,7 @@ void AnimalBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex,
 	 used_consumption*=consumedProportion;
 	 biomassType updatedAlgaeBiomassInMicrograms = foodBiomassInMicrograms - used_consumption;
 	 if(used_consumption<0){
-		 cout<<"Error."<<endl;
+		 cout<<"Error. Negative used consumption."<<endl;
 	 }
 	 biomassType updatedConcentration = updatedAlgaeBiomassInMicrograms/CELL_VOLUME_IN_LITER;
 #ifdef GRAZING_EFFECT_ON_ALGAE_BIOMASS
@@ -958,7 +958,7 @@ biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, b
 	eggCohort.x=parentCohort.x;
 	eggCohort.y=parentCohort.y;
 	if(eggCohort.x<0||eggCohort.y<0){
-		cout<<"Error."<<endl;
+		cout<<"Error. New cohort with negative eggs."<<endl;
 	}
 	eggCohort.isBottomAnimal=parentCohort.isBottomAnimal;
 	/* The migration constant is not used in the egg stage, but it needs to be inherited form the parent*/
@@ -1211,38 +1211,52 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 			/* If there exists migration, change animal metrics*/
 			if(this->migratedFloatingAnimalCount[depthIndex][columnIndex]!=0){
 				pair<int,int> migratedCoordinates(depthIndex, columnIndex);
+//				if(tracedCohort.numberOfIndividuals!=0&&depthIndex==tracedCohort.x&&columnIndex==tracedCohort.y){
+//					/* If the migrated cohort is the traced cohort, update it using the migration tables*/
+//					//if(migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex]>0){
+//						tracedCohort.bodyBiomass+=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
+//						tracedCohort.gonadBiomass+=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
+//						tracedCohort.numberOfIndividuals+=migratedFloatingAnimalCount[depthIndex][columnIndex];
+//						if(tracedCohort.numberOfIndividuals<0){
+//							cout<<"Error. Traced individuals is lower than 0."<<endl;
+//						}
+//					//}
+//
+//				} else{
+					/* Otherwise, update the existing cohort (if exists) or create a new cohort*/
+					if(animals->find(migratedCoordinates)==animals->end()){
+						/* If the coordinate is not occupied, create a new cohort*/
+						if(migratedFloatingAnimalCount[depthIndex][columnIndex]<0||migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex]<0.0f||migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex]<0.0f||(*animals)[migratedCoordinates].starvationBiomass<0.0f){
+							cout<<"Error. Negative migrated individuals."<<endl;
+						}
+						AnimalCohort createdCohort;
+						createdCohort.x=depthIndex;
+						createdCohort.y=columnIndex;
+						createdCohort.bodyBiomass=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
+						createdCohort.gonadBiomass=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
+						createdCohort.numberOfIndividuals=migratedFloatingAnimalCount[depthIndex][columnIndex];
+						createdCohort.migrationConstant=migratedFloatingMigrationConstant[depthIndex][columnIndex];
+						createdCohort.stage=AnimalStage::Mature;
+						createdCohort.starvationBiomass=migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex];
+						createdCohort.isBottomAnimal=false;
+						createdCohort.ageInHours=0;
+						createdCohort.latestMigrationIndex = 0;
+						createdCohort.cohortID=migratedFloatingAnimalCohortID[depthIndex][columnIndex];;
+						(*animals)[migratedCoordinates]=createdCohort;
+						if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){
+							cout<<"Error. Non-mature migration update."<<endl;
+						}
+					} else{
+						/* If the coordinate is occupied, update the existing cohort with the immigrant individuals. Update number of individuals and biomass*/
+						migrateExistingAdultCohort((*animals)[migratedCoordinates], depthIndex, columnIndex);
+						//						if((*animals)[migratedCoordinates].numberOfIndividuals==0||(*animals)[migratedCoordinates].bodyBiomass==0.0f){
+						//							AnimalCohort migratedCohort = (*animals)[migratedCoordinates];
+						//							/*Remove empty cohorts*/
+						////							animals->erase(migratedCoordinates);
+						//						}
+					}
+//				}
 
-				if(animals->find(migratedCoordinates)==animals->end()){
-					/* If the coordinate is not occupied, create a new cohort*/
-					if(migratedFloatingAnimalCount[depthIndex][columnIndex]<0||migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex]<0.0f||migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex]<0.0f||(*animals)[migratedCoordinates].starvationBiomass<0.0f){
-						cout<<"Error."<<endl;
-					}
-					AnimalCohort createdCohort;
-					createdCohort.x=depthIndex;
-					createdCohort.y=columnIndex;
-					createdCohort.bodyBiomass=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
-					createdCohort.gonadBiomass=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
-					createdCohort.numberOfIndividuals=migratedFloatingAnimalCount[depthIndex][columnIndex];
-					createdCohort.migrationConstant=migratedFloatingMigrationConstant[depthIndex][columnIndex];
-					createdCohort.stage=AnimalStage::Mature;
-					createdCohort.starvationBiomass=0.0f;
-					createdCohort.isBottomAnimal=false;
-					createdCohort.ageInHours=0;
-					createdCohort.latestMigrationIndex = 0;
-					createdCohort.cohortID=(*this->cohortID)++;
-					(*animals)[migratedCoordinates]=createdCohort;
-					if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){
-						cout<<"Error."<<endl;
-					}
-				} else{
-					/* If the coordinate is occupied, update the existing cohort with the immigrant individuals. Update number of individuals and biomass*/
-					migrateExistingAdultCohort((*animals)[migratedCoordinates], depthIndex, columnIndex);
-					//						if((*animals)[migratedCoordinates].numberOfIndividuals==0||(*animals)[migratedCoordinates].bodyBiomass==0.0f){
-					//							AnimalCohort migratedCohort = (*animals)[migratedCoordinates];
-					//							/*Remove empty cohorts*/
-					////							animals->erase(migratedCoordinates);
-					//						}
-				}
 
 			}
 
@@ -1256,11 +1270,13 @@ void AnimalBiomassDynamics::migrateExistingAdultCohort(AnimalCohort& cohort, int
 	cohort.bodyBiomass+=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
 	cohort.gonadBiomass+=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
 	cohort.migrationConstant=migratedFloatingMigrationConstant[depthIndex][columnIndex];
+	cohort.starvationBiomass+=migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex];
+	cohort.cohortID=migratedFloatingAnimalCohortID[depthIndex][columnIndex];
 	if(cohort.numberOfIndividuals<0||cohort.bodyBiomass<0.0f||cohort.gonadBiomass<0.0f||cohort.starvationBiomass<0.0f){
-		cout<<"Error."<<endl;
+		cout<<"Error. Negative biomass."<<endl;
 	}
 	if(cohort.stage!=AnimalStage::Mature){
-		cout<<"Error."<<endl;
+		cout<<"Error. Non-mature stage."<<endl;
 	}
 #ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 //	if(lakeLightAtDepth[depthIndex][columnIndex]<this->critical_light_intensity){
@@ -1307,6 +1323,7 @@ bool AnimalBiomassDynamics::updateMigrationTable(AnimalCohort& cohort, int migra
 		this->migratedFloatingAnimalCount[destinationX][destinationY]+=cohort.numberOfIndividuals;
 		this->migratedFloatingAnimalStarvationBiomass[destinationX][destinationY]+=cohort.starvationBiomass;
 		this->migratedFloatingMigrationConstant[destinationX][destinationY]=cohort.migrationConstant;
+		this->migratedFloatingAnimalCohortID[destinationX][destinationY]=cohort.cohortID;
 		/*Decrement the biological values of the origin cohort with the migrated cohort*/
 
 		this->migratedFloatingAnimalBodyBiomass[originalX][originalY]-=cohort.bodyBiomass;
@@ -1325,7 +1342,7 @@ void AnimalBiomassDynamics::migrateJuvenileCohortStructurally(AnimalCohort& coho
 	if(destinationX>=0&&destinationX<MAX_DEPTH_INDEX&&destinationX<=maxDepthIndex[cohort.y]&&destinationX!=cohort.x){
 		cohort.x=destinationX;
 		if(cohort.cohortID!=this->tracedCohortID&&cohort.stage!=AnimalStage::Juvenile){
-			cout<<"Error."<<endl;
+			cout<<"Error. The stage is not juvenile."<<endl;
 		}
 	}
 }

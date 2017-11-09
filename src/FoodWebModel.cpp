@@ -1631,7 +1631,8 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 #elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
 		nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
 		  if(phosphorusConcentration>this->phosphorus_functional_step_1){
-			  nutrient_limitation = (log(phosphorusConcentration*MICROGRAM_TO_MILLIGRAM)*this->phosphorus_half_saturation+this->phosphorus_functional_constant_response_2)/HOURS_PER_DAY+1.0f;
+			  /* Formula taken from [1] H. Xu, H. W. Paerl, B. Qin, G. Zhu, and G. Gaoa, “Nitrogen and phosphorus inputs control phytoplankton growth in eutrophic Lake Taihu, China,” Limnol. Oceanogr., vol. 55, no. 1, pp. 420–432, Jan. 2010.*/
+			  nutrient_limitation = this->phosphorus_half_saturation*phosphorusConcentration/(phosphorusConcentration+this->phosphorus_functional_constant_response_2)/HOURS_PER_DAY+1.0f;
 //			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
 		  }
 #else

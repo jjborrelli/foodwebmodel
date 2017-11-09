@@ -614,8 +614,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"AlgalFractionSloughed"<<this->algal_fraction_sloughed<<endl;
 		parameterFileStream<<"PhosphorusHalfSaturation;"<<this->phosphorus_half_saturation<<endl;
 		parameterFileStream<<"PhosphorusFunctionalFactor;"<<this->phosphorus_functional_factor<<endl;
-		parameterFileStream<<"PhosphorusFunctionalConstantlResponse1;"<<this->phosphorus_functional_constant_response_1<<endl;
-		parameterFileStream<<"PhosphorusFunctionalConstantlResponse2;"<<this->phosphorus_functional_constant_response_2<<endl;
+		parameterFileStream<<"PhosphorusFunctionalConstantResponse1;"<<this->phosphorus_functional_constant_response_1<<endl;
+		parameterFileStream<<"PhosphorusFunctionalConstantResponse2;"<<this->phosphorus_functional_constant_response_2<<endl;
 		parameterFileStream<<"PhosphorusFunctionalStep1;"<<this->phosphorus_functional_step_1<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"LightAllowanceProportion;"<<this->light_allowance_proportion<<endl;
@@ -1610,7 +1610,8 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 #else
 	chemical_at_depth_exponent = (double)(this->nutrient_derivative*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #endif
-	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
+//	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
+	chemical_concentration =localeNutrientAtBottom;
 
 
 }
@@ -1628,9 +1629,10 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 		biomassType chemical_concentration_in_grams=phosphorusConcentration*MICROGRAM_TO_GRAM*M3_TO_LITER;
 		nutrient_limitation=chemical_concentration_in_grams/(chemical_concentration_in_grams+this->phosphorus_half_saturation);
 #elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
-		nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorus_concentration_at_bottom_in_hour[current_hour%HOURS_PER_YEAR]*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
+		nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
 		  if(phosphorusConcentration>this->phosphorus_functional_step_1){
-			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorus_concentration_at_bottom_in_hour[current_hour%HOURS_PER_YEAR]*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
+			  nutrient_limitation = log(phosphorusConcentration*MICROGRAM_TO_MILLIGRAM)*this->phosphorus_half_saturation+this->phosphorus_functional_constant_response_2+1;
+//			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
 		  }
 #else
 //		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));

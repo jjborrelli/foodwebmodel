@@ -183,11 +183,11 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.phosphorus_functional_factor=atof(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("PhosphorusFunctionalConstantlResponse1")){
+	if(!parameterName.compare("PhosphorusFunctionalConstantResponse1")){
 		simArguments.phosphorus_functional_constant_response_1=atof(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("PhosphorusFunctionalConstantlResponse2")){
+	if(!parameterName.compare("PhosphorusFunctionalConstantResponse2")){
 		simArguments.phosphorus_functional_constant_response_2=atof(parameterValue.c_str());
 		return;
 	}

@@ -49,7 +49,7 @@ void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& tempera
 		  cout<<"Temperature range read."<<endl;
 	  } else{
 		  /* If the file could not be opened, report an error*/
-		  cerr << "File "<< temperatureRangeRoute<<" could not be opened."<<endl;
+		  cerr << "Error: file "<< temperatureRangeRoute<<" could not be opened."<<endl;
 	  }
 
 }
@@ -76,7 +76,7 @@ void FoodWebModel::ReadProcessedData::readValues(const string& dataRoute, T* rea
 		  dataFile.close();
 	  } else{
 		  /* If the file could not be opened, report an error*/
-		  cerr << "File "<< dataRoute<<" could not be opened."<<endl;
+		  cerr << "Error: file "<< dataRoute<<" could not be opened."<<endl;
 	  }
 
 }
@@ -158,7 +158,7 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, T*
 			  dataFile.close();
 		  } else{
 			  /* If the file could not be opened, report an error*/
-			  cerr << "File "<< fileRoute<<" could not be opened."<<endl;
+			  cerr << "Error: file "<< fileRoute<<" could not be opened."<<endl;
 		  }
 }
 

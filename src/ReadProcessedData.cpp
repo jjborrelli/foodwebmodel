@@ -125,6 +125,7 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
 	readYearLightIntensity(simArguments.lightAtSurfaceYearRoute);
 	readPhosphorusConcentrationAtBottom(simArguments.phosphorusConcentrationAtBottomRoute);
+	readNitrogenConcentrationAtBottom(simArguments.nitrogenConcentrationAtBottomRoute);
 	readZooplanktonBiomassCenterDifferencePerDepth(simArguments.zooplanktonBiomassDepthCenterRoute);
 	//this->lakeSize = readTemperatureAtSurface(temperatureRoute);
 }
@@ -221,6 +222,14 @@ void FoodWebModel::ReadProcessedData::readPhosphorusConcentrationAtBottom(const 
 	cout<<"Allocated phosphorus concentration at bottom with size "<<this->simulationCycles<<endl;
 	readValues<physicalType>(phosphorusConcentrationAtBottomRoute, phosphorusConcentrationAtBottom, this->simulationCycles);
 	cout<<"Phosphorus concentration at bottom read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readNitrogenConcentrationAtBottom(const string& nitrogenConcentrationAtBottomRoute){
+	cout<<"Reading nitrogen concentration at bottom from file: "<<nitrogenConcentrationAtBottomRoute<<endl;
+	nitrogenConcentrationAtBottom = new physicalType[this->simulationCycles];
+	cout<<"Allocated nitrogen concentration at bottom with size "<<this->simulationCycles<<endl;
+	readValues<physicalType>(nitrogenConcentrationAtBottomRoute, nitrogenConcentrationAtBottom, this->simulationCycles);
+	cout<<"Nitrogen concentration at bottom read."<<endl;
 }
 
 void FoodWebModel::ReadProcessedData::readYearLightIntensity(const string& lightAtSurfaceYearRoute){

@@ -43,8 +43,8 @@ namespace FoodWebModel {
 		biomassType respiration_peri_matrix[MAX_COLUMN_INDEX], respiration_phyto_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		biomassType excretion_peri_matrix[MAX_COLUMN_INDEX], excretion_phyto_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		biomassType phytoMortalityMatrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], periMortalityMatrix[MAX_COLUMN_INDEX];
-		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phosphorus_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], salinity_effect_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour, *yearly_light_at_surface, temperature_depth_proportion[MAX_DEPTH_INDEX], temperature_at_day[HOURS_PER_YEAR];
+		physicalType temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], initial_temperature[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], distance_to_focus[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], phosphorus_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], nitrogen_concentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], salinity_effect_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType depthVector[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], indexToDepth[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorus_concentration_at_bottom_in_hour, *nitrogen_concentration_at_bottom_in_hour, *yearly_light_at_surface, temperature_depth_proportion[MAX_DEPTH_INDEX], temperature_at_day[HOURS_PER_YEAR];
 		unsigned int maxDepthIndex[MAX_COLUMN_INDEX];
 
 		/*Register lake intensity for zooplankton migration*/
@@ -60,14 +60,19 @@ namespace FoodWebModel {
 		biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion, algae_biomass_conservation_factor;
 
 		/*Nutrient parameters*/
-		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion, nutrient_derivative;
+		biomassType phosphorus_half_saturation, limitation_scale_weight, decaying_phosphorus_factor, retained_phosphorus_factor, reabsorbed_algal_nutrients_proportion, nutrient_derivative, nutrient_growth;
 
 		/*Staircase phosphorus functional response parameters*/
 		physicalType
 		phosphorus_functional_factor,
 		phosphorus_functional_constant_response_1,
 		phosphorus_functional_constant_response_2,
-		phosphorus_functional_step_1;
+		phosphorus_functional_step_1,
+		nitrogen_half_saturation,
+		nitrogen_functional_constant_response,
+		nitrogen_functional_step,
+		nitrogen_phosphorus_lower_bound,
+		nitrogen_phosphorus_upper_bound;
 
 		/*Light parameters*/
 		biomassType light_allowance_weight, light_steepness, diatom_attenuation_coefficient, salinity_exponent, light_allowance_proportion, light_lower_quantile, light_upper_quantile, light_steepness_factor;
@@ -123,7 +128,7 @@ namespace FoodWebModel {
 		physicalType phosphorous_weight;
 
 		/* Physical attributes*/
-		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom;
+		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom, current_nitrogen_concentration_at_bottom;
 
 		/* Algae attributes*/
 		biomassType algae_biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate, algae_biomass_differential_scale;
@@ -196,12 +201,13 @@ namespace FoodWebModel {
 		void photoPeriod();
 		void calculateLightAtTop();
 		void phosphorusConcentrationAtDepth(int depthIndex, int columnIndex);
+		void nitrogenConcentrationAtDepth(int depthIndex, int columnIndex);
 		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
 		void salinityEffect(unsigned int depthIndex, unsigned int columnIndex, physicalType saltConcentration);
 
 		/*Photosynthesis variable state*/
 		void chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom);
-		void calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration);
+		physicalType calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration, physicalType functionalStep, physicalType constant1, physicalType constant2);
 		void updateAlgaeVerticalMigration();
 
 

@@ -46,11 +46,12 @@ typedef struct {
 	lightAtSurfaceYearRoute,
 	biomassBaseDifferentialRoute,
 	phosphorusConcentrationAtBottomRoute,
+	nitrogenConcentrationAtBottomRoute,
 	zooplanktonBiomassDepthCenterRoute;
 
 	unsigned int simulationCycles;
 
-	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion, nutrient_derivative;
+	physicalType phosphorous_weight, decaying_phosphorus_factor, retained_phosphorus_factor, light_allowance_proportion, nutrient_derivative, nutrient_growth;
 	physicalType light_lower_quantile, light_upper_quantile, light_steepness_factor;
 
 	biomassType algae_biomass_differential_production_scale,
@@ -115,6 +116,11 @@ typedef struct {
 	phosphorus_functional_constant_response_1,
 	phosphorus_functional_constant_response_2,
 	phosphorus_functional_step_1,
+	nitrogen_half_saturation,
+	nitrogen_functional_constant_response,
+	nitrogen_functional_step,
+	nitrogen_phosphorus_lower_bound,
+	nitrogen_phosphorus_upper_bound,
 	light_allowance_weight;
 
 	unsigned int predator_random_seed;

@@ -30,7 +30,7 @@ namespace FoodWebModel{
 
 		/* Physical data*/
 		physicalType **initial_temperature;
-		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom, *yearlylightAtSurface;
+		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom, *nitrogenConcentrationAtBottom, *yearlylightAtSurface;
 		physicalType temperature_depth_proportion[MAX_DEPTH_INDEX], temperature_at_day[HOURS_PER_YEAR];
 		unsigned int simulationCycles;
 	public:
@@ -52,6 +52,7 @@ namespace FoodWebModel{
 		void readInitialZooplanktonDistribution(const string& grazerDistributionRoute);
 		void readInitialZooplanktonWeight(const string& grazerWeightRoute);
 		void readPhosphorusConcentrationAtBottom(const string& phosphorusConcentrationAtBottomRoute);
+		void readNitrogenConcentrationAtBottom(const string& nitrogenConcentrationAtBottomRoute);
 		void readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute);
 		template<typename T>
 		void readDataMatrix(const string& fileRoute, T** dataMatrix);

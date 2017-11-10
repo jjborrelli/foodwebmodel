@@ -147,6 +147,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.phosphorusConcentrationAtBottomRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("NitrogenConcentrationAtBottomRoute")){
+		simArguments.nitrogenConcentrationAtBottomRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("ZooplanktonBiomassDepthCenterRoute")){
 		simArguments.zooplanktonBiomassDepthCenterRoute= parameterValue;
 		return;
@@ -175,6 +179,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.nutrient_derivative= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("NutrientGrowth")){
+		simArguments.nutrient_growth= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("DecayingPhosphorusFactor")){
 		simArguments.decaying_phosphorus_factor=atof(parameterValue.c_str());
 		return;
@@ -193,6 +201,26 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("PhosphorusFunctionalStep1")){
 		simArguments.phosphorus_functional_step_1=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("NitrogenHalfSaturation")){
+		simArguments.nitrogen_half_saturation=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("NitrogenFunctionalConstantResponse")){
+		simArguments.nitrogen_functional_constant_response=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("NitrogenFunctionalStep")){
+		simArguments.nitrogen_functional_step=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("NitrogenPhosphorusLowerFactor")){
+		simArguments.nitrogen_phosphorus_lower_bound=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("NitrogenPhosphorusUpperFactor")){
+		simArguments.nitrogen_phosphorus_upper_bound=atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("WashUpDeadBiomass")){

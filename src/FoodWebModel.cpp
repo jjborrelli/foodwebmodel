@@ -175,9 +175,15 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->phosphorus_functional_constant_response_1 = simArguments.phosphorus_functional_constant_response_1;
 	this->phosphorus_functional_constant_response_2 = simArguments.phosphorus_functional_constant_response_2;
 	this->phosphorus_functional_step_1 = simArguments.phosphorus_functional_step_1;
+	this->nitrogen_half_saturation=simArguments.nitrogen_half_saturation;
+	this->nitrogen_functional_constant_response=simArguments.nitrogen_functional_constant_response;
+	this->nitrogen_functional_step=simArguments.nitrogen_functional_step;
+	this->nitrogen_phosphorus_lower_bound=simArguments.nitrogen_phosphorus_lower_bound;
+	this->nitrogen_phosphorus_upper_bound=simArguments.nitrogen_phosphorus_upper_bound;
 	this->light_allowance_weight = simArguments.light_allowance_weight;
 	this->light_allowance_proportion = simArguments.light_allowance_proportion;
 	this->nutrient_derivative = simArguments.nutrient_derivative;
+	this->nutrient_growth = simArguments.nutrient_growth;
 	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
 	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
 	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
@@ -269,6 +275,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Running in debug mode."<<endl;
 #else
 	cout<<"Running in production mode."<<endl;
+#endif
+#ifdef SIGMOID_CONCENTRATION
+	cout<<"Considering sigmoid concentration"<<endl;
+#else
+	cout<<"Considering non-sigmoid concentration"<<endl;
 #endif
 #ifdef HOMOGENEOUS_DEPTH
 	cout<<"Considering homogeneous depth"<<endl;
@@ -475,6 +486,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
 	cout<<"Using nutrient derivative "<<this->nutrient_derivative<<"."<<endl;
+	cout<<"Using nutrient growth "<<this->nutrient_growth<<"."<<endl;
 	cout<<"Using maximum light data "<<MAX_LIGHT_DATA<<"."<<endl;
 	cout<<"Using grazer feeding saturation adjustment weight "<<FEEDING_SATURATION_ADJUSTMENT<<"."<<endl;
 	cout<<"Using grazer water filtering per individual "<<grazerDynamics.filtering_rate_per_individual_in_cell_volume<<" liters/hour."<<endl;
@@ -524,6 +536,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using phosphorus functional constant response 1 "<<this->phosphorus_functional_constant_response_1<<"."<<endl;
 	cout<<"Using phosphorus functional constant response 2 "<<this->phosphorus_functional_constant_response_2<<"."<<endl;
 	cout<<"Using phosphorus functional step 1 "<<this->phosphorus_functional_step_1<<"."<<endl;
+	cout<<"Using nitrogen half saturation "<<this->nitrogen_half_saturation<<"."<<endl;
+	cout<<"Using nitrogen functional constant response "<<this->nitrogen_functional_constant_response<<"."<<endl;
+	cout<<"Using nitrogen functional step "<<this->nitrogen_functional_step<<"."<<endl;
+	cout<<"Using nitrogen lower factor "<<this->nitrogen_phosphorus_lower_bound<<"."<<endl;
+	cout<<"Using nitrogen upper factor "<<this->nitrogen_phosphorus_upper_bound<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using light allowance proortion "<<this->light_allowance_proportion<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
@@ -559,6 +576,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		cout<<"File "<<parameterSimulationRoute<<" open for simulation parameter register."<<endl;
 		parameterFileStream<<"PhosphorousWeight;"<<this->phosphorous_weight<<endl;
 		parameterFileStream<<"NutrientDerivative;"<<this->nutrient_derivative<<endl;
+		parameterFileStream<<"NutrientGrowth;"<<this->nutrient_growth<<endl;
 		parameterFileStream<<"DecayingPhosphorusFactor;"<<this->decaying_phosphorus_factor<<endl;
 		parameterFileStream<<"RetainedPhosphorusFactor;"<<this->retained_phosphorus_factor<<endl;
 		parameterFileStream<<"AlgaeBiomassDifferentialScale;"<<this->algae_biomass_differential_production_scale<<endl;
@@ -617,6 +635,11 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"PhosphorusFunctionalConstantResponse1;"<<this->phosphorus_functional_constant_response_1<<endl;
 		parameterFileStream<<"PhosphorusFunctionalConstantResponse2;"<<this->phosphorus_functional_constant_response_2<<endl;
 		parameterFileStream<<"PhosphorusFunctionalStep1;"<<this->phosphorus_functional_step_1<<endl;
+		parameterFileStream<<"NitrogenHalfSaturation;"<<this->nitrogen_half_saturation<<endl;
+		parameterFileStream<<"NitrogenFunctionalConstantResponse;"<<this->nitrogen_functional_constant_response<<endl;
+		parameterFileStream<<"NitrogenFunctionalStep;"<<this->nitrogen_functional_step<<endl;
+		parameterFileStream<<"NitrogenPhosphorusLowerFactor;"<<this->nitrogen_phosphorus_lower_bound<<endl;
+		parameterFileStream<<"NitrogenPhosphorusUpperFactor;"<<this->nitrogen_phosphorus_upper_bound<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"LightAllowanceProportion;"<<this->light_allowance_proportion<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
@@ -747,6 +770,7 @@ void FoodWebModel::FoodWebModel::updatePhysicalState(){
 				physicalType salinity_at_depth_exponent=this->chemical_at_depth_exponent, salinity_concentration = this->chemical_concentration;
 				salinityEffect(depthIndex, columnIndex, salinity_concentration);
 				phosphorusConcentrationAtDepth(depthIndex, columnIndex);
+				nitrogenConcentrationAtDepth(depthIndex, columnIndex);
 				physicalType phosphorus_at_depth_exponent=this->chemical_at_depth_exponent;
 				calculateTemperature(depthIndex, columnIndex);
 #ifdef EXTENDED_OUTPUT
@@ -930,8 +954,20 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	lightAtDepth(depthIndex, columnIndex);
 	normalizeLight(columnIndex);
 	lightAllowance(localPointBiomass);
-	calculateNutrientLimitation(localPointBiomass, phosphorus_concentration[depthIndex][columnIndex]);
+	physicalType limitationRatio = (phosphorus_concentration[depthIndex][columnIndex]/nitrogen_concentration[depthIndex][columnIndex]);
+	physicalType phosphorusLimitation = calculateNutrientLimitation(localPointBiomass, phosphorus_concentration[depthIndex][columnIndex], this->phosphorus_functional_step_1, this->phosphorus_half_saturation, this->phosphorus_functional_constant_response_2);
+	physicalType nitrogenLimitation = calculateNutrientLimitation(localPointBiomass, nitrogen_concentration[depthIndex][columnIndex], this->nitrogen_functional_step, this->nitrogen_half_saturation, this->nitrogen_functional_constant_response);
 
+	/* Calculate the limiting factor ([1] R. W. Sterner, “On the Phosphorus Limitation Paradigm for Lakes,” Internat. Rev. Hydrobiol, vol. 93, pp. 4–5, 2008.)*/
+	if(limitationRatio > this->nitrogen_phosphorus_upper_bound){
+		nutrient_limitation = phosphorusLimitation;
+	} else{
+		if(limitationRatio < this->nitrogen_phosphorus_lower_bound){
+			nutrient_limitation = nitrogenLimitation;
+		} else{
+			nutrient_limitation=min(phosphorusLimitation, nitrogenLimitation);
+		}
+	}
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	/* Add nutrients from biomass dead in previous hours*/
 	biomassType previousDeadBiomass=periPhyton?previousDeadBottomBiomass[columnIndex]:previousDeadFloatingBiomass[depthIndex][columnIndex];
@@ -1201,9 +1237,11 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 
 	/* Store phosphorus concentration at bottom*/
 	phosphorus_concentration_at_bottom_in_hour= new physicalType[readProcessedData.simulationCycles];
+	nitrogen_concentration_at_bottom_in_hour= new physicalType[readProcessedData.simulationCycles];
 	yearly_light_at_surface= new physicalType[readProcessedData.simulationCycles];
 	for(int i=0; i<readProcessedData.simulationCycles; i++){
 		phosphorus_concentration_at_bottom_in_hour[i]=readProcessedData.phosphorusConcentrationAtBottom[i];
+		nitrogen_concentration_at_bottom_in_hour[i]=readProcessedData.nitrogenConcentrationAtBottom[i];
 		yearly_light_at_surface[i] = readProcessedData.yearlylightAtSurface[i];
 	}
 	/*Copy arrays that depend on maximum depth*/
@@ -1582,13 +1620,23 @@ void FoodWebModel::FoodWebModel::calculateLightAtTop(){
 /*Phosphorus concentration at a given depth*/
 
 void FoodWebModel::FoodWebModel::phosphorusConcentrationAtDepth(int depthIndex, int columnIndex){
-	current_phosphorus_concentration_at_bottom = PHOSPHORUS_CONCENTRATION_AT_BOTTOM;
-	#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
+
+#ifdef TIME_VARIABLE_PHOSPHORUS_CONCENTRATION_AT_BOTTOM
 	current_phosphorus_concentration_at_bottom = this->phosphorous_weight * phosphorus_concentration_at_bottom_in_hour[current_hour];
-	#endif
+#else
+	current_phosphorus_concentration_at_bottom = PHOSPHORUS_CONCENTRATION_AT_BOTTOM;
+#endif
 	chemicalConcentrationAtDepth(depthIndex, columnIndex, current_phosphorus_concentration_at_bottom);
 	/* Save phosphorus concentration for later use*/
 	phosphorus_concentration[depthIndex][columnIndex] = chemical_concentration;
+}
+
+void FoodWebModel::FoodWebModel::nitrogenConcentrationAtDepth(int depthIndex, int columnIndex){
+
+	current_nitrogen_concentration_at_bottom = nitrogen_concentration_at_bottom_in_hour[current_hour];
+	chemicalConcentrationAtDepth(depthIndex, columnIndex, current_nitrogen_concentration_at_bottom);
+	/* Save phosphorus concentration for later use*/
+	nitrogen_concentration[depthIndex][columnIndex] = chemical_concentration;
 }
 
 /*Salt concentration at a given depth*/
@@ -1603,6 +1651,11 @@ void FoodWebModel::FoodWebModel::saltConcentrationAtDepth(int depthIndex, int co
 
 void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom){
 	physicalType localeNutrientAtBottom = concentrationAtBottom;
+#ifdef SIGMOID_CONCENTRATION
+	/* Using depth-dependent sigmoid function from ([1] A. Herbland, D. Delmas, P. Laborde, B. Sautour, and F. Artigas, “Phytoplankton spring bloom of the Gironde plume waters in the Bay of Biscay: early phosphorus limitation and food-web consequences,” Oceanol. Acta, vol. 21, no. 2, pp. 279–291, Mar. 1998.)*/
+	physicalType depthScale = (1.0f+this->nutrient_growth/(1.0f+exp(-this->indexToDepth[depthIndex]+this->nutrient_derivative)));
+	chemical_concentration = localeNutrientAtBottom*depthScale;
+#else
 #ifdef HOMOGENEOUS_DEPTH
 	chemical_at_depth_exponent = (double)(this->nutrient_derivative*(this->indexToDepth[depthIndex]-ZMax));
 #elif defined(RADIATED_CHEMICAL)
@@ -1610,15 +1663,44 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 #else
 	chemical_at_depth_exponent = (double)(this->nutrient_derivative*(this->indexToDepth[depthIndex]-depthVector[columnIndex]));
 #endif
-//	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
-	chemical_concentration =localeNutrientAtBottom;
+	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
+#endif
 
 
 }
 
 /* Nutrient biomass growth limitation based on nutrient concentration */
 
-void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration){
+//void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration){
+//	nutrient_limitation=0.0f;
+////	if(phosphorusConcentration>=PHOSPHORUS_LINEAR_THRESHOLD)
+////		nutrient_limitation=1.0f;
+////	else{
+//#ifdef NUTRIENT_LIMITATION_GLM
+//		nutrient_limitation=max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LIMITATION_LINEAR_COEFFICIENT_TFP+localPointBiomass*PHOSPHORUS_LIMITATION_LINEAR_COEFFICIENT_ALGAE_BIOMASS+PHOSPHORUS_INTERCEPT_GLM));
+//#elif defined(NUTRIENT_LIMITATION_QUOTIENT)
+//		biomassType chemical_concentration_in_grams=phosphorusConcentration*MICROGRAM_TO_GRAM*M3_TO_LITER;
+//		nutrient_limitation=chemical_concentration_in_grams/(chemical_concentration_in_grams+this->phosphorus_half_saturation);
+//#elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
+//		nutrient_limitation = 1;///(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
+//		  if(phosphorusConcentration>this->phosphorus_functional_step_1){
+//			  /* Formula taken from [1] H. Xu, H. W. Paerl, B. Qin, G. Zhu, and G. Gaoa, “Nitrogen and phosphorus inputs control phytoplankton growth in eutrophic Lake Taihu, China,” Limnol. Oceanogr., vol. 55, no. 1, pp. 420–432, Jan. 2010.*/
+//			  nutrient_limitation = this->phosphorus_half_saturation*phosphorusConcentration/(phosphorusConcentration+this->phosphorus_functional_constant_response_2)/HOURS_PER_DAY+1.0f;
+////			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
+//		  }
+//#else
+////		nutrient_limitation=min((double)1.0f,(double)max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT));
+//		nutrient_limitation=(double)max((double)0.0f,(phosphorusConcentration*PHOSPHORUS_LINEAR_COEFFICIENT+PHOSPHORUS_INTERCEPT)/PHOSPHORUS_GROWTH_LIMIT);
+//
+//#endif
+////		nutrient_limitation=1.0f;
+//
+////	}
+//	//returnedValue=1.0f;
+//}
+
+
+physicalType FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration, physicalType functionalStep, physicalType constant1, physicalType constant2){
 	nutrient_limitation=0.0f;
 //	if(phosphorusConcentration>=PHOSPHORUS_LINEAR_THRESHOLD)
 //		nutrient_limitation=1.0f;
@@ -1629,10 +1711,10 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 		biomassType chemical_concentration_in_grams=phosphorusConcentration*MICROGRAM_TO_GRAM*M3_TO_LITER;
 		nutrient_limitation=chemical_concentration_in_grams/(chemical_concentration_in_grams+this->phosphorus_half_saturation);
 #elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
-		nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
-		  if(phosphorusConcentration>this->phosphorus_functional_step_1){
+		nutrient_limitation = 1;///(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
+		  if(phosphorusConcentration>functionalStep){
 			  /* Formula taken from [1] H. Xu, H. W. Paerl, B. Qin, G. Zhu, and G. Gaoa, “Nitrogen and phosphorus inputs control phytoplankton growth in eutrophic Lake Taihu, China,” Limnol. Oceanogr., vol. 55, no. 1, pp. 420–432, Jan. 2010.*/
-			  nutrient_limitation = this->phosphorus_half_saturation*phosphorusConcentration/(phosphorusConcentration+this->phosphorus_functional_constant_response_2)/HOURS_PER_DAY+1.0f;
+			  constant1*phosphorusConcentration/(phosphorusConcentration+constant2)/HOURS_PER_DAY+1.0f;
 //			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
 		  }
 #else
@@ -1643,9 +1725,9 @@ void FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType localPo
 //		nutrient_limitation=1.0f;
 
 //	}
+		return nutrient_limitation;
 	//returnedValue=1.0f;
 }
-
 
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
 void FoodWebModel::FoodWebModel::salinityEffect(unsigned int depthIndex, unsigned int columnIndex, physicalType saltConcentration){

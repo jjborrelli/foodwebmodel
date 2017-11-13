@@ -223,6 +223,18 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.nitrogen_phosphorus_upper_bound=atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("TemperatureOptimal")){
+		simArguments.temperature_optimal=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("TemperatureSteepness")){
+		simArguments.temperature_steepness=atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("TemperatureSuppressionSteepness")){
+		simArguments.temperature_suppression_steepness=atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("WashUpDeadBiomass")){
 		simArguments.wash_up_dead_biomass_proportion=atof(parameterValue.c_str());
 		return;

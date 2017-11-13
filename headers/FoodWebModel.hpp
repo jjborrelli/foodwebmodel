@@ -38,7 +38,7 @@ namespace FoodWebModel {
 	protected:
 		ReadProcessedData readProcessedData;
 		unsigned int current_hour, ZMaxIndex, simulation_cycles, limiting_factor[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-		physicalType light_allowance_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], nutrient_limitation_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], limitation_product_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+		physicalType light_allowance_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], nutrient_limitation_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], limitation_product_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], temperature_limitation_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		biomassType photosynthesis_peri_matrix[MAX_COLUMN_INDEX], photosynthesis_phyto_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		biomassType respiration_peri_matrix[MAX_COLUMN_INDEX], respiration_phyto_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 		biomassType excretion_peri_matrix[MAX_COLUMN_INDEX], excretion_phyto_matrix[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -128,7 +128,7 @@ namespace FoodWebModel {
 		physicalType phosphorous_weight;
 
 		/* Physical attributes*/
-		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom, current_nitrogen_concentration_at_bottom;
+		physicalType locale_photo_period,light_at_depth, depthInMeters, turbidity_at_depth, light_at_top, resource_limitation_exponent, light_difference, normalized_light_difference, chemical_at_depth_exponent, light_normalizer, light_allowance, light_at_depth_exponent, temperature_angular_frequency, temperature_sine, nutrient_limitation, chemical_concentration, current_phosphorus_concentration_at_bottom, current_nitrogen_concentration_at_bottom, temperature_limitation;
 
 		/* Algae attributes*/
 		biomassType algae_biomass_to_depth, high_temperature_mortality, resource_limitation_stress, weighted_resource_limitation_stress, sedimentation_rate, algae_biomass_differential_scale;
@@ -146,6 +146,9 @@ namespace FoodWebModel {
 
 		/* Matrix for biomass registration */
 		bool registerBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+
+		/* Temperature limitation parameters */
+		physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness;
 
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream assertionViolationBuffer;
@@ -202,6 +205,7 @@ namespace FoodWebModel {
 		void calculateLightAtTop();
 		void phosphorusConcentrationAtDepth(int depthIndex, int columnIndex);
 		void nitrogenConcentrationAtDepth(int depthIndex, int columnIndex);
+		void calculateTemperatureLimitation(int depthIndex, int columnIndex);
 		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
 		void salinityEffect(unsigned int depthIndex, unsigned int columnIndex, physicalType saltConcentration);
 

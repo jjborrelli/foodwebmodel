@@ -404,11 +404,11 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 
     //cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
 	  // Include removal of starved grazers multiplied by a weight
-	cohort.numberOfIndividuals-=ceil(this->dead_animal_proportion*bodyLostBiomass/initial_grazer_weight[cohort.stage]);
-	cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals);
-	if(cohort.numberOfIndividuals<0){
-		cout<<"Error. Negative lost individuals."<<endl;
-	}
+//	cohort.numberOfIndividuals-=ceil(this->dead_animal_proportion*bodyLostBiomass/initial_grazer_weight[cohort.stage]);
+//	cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals);
+//	if(cohort.numberOfIndividuals<0){
+//		cout<<"Error. Negative lost individuals."<<endl;
+//	}
   }
     if(!cohort.isBottomAnimal){
     	this->floating_animal_count_summing+=cohort.numberOfIndividuals;

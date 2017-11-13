@@ -103,7 +103,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	"Depth, Column, Time, AlgaeType, GrazerGrazingPerIndividual, GrazerGrazingPerIndividualPerAlgaeBiomass, GrazerUsedGrazingPerAlgaeBiomass, GrazerStroganovTemperatureAdjustment, Grazing, GrazingSaltAdjusted, GrazerDefecation, GrazerBasalRespiration, GrazerActiveRespiratonExponent, GrazerActiveRespirationFactor, GrazerActiveRespiration, GrazerMetabolicRespiration, GrazerNonCorrectedRespiration, GrazerCorrectedRespiration, GrazerExcretion, GrazerTempMortality, GrazerNonTempMortality, GrazerBaseMortality, GrazerSalinityMortality, LowOxigenGrazerMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, AlgaeBiomassBeforeGrazing, AlgaeBiomassAfterGrazing, ReproductionInvestmentSubstraction, ReproductionInvestmentExponent, ReproductionInvestmentPower, ReproductionInvestment, GrazerBiomassDifferential, GrazerCount, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredationPerIndividual, PredationPerIndividualPerZooplanktonBiomass, UsedPredationPerZooplanktonBiomass, PredatorStroganovTemperatureAdjustment, Predation, PredationSaltAdjusted, PredatorDefecation, PredatorBasalRespiration, PredatorActiveRespiratonExponent, PredatorActiveRespirationFactor, PredatorActiveRespiration, PredatorMetabolicRespiration, PredatorNonCorrectedRespiration, PredatorCorrectedRespiration, PredatorExcretion, PredatorTempMortality, PredatorNonTempMortality, PredatorBaseMortality, PredatorSalinityMortality, LowOxigenPredatorMortality, GrazerMortality, PredatoryPressure, GrazerCarryingCapacity, GrazerBiomassBeforePredation, GrazerBiomassAfterPredation, PredatorBiomassDifferential, PredatorCount, PredatorBiomass"<<endl;
 #else
-	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, VerticalLostBiomass, VerticalGainedBiomass, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor, LightAllowance, LightAtDepth, NutrientLimitation, LimitationProduct, PhotoSynthesis, Respiration, Excretion"<<endl;
+	outputAlgaeFile<<"Depth, Column, Time, AlgaeType, DepthInMeters, VerticalLostBiomass, VerticalGainedBiomass, AlgaeBiomassDifferential, AlgaeBiomass, LimitingFactor, LightAllowance, LightAtDepth, NutrientLimitation, LimitationProduct, Temperature, TemperatureLimitation, PhotoSynthesis, Respiration, Excretion"<<endl;
 	outputGrazerFile<<"Depth, Column, Time, AlgaeType, GrazerBiomassDifferential, GrazerCount, AnimalsDeadByStarvation, NaturalDeadAnimals, GrazerBiomass";
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
@@ -180,6 +180,9 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->nitrogen_functional_step=simArguments.nitrogen_functional_step;
 	this->nitrogen_phosphorus_lower_bound=simArguments.nitrogen_phosphorus_lower_bound;
 	this->nitrogen_phosphorus_upper_bound=simArguments.nitrogen_phosphorus_upper_bound;
+	this->temperature_optimal=simArguments.temperature_optimal;
+	this->temperature_steepness=simArguments.temperature_steepness;
+	this->temperature_suppression_steepness=simArguments.temperature_suppression_steepness;
 	this->light_allowance_weight = simArguments.light_allowance_weight;
 	this->light_allowance_proportion = simArguments.light_allowance_proportion;
 	this->nutrient_derivative = simArguments.nutrient_derivative;
@@ -541,6 +544,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using nitrogen functional step "<<this->nitrogen_functional_step<<"."<<endl;
 	cout<<"Using nitrogen lower factor "<<this->nitrogen_phosphorus_lower_bound<<"."<<endl;
 	cout<<"Using nitrogen upper factor "<<this->nitrogen_phosphorus_upper_bound<<"."<<endl;
+	cout<<"Using temperature optimal "<<this->temperature_optimal<<"."<<endl;
+	cout<<"Using temperature steepness "<<this->temperature_steepness<<"."<<endl;
+	cout<<"Using temperature suppression steepeness "<<this->temperature_suppression_steepness<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using light allowance proortion "<<this->light_allowance_proportion<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
@@ -640,6 +646,9 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"NitrogenFunctionalStep;"<<this->nitrogen_functional_step<<endl;
 		parameterFileStream<<"NitrogenPhosphorusLowerFactor;"<<this->nitrogen_phosphorus_lower_bound<<endl;
 		parameterFileStream<<"NitrogenPhosphorusUpperFactor;"<<this->nitrogen_phosphorus_upper_bound<<endl;
+		parameterFileStream<<"TemperatureOptimal;"<<this->temperature_optimal<<endl;
+		parameterFileStream<<"TemperatureSteepness;"<<this->temperature_steepness<<endl;
+		parameterFileStream<<"TemperatureSuppressionSteepness;"<<this->temperature_suppression_steepness<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"LightAllowanceProportion;"<<this->light_allowance_proportion<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
@@ -957,7 +966,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType limitationRatio = (phosphorus_concentration[depthIndex][columnIndex]/nitrogen_concentration[depthIndex][columnIndex]);
 	physicalType phosphorusLimitation = calculateNutrientLimitation(localPointBiomass, phosphorus_concentration[depthIndex][columnIndex], this->phosphorus_functional_step_1, this->phosphorus_half_saturation, this->phosphorus_functional_constant_response_2);
 	physicalType nitrogenLimitation = calculateNutrientLimitation(localPointBiomass, nitrogen_concentration[depthIndex][columnIndex], this->nitrogen_functional_step, this->nitrogen_half_saturation, this->nitrogen_functional_constant_response);
-
+	calculateTemperatureLimitation(depthIndex, columnIndex);
 	/* Calculate the limiting factor ([1] R. W. Sterner, “On the Phosphorus Limitation Paradigm for Lakes,” Internat. Rev. Hydrobiol, vol. 93, pp. 4–5, 2008.)*/
 	if(limitationRatio > this->nitrogen_phosphorus_upper_bound){
 		nutrient_limitation = phosphorusLimitation;
@@ -997,7 +1006,7 @@ biomassType FoodWebModel::FoodWebModel::algaeBiomassDifferential(int depthIndex,
 	physicalType localeLimitationProduct = light_allowance*light_allowance_proportion+nutrient_limitation*(1-light_allowance_proportion);
 	limiting_factor[depthIndex][columnIndex]=light_allowance<nutrient_limitation?1:0;
 #else
-	physicalType localeLimitationProduct = light_at_top*light_allowance*nutrient_limitation;
+	physicalType localeLimitationProduct = light_at_top*light_allowance*nutrient_limitation*temperature_limitation;
 	limiting_factor[depthIndex][columnIndex]=light_allowance<nutrient_limitation?1:0;
 #endif
 
@@ -1729,6 +1738,16 @@ physicalType FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType
 	//returnedValue=1.0f;
 }
 
+
+/* To model the effect of temperature on algal growth, a Gaussian bell inspired by (AquaTox Documentation, page 82, equation 59 and page 84, figure 60) is modeled*/
+void FoodWebModel::FoodWebModel::calculateTemperatureLimitation(int depthIndex, int columnIndex){
+	physicalType localeTemperature = -temperature[depthIndex][columnIndex];
+	physicalType temperatureBell = exp(-(pow((this->temperature_optimal+localeTemperature),2.0f)/this->temperature_steepness));
+	physicalType highTemperatureSuppression = 1-1/(1+exp(localeTemperature/this->temperature_suppression_steepness+this->temperature_optimal));
+	temperature_limitation = temperatureBell*highTemperatureSuppression;
+	temperature_limitation_matrix[depthIndex][columnIndex] = temperature_limitation;
+}
+
 /* Salinity effect on respiration and mortality (AquaTox Documentation, page 295, equation 440)*/
 void FoodWebModel::FoodWebModel::salinityEffect(unsigned int depthIndex, unsigned int columnIndex, physicalType saltConcentration){
 	physicalType salinity_effect=1;
@@ -1845,6 +1864,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeVerticalMigration(){
 			algaeBuffer<<commaString<<verticalLostPeriBiomass[columnIndex]<<commaString<<verticalGainedPeriBiomass[columnIndex];
 			algaeBuffer<<commaString<<periBiomassDifferential[columnIndex]<<commaString<<periBiomass[columnIndex];
 			algaeBuffer<<commaString<<limiting_factor[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<light_allowance_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<lakeLightAtDepth[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<nutrient_limitation_matrix[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<limitation_product_matrix[maxDepthIndex[columnIndex]][columnIndex];
+			algaeBuffer<<commaString<<temperature[maxDepthIndex[columnIndex]][columnIndex]<<commaString<<temperature_limitation_matrix[maxDepthIndex[columnIndex]][columnIndex];
 			algaeBuffer<<commaString<<photosynthesis_peri_matrix[columnIndex]<<commaString<<respiration_peri_matrix[columnIndex]<<commaString<<excretion_peri_matrix[columnIndex]<<endl;
 		}
 		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; depthIndex++){
@@ -1861,6 +1881,7 @@ void FoodWebModel::FoodWebModel::updateAlgaeVerticalMigration(){
 				algaeBuffer<<commaString<<verticalLostPhytoBiomass[depthIndex][columnIndex]<<commaString<<verticalGainedPhytoBiomass[depthIndex][columnIndex];
 				algaeBuffer<<commaString<<phytoBiomassDifferential[depthIndex][columnIndex]<<commaString<<phytoBiomass[depthIndex][columnIndex];
 				algaeBuffer<<commaString<<this->limiting_factor[depthIndex][columnIndex]<<commaString<<light_allowance_matrix[depthIndex][columnIndex]<<commaString<<lakeLightAtDepth[depthIndex][columnIndex]<<commaString<<nutrient_limitation_matrix[depthIndex][columnIndex]<<commaString<<limitation_product_matrix[depthIndex][columnIndex];
+				algaeBuffer<<commaString<<temperature[depthIndex][columnIndex]<<commaString<<temperature_limitation_matrix[depthIndex][columnIndex];
 				algaeBuffer<<commaString<<photosynthesis_phyto_matrix[depthIndex][columnIndex]<<commaString<<respiration_phyto_matrix[depthIndex][columnIndex]<<commaString<<excretion_phyto_matrix[depthIndex][columnIndex]<<endl;
 
 			}

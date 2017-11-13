@@ -183,6 +183,7 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->temperature_optimal=simArguments.temperature_optimal;
 	this->temperature_steepness=simArguments.temperature_steepness;
 	this->temperature_suppression_steepness=simArguments.temperature_suppression_steepness;
+	this->temperature_max=simArguments.temperature_max;
 	this->light_allowance_weight = simArguments.light_allowance_weight;
 	this->light_allowance_proportion = simArguments.light_allowance_proportion;
 	this->nutrient_derivative = simArguments.nutrient_derivative;
@@ -546,7 +547,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using nitrogen upper factor "<<this->nitrogen_phosphorus_upper_bound<<"."<<endl;
 	cout<<"Using temperature optimal "<<this->temperature_optimal<<"."<<endl;
 	cout<<"Using temperature steepness "<<this->temperature_steepness<<"."<<endl;
-	cout<<"Using temperature suppression steepeness "<<this->temperature_suppression_steepness<<"."<<endl;
+	cout<<"Using temperature suppression steepness "<<this->temperature_suppression_steepness<<"."<<endl;
+	cout<<"Using maximum temperature supported "<<this->temperature_max<<"."<<endl;
 	cout<<"Using light allowance weight "<<this->light_allowance_weight<<"."<<endl;
 	cout<<"Using light allowance proortion "<<this->light_allowance_proportion<<"."<<endl;
 	cout<<"Using base algal respiration at 20 degrees "<<this->algal_respiration_at_20_degrees<<"."<<endl;
@@ -649,6 +651,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"TemperatureOptimal;"<<this->temperature_optimal<<endl;
 		parameterFileStream<<"TemperatureSteepness;"<<this->temperature_steepness<<endl;
 		parameterFileStream<<"TemperatureSuppressionSteepness;"<<this->temperature_suppression_steepness<<endl;
+		parameterFileStream<<"TemperatureMax;"<<this->temperature_max<<endl;
 		parameterFileStream<<"LightAllowanceWeight;"<<this->light_allowance_weight<<endl;
 		parameterFileStream<<"LightAllowanceProportion;"<<this->light_allowance_proportion<<endl;
 		parameterFileStream<<"Respiration20Degrees;"<<this->algal_respiration_at_20_degrees<<endl;
@@ -1743,7 +1746,7 @@ physicalType FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType
 void FoodWebModel::FoodWebModel::calculateTemperatureLimitation(int depthIndex, int columnIndex){
 	physicalType localeTemperature = -temperature[depthIndex][columnIndex];
 	physicalType temperatureBell = exp(-(pow((this->temperature_optimal+localeTemperature),2.0f)/this->temperature_steepness));
-	physicalType highTemperatureSuppression = 1-1/(1+exp(localeTemperature/this->temperature_suppression_steepness+this->temperature_optimal));
+	physicalType highTemperatureSuppression = 1-1/(1+exp(localeTemperature/this->temperature_suppression_steepness+(this->temperature_optimal+this->temperature_max)/2.0f));
 	temperature_limitation = temperatureBell*highTemperatureSuppression;
 	temperature_limitation_matrix[depthIndex][columnIndex] = temperature_limitation;
 }

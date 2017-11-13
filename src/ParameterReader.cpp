@@ -235,6 +235,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.temperature_suppression_steepness=atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("TemperatureMax")){
+			simArguments.temperature_max=atof(parameterValue.c_str());
+			return;
+		}
 	if(!parameterName.compare("WashUpDeadBiomass")){
 		simArguments.wash_up_dead_biomass_proportion=atof(parameterValue.c_str());
 		return;

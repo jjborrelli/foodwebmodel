@@ -123,7 +123,7 @@ typedef struct {
 	nitrogen_phosphorus_upper_bound,
 	light_allowance_weight;
 
-	physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness;
+	physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness, temperature_max;
 
 	unsigned int predator_random_seed;
 } SimulationArguments;

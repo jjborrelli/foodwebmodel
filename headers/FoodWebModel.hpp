@@ -148,7 +148,7 @@ namespace FoodWebModel {
 		bool registerBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 		/* Temperature limitation parameters */
-		physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness;
+		physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness, temperature_max;
 
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream assertionViolationBuffer;

@@ -7,6 +7,7 @@
 #include <algorithm> // for remove_if
 #include <functional> // for unary_function
 #include <iterator>
+#include <random> // for shuffle
 #include "../headers/AnimalBiomassDynamics.hpp"
 
 using namespace std;
@@ -26,10 +27,13 @@ std::ostream& operator<<(std::ostream& os, const EggCohort& cohort){
 	return os;
 }
 void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
+	animalCountType totalAnimals = cohort1.numberOfIndividuals + cohort2.numberOfIndividuals;
+	float animalProportion1 = (float)cohort1.numberOfIndividuals/(float)totalAnimals, animalProportion2=(float)cohort2.numberOfIndividuals/(float)totalAnimals;
+	cohort1.ageInHours=(cohort1.ageInHours*animalProportion1+cohort2.ageInHours*animalProportion2);
 	cohort1.bodyBiomass+=cohort2.bodyBiomass;
 	cohort1.numberOfIndividuals+=cohort2.numberOfIndividuals;
 	cohort1.gonadBiomass+=cohort2.gonadBiomass;
-	cohort1.ageInHours=0;
+
 	cohort1.latestMigrationIndex=cohort2.latestMigrationIndex;
 	cohort1.migrationConstant=cohort2.migrationConstant;
 
@@ -37,10 +41,12 @@ void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
 }
 
 void operator-=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
+	animalCountType totalAnimals = cohort1.numberOfIndividuals + cohort2.numberOfIndividuals;
+	float animalProportion1 = (float)cohort1.numberOfIndividuals/(float)totalAnimals, animalProportion2=(float)cohort2.numberOfIndividuals/(float)totalAnimals;
+	cohort1.ageInHours=(cohort1.ageInHours*animalProportion1+cohort2.ageInHours*animalProportion2);
 	cohort1.bodyBiomass -= cohort2.bodyBiomass;
 	cohort1.numberOfIndividuals -= cohort2.numberOfIndividuals;
 	cohort1.gonadBiomass -= cohort2.gonadBiomass;
-	cohort1.ageInHours=0;
 
 }
 
@@ -53,7 +59,6 @@ void operator+=(EggCohort& cohort1, const EggCohort& cohort2){
 void operator+=(AnimalCohort& cohort1, const EggCohort& cohort2){
 	cohort1.bodyBiomass += cohort2.biomass;
 	cohort1.numberOfIndividuals += cohort2.numberOfEggs;
-	cohort1.ageInHours=0;
 	 if(cohort1.numberOfIndividuals<0){
 		 cout<<"Error. Negative number of individuals."<<endl;
 	 }
@@ -111,19 +116,32 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 	}*/
 }
 
+#ifdef ANIMAL_COHORT_MAP
 void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals) {//
-
+#else
+void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::vector<AnimalCohort> *animals) {//
+	floatingReallocatedCohorts.clear();
+	bottomReallocatedCohorts.clear();
+#endif
 	int iteratorCounter=0;
+#ifdef ANIMAL_COHORT_MAP
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
 			it != animals->end();++it) {
-		if(it->second.stage==AnimalStage::Egg){
+		AnimalCohort* cohort=&(it->second);
+#else
+		for (std::vector<AnimalCohort>::iterator it = animals->begin();
+				it != animals->end();++it) {
+			AnimalCohort* cohort=&*it;
+#endif
+		if(cohort->stage==AnimalStage::Egg){
 			cout<<"Error. Egg cohort updated."<<endl;
 		}
 		iteratorCounter++;
-		if(it->second.numberOfIndividuals>0&&it->second.bodyBiomass>0){
+		if(cohort->numberOfIndividuals>0&&cohort->bodyBiomass>0){
 			/* Update biomass of non-empty cohorts */
-			updateCohortBiomass(it->second);
+			updateCohortBiomass(*cohort);
 		}
+
 	}
 
 
@@ -342,7 +360,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #endif
 #ifdef CREATE_NEW_COHORTS
 	/* If there exists gonad investment, create new eggs*/
-	if((*(this->current_hour)%this->ovipositing_period)==0){
+	if(((*(this->current_hour)%this->ovipositing_period)==0)||(cohort.ageInHours==this->maximum_age_in_hours)){
 		if(cohort.gonadBiomass>0.0f){
 			/* If the biomass is enough to generate at least one egg, create it.*/
 			if(cohort.gonadBiomass>=(biomassType)initial_grazer_weight[AnimalStage::Egg]){
@@ -367,18 +385,23 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	/*Remove dead animals in the cohort*/
 	if(animal_mortality>0){
 		biomassType biomassAfterEating = getFoodBiomass(cohort);
-		if(biomassAfterEating==0){
+		if(biomassAfterEating==0.0f){
 			/* If there is no food, all individuals die*/
 			natural_dead_individuals=cohort.numberOfIndividuals;
+//			cout<<"Zero individuals."<<endl;
 //			deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		} else{
 			/* Otherwise, only a number die*/
 			biomassType starvationProportion = (cohort.numberOfIndividuals/biomassAfterEating);
 			starvationProportion*=this->starvation_factor;
 			natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+//			if(cohort.numberOfIndividuals<=natural_dead_individuals){
+//				cout<<"Zero individuals."<<endl;
+//			}
 		}
 //		deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-natural_dead_individuals);
+		cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-natural_dead_individuals*this->initial_grazer_weight[cohort.stage]);
 		if(cohort.numberOfIndividuals<0){
 			cout<<"Error. Negative dying individuals."<<endl;
 		}
@@ -399,6 +422,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #ifndef CREATE_NEW_COHORTS
 	cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
 	cohort.numberOfIndividuals=max<animalCountType>(0, cohort.numberOfIndividuals);
+	if(cohort->numberOfIndividuals==0){
+				cout<<"Zero individuals."<<endl;
+			}
 #endif
   if(bodyLostBiomass>0.0f){
 
@@ -436,6 +462,31 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		unsigned int isBottomAnimal=cohort.isBottomAnimal?1:0;
 //		this->animalDeadBuffer<<cohort.x<<commaString<<cohort.y<<commaString<<(*current_hour)<<commaString<<isBottomAnimal<<commaString<<cohort.ageInHours<<commaString<<cohort.hoursWithoutFood<<commaString<<cohort.stage<<commaString<<cohort.numberOfIndividuals<<commaString<<cohort.bodyBiomass<<endl;
 //	}
+#ifndef ANIMAL_COHORT_MAP
+	if(cohort.numberOfIndividuals>0&&cohort.numberOfIndividuals<=this->agglomeration_cohort_threshold&&cohort.stage==AnimalStage::Mature){
+//		If the number of individuals is lower than 3 and the cohort is mature, integrate into an existing cohort
+		pair<int,int> cohortCoordinates=pair<int,int>(cohort.x, cohort.y);
+		if(cohort.isBottomAnimal){
+			if(bottomReallocatedCohorts.find(cohortCoordinates)==bottomReallocatedCohorts.end()){
+				/*If the bottom cohort does not exist, create it*/
+				bottomReallocatedCohorts[cohortCoordinates]=cohort;
+			} else{
+				/*Otherwise, add to the existing cohort*/
+				bottomReallocatedCohorts[cohortCoordinates]+=cohort;
+			}
+		} else{
+			if(floatingReallocatedCohorts.find(cohortCoordinates)==floatingReallocatedCohorts.end()){
+				floatingReallocatedCohorts[cohortCoordinates]=cohort;
+			} else{
+				floatingReallocatedCohorts[cohortCoordinates]+=cohort;
+			}
+		}
+		/* Clear cohort for removal */
+		cohort.bodyBiomass=cohort.gonadBiomass=0.0f;
+		cohort.numberOfIndividuals=0;
+	}
+
+#endif
 }
 #endif
 //void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
@@ -902,7 +953,8 @@ biomassType  AnimalBiomassDynamics::getFoodBiomass(AnimalCohort& cohort){
 /* Animal aging*/
 void AnimalBiomassDynamics::animalAging(AnimalCohort& cohort){
 	if(cohort.ageInHours++>this->maximum_age_in_hours){
-		cohort.death=Senescence;
+		cohort.bodyBiomass=cohort.gonadBiomass=0.0f;
+		cohort.numberOfIndividuals=0;
 #ifdef REPORT_COHORT_INFO
 		cout<<"Hour: "<<(*this->current_hour)<<". Senescence reached for cohort: "<<cohort<<"."<<endl;
 #endif
@@ -1090,7 +1142,11 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 #ifdef MATURE_JUVENILES
 
 /* Mature juveniles and update their biomass */
+#ifdef ANIMAL_COHORT_MAP
 void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map<pair<int,int>,AnimalCohort> *adultAnimals){
+#else
+void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals){
+#endif
 	for (std::vector<AnimalCohort>::iterator it = juveniles.begin();
 			it != juveniles.end(); ++it) {
 		updateCohortBiomass(*it);
@@ -1121,12 +1177,16 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, map
 //				cout<<"Traced cohort: "<<this->tracedCohortID<<"."<<endl;
 //			} else{
 				/*Add cohort to the collection of adult cohorts*/
+#ifdef ANIMAL_COHORT_MAP
 				if ( adultAnimals->find(cohortCoordinates) == adultAnimals->end() ) {
 					cohortCopy.upDirection=false;
 					(*adultAnimals)[cohortCoordinates]=cohortCopy;
 				} else{
 					(*adultAnimals)[cohortCoordinates]+=cohortCopy;
 				}
+#else
+				adultAnimals->push_back(cohortCopy);
+#endif
 //			}
 		}
 
@@ -1145,7 +1205,15 @@ void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
 	findNormalizingFactors();
 	findOptimalDepthIndexes();
+#ifdef ANIMAL_COHORT_MAP
 	migrateAdultCohorts(floatingAnimals,migrationStep);
+#else
+#if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY) || defined(OPTIMAL_VALUE_MIGRATION)
+	migrateJuvenileCohortsDepthDependent(*floatingAnimals);
+#else
+	migrateJuvenileCohortsStructurally(floatingAnimals,migrationStep);
+#endif
+#endif
 #if defined(LIGHT_BASED_MIGRATION_VARIABLE_FREQUENCY) || defined(LIGHT_BASED_MIGRATION_FIXED_FREQUENCY) || defined(OPTIMAL_VALUE_MIGRATION)
 	migrateJuvenileCohortsDepthDependent(floatingJuveniles);
 #else
@@ -1181,9 +1249,10 @@ void AnimalBiomassDynamics::migrateAdultsCohortsStructurally(std::map<pair<int,i
 	if(migrationStep!=0){
 		for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
 				it != animals->end(); ++it) {
-			if(it->second.numberOfIndividuals>0&&it->second.bodyBiomass>0.0f){
+			AnimalCohort& cohort = it->second;
+			if(cohort.numberOfIndividuals>0&&cohort.bodyBiomass>0.0f){
 				/* Migrate non-empty cohorts */
-				bool migratedBiomass = updateMigrationTable(it->second, migrationStep);
+				bool migratedBiomass = updateMigrationTable(cohort, migrationStep);
 			}
 			/*If the cohort has migrated, remove it from its previous location*/
 
@@ -1204,7 +1273,6 @@ void AnimalBiomassDynamics::clearMigrationParameters(){
 
 /*Update cohort coordinates using the migration arrays*/
 void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals){
-
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 		/* Migrate only above the max depth*/
 		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; depthIndex++){
@@ -1488,9 +1556,7 @@ void AnimalBiomassDynamics::migrateJuvenileCohortDepthDependent(AnimalCohort& co
 
 			}
 }
-
 void AnimalBiomassDynamics::migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort>* animals){
-
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
 				it != animals->end(); ++it) {
 		migrateAdultCohort(it->second);
@@ -1697,12 +1763,20 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 void AnimalBiomassDynamics::registerMigration(){
 	animalTraceBuffer.str("");
 #ifdef REGISTER_ALL_COHORTS
+#ifdef ANIMAL_COHORT_MAP
 	/*Register migration for floating adults*/
 	for (std::map<pair<int,int>,AnimalCohort>::iterator it = floatingAnimals->begin();
 						it != floatingAnimals->end(); ++it) {
 			AnimalCohort& iteratedCohort = it->second;
 			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<iteratedCohort.cohortID<<endl;
 		}
+#else
+	for (std::vector<AnimalCohort>::iterator it = floatingAnimals->begin();
+						it != floatingAnimals->end(); ++it) {
+			AnimalCohort& iteratedCohort = it;
+			animalTraceBuffer<<iteratedCohort.x<<commaString<<iteratedCohort.y<<commaString<<(*current_hour)<<commaString<<(iteratedCohort.isBottomAnimal?1:0)<<commaString<<iteratedCohort.stage<<commaString<<lakeLightAtDepth[iteratedCohort.x][iteratedCohort.y]<<commaString<<iteratedCohort.latestMigrationIndex<<commaString<<iteratedCohort.numberOfIndividuals<<commaString<<iteratedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<iteratedCohort.cohortID<<endl;
+		}
+#endif
 	/*Register migration for floating juveniles*/
 	for (std::vector<AnimalCohort>::iterator it = floatingJuveniles.begin();
 						it != floatingJuveniles.end(); ++it) {
@@ -1740,6 +1814,50 @@ physicalType AnimalBiomassDynamics::calculateLightPropensity(int depthIndex, int
 	return 1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value+1);
 }
 
+void AnimalBiomassDynamics::removeEmptyCohorts(){
+	/* Remove mature individuals that have either starved or grown too old*/
+	floatingAnimals->erase(std::remove_if(floatingAnimals->begin(), floatingAnimals->end(), removeOldIndividuals()), floatingAnimals->end());
+	bottomAnimals->erase(std::remove_if(bottomAnimals->begin(), bottomAnimals->end(), removeOldIndividuals()), bottomAnimals->end());
+}
+
+
+#ifndef ANIMAL_COHORT_MAP
+
+void AnimalBiomassDynamics::reallocateSmallCohorts(){
+	reallocateSmallCohorts(floatingAnimals, floatingReallocatedCohorts);
+	reallocateSmallCohorts(bottomAnimals, bottomReallocatedCohorts);
+}
+
+void AnimalBiomassDynamics::reallocateSmallCohorts(vector<AnimalCohort> *animals, map<pair<int,int>,AnimalCohort>& reallocatedCohorts){
+	/*Iterate over the large cohorts*/
+	std::shuffle(animals->begin(), animals->end(), *randomGenerator);
+	for(vector<AnimalCohort>::iterator it=animals->begin(); it!=animals->end(); ++it){
+		pair<int,int> cohortCoordinates = pair<int,int>(it->x,it->y);
+		if(reallocatedCohorts.find(cohortCoordinates)!=reallocatedCohorts.end()){
+			/* If there exists a small cohort with the same coordinates, add it to the large cohort*/
+			AnimalCohort& foundCohort = reallocatedCohorts[cohortCoordinates];
+			animalCountType totalAnimals = it->numberOfIndividuals + foundCohort.numberOfIndividuals;
+			float animalProportion1 = (float)it->numberOfIndividuals/(float)totalAnimals, animalProportion2=(float)foundCohort.numberOfIndividuals/(float)totalAnimals;
+			it->ageInHours=(it->ageInHours*animalProportion1+foundCohort.ageInHours*animalProportion2);
+			it->bodyBiomass+=foundCohort.bodyBiomass;
+			it->numberOfIndividuals+=foundCohort.numberOfIndividuals;
+			it->gonadBiomass+=foundCohort.gonadBiomass;
+			/* Erase reallocated cohort*/
+			reallocatedCohorts.erase(cohortCoordinates);
+		}
+	}
+	if(reallocatedCohorts.size()>0){
+		/*Preserve small cohorts that do not have a big cohort at the same coordinates*/
+		for(map<pair<int,int>,AnimalCohort>::iterator it=reallocatedCohorts.begin(); it!=reallocatedCohorts.end(); ++it){
+			animals->push_back(it->second);
+		}
+//		cout<<"Not all cohorts reallocated."<<endl;
+	}
+	/* Clear the reallocated cohorts*/
+	reallocatedCohorts.clear();
+
+}
+#endif
 
 #endif
 } /* namespace FoodWebModel */

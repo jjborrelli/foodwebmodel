@@ -35,8 +35,12 @@ protected:
 	/* Migration of animal biomass per hour*/
 		int zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 #ifdef INDIVIDUAL_BASED_ANIMALS
+#ifdef ANIMAL_COHORT_MAP
 	map<pair<int,int>,AnimalCohort> *floatingAnimals, *bottomAnimals;
-
+#else
+	vector<AnimalCohort> *floatingAnimals, *bottomAnimals;
+	map<pair<int,int>, AnimalCohort> floatingReallocatedCohorts, bottomReallocatedCohorts;
+#endif
 	/* Attributes for internal usage for cohort modeling*/
 	double reproduction_proportion_investment;
 	struct removeOldEggs : public std::unary_function<const EggCohort&, bool>
@@ -51,9 +55,24 @@ protected:
 	{
 	    bool operator()(const AnimalCohort& cohort) const
 	    {
-	        return cohort.numberOfIndividuals<=0||cohort.bodyBiomass<=0.0f||cohort.stage==AnimalStage::Mature;
+	        bool removeCohort= cohort.numberOfIndividuals<=0||cohort.bodyBiomass<=0.0f||cohort.stage==AnimalStage::Mature;
+//	        if(removeCohort){
+//	        	cout<<"Removed cohort"<<endl;
+//	        }
+	        return removeCohort;
 	    }
 	};
+	struct removeOldIndividuals : public std::unary_function<const AnimalCohort&, bool>
+		{
+		    bool operator()(const AnimalCohort& cohort) const
+		    {
+		        bool removeCohort= cohort.numberOfIndividuals<=0||cohort.bodyBiomass<=0.0f;
+//		        if(removeCohort){
+//		        	cout<<"Removed cohort"<<endl;
+//		        }
+		        return removeCohort;
+		    }
+		};
 	biomassType migratedFloatingAnimalBodyBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], migratedFloatingAnimalGonadBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	animalCountType migratedFloatingAnimalCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType migratedFloatingAnimalStarvationBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -106,6 +125,8 @@ protected:
 
 	/* Parameters for reproduction*/
 	unsigned int maximum_age_in_hours, incubation_hours, ovipositing_period, maturation_hours;
+	/* Threshold over which small cohorts agglomerate into the big cohort that is at the same coordinates*/
+	unsigned int agglomeration_cohort_threshold;
 
 
 	/*Parameters for animal carrying capacity*/
@@ -167,7 +188,11 @@ protected:
 	void updateCohortBiomass(AnimalCohort& cohort);
 //	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
 //	void removeDeadAnimals();
+#ifdef ANIMAL_COHORT_MAP
 	void updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals);
+#else
+	void updateCohortBiomassForAnimals(std::vector<AnimalCohort> *animals);
+#endif
 	void registerMigration();
 #endif
 #if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
@@ -189,15 +214,17 @@ protected:
 	void migrateAnimalCohorts();
 	void migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep);
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
+	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
+	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
 	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
 	bool updateMigrationTable(AnimalCohort& cohort, int migrateStep);
 	void migrateJuvenileCohortStructurally(AnimalCohort& cohort, int migrateStep);
 	void clearMigrationParameters();
-	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
+
 	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
 	void migrateJuvenileCohortDepthDependent(AnimalCohort& cohort);
 	void migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it);
-	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
+
 	int migrateCohortsDepthDependent(AnimalCohort& cohort);
 	int migrateCohortsFixedFrequency(AnimalCohort& cohort);
 	int migrateCohortsOptimizedDepth(AnimalCohort& cohort);
@@ -222,7 +249,14 @@ protected:
 	biomassType createNewCohort(AnimalCohort& parentCohort, biomassType eggBiomass, vector<AnimalCohort>* juveniles);
 #ifdef MATURE_JUVENILES
 	void matureEggs(vector<EggCohort>& eggs, vector<AnimalCohort>& adultAnimals);
+#ifdef ANIMAL_COHORT_MAP
 	void matureJuveniles(vector<AnimalCohort>& juveniles, map<pair<int,int>,AnimalCohort> *adultAnimals);
+#else
+	void matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals);
+	void reallocateSmallCohorts();
+	void reallocateSmallCohorts(vector<AnimalCohort> *animals, map<pair<int,int>,AnimalCohort>& reallocatedCohorts);
+#endif
+	void removeEmptyCohorts();
 #else
 	void matureEggs(set<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #endif

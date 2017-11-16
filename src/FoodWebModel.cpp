@@ -25,7 +25,6 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 #endif
 	/* Set grazer count and biomass pointers to the grazer dynamics objects*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
-
 	grazerDynamics.floatingAnimals=&this->zooplankton;
 	grazerDynamics.bottomAnimals=&this->bottomGrazers;
 
@@ -250,6 +249,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.egg_allocation_threshold=simArguments.grazer_egg_allocation_threshold;
 	grazerDynamics.ovipositing_period=simArguments.grazer_ovipositing_period;
 	grazerDynamics.maturation_hours=simArguments.grazer_maturation_hours;
+	grazerDynamics.agglomeration_cohort_threshold=simArguments.grazer_agglomeration_cohort_threshold;
 	grazerDynamics.reproduction_proportion_investment_amplitude=simArguments.grazer_reproduction_proportion_investment_amplitude;
 	grazerDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
 	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
@@ -486,6 +486,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Registering traced cohorts."<<endl;
 #endif
+#ifdef ANIMAL_COHORT_MAP
+	cout<<"Using animal cohort map."<<endl;
+#else
+	cout<<"Using animal cohort vector."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
@@ -518,6 +523,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
 	cout<<"Using grazer ovipositing frequency "<<grazerDynamics.ovipositing_period<<"."<<endl;
 	cout<<"Using grazer maturation hours "<<grazerDynamics.maturation_hours<<"."<<endl;
+	cout<<"Using grazer agglomeration cohort threshold "<<grazerDynamics.agglomeration_cohort_threshold<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment amplitude "<<grazerDynamics.reproduction_proportion_investment_amplitude<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment coefficient "<<grazerDynamics.reproduction_proportion_investment_coefficient<<"."<<endl;
 	cout<<"Using grazer reproduction proportion investment intercept "<<grazerDynamics.reproduction_proportion_investment_intercept<<"."<<endl;
@@ -613,6 +619,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerEggAllocationThreshold;"<<grazerDynamics.egg_allocation_threshold<<endl;
 		parameterFileStream<<"GrazerOvipositingFrequency;"<<grazerDynamics.ovipositing_period<<endl;
 		parameterFileStream<<"GrazerMaturationHours;"<<grazerDynamics.maturation_hours<<endl;
+		parameterFileStream<<"GrazerAgglomerationCohortThreshold;"<<grazerDynamics.agglomeration_cohort_threshold<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentAmplitude;"<<grazerDynamics.reproduction_proportion_investment_amplitude<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentCoefficient;"<<grazerDynamics.reproduction_proportion_investment_coefficient<<endl;
 		parameterFileStream<<"GrazerReproductionProportionInvestmentIntercept;"<<grazerDynamics.reproduction_proportion_investment_intercept<<endl;
@@ -756,6 +763,10 @@ void FoodWebModel::FoodWebModel::step(){
 	updateAlgaeVerticalMigration();
 	grazerDynamics.updateAnimalBiomass();
 	grazerDynamics.migrateAnimalCohorts();
+#ifndef ANIMAL_COHORT_MAP
+	grazerDynamics.removeEmptyCohorts();
+	grazerDynamics.reallocateSmallCohorts();
+#endif
 //	predatorDynamics.updateAnimalBiomass();
 }
 
@@ -1335,14 +1346,21 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 /* Functions for adding individual-based animal cohorts*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
+#ifdef ANIMAL_COHORT_MAP
 void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal){
+#else
+	void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal){
+#endif
 	if(count>0){
 		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Juvenile, isBottomAnimal);
 		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Mature, isBottomAnimal);
 	}
 }
-
+#ifdef ANIMAL_COHORT_MAP
 void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal){
+#else
+	void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal){
+#endif
 	if(count>0&&readProcessedData.initial_grazer_distribution[developmentStage]>0.0f){
 		AnimalCohort newCohort;
 		//pair<int,int> cohortCoordinates(depthIndex, columnIndex);
@@ -1355,7 +1373,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.cohortID=this->cohortID++;
 		newCohort.latestMigrationIndex=0;
 		newCohort.migrationConstant=-(this->grazer_layer_center_index-depthIndex);
-		if(abs((int)newCohort.migrationConstant)>2){
+		if(abs<int>((int)newCohort.migrationConstant)>2){
 			cout<<"Far away elements."<<endl;
 		}
 //		if(abs((int)newCohort.migrationConstant)==0){
@@ -1370,12 +1388,16 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 			grazerDynamics.tracedCohort=newCohort;
 			cout<<"Traced cohort: "<<grazerDynamics.tracedCohortID<<"."<<endl;
 		} else{
+#ifdef ANIMAL_COHORT_MAP
 			if ( animals.find(pair<int,int>(depthIndex, columnIndex)) == animals.end() ) {
 				/* If the cohort exists, increase biomass and number of eggs*/
 				animals[pair<int,int>(depthIndex, columnIndex)]=newCohort;
 			} else{
 				animals[pair<int,int>(depthIndex, columnIndex)]+=newCohort;
 			}
+#else
+			animals.push_back(newCohort);
+#endif
 		}
 
 	}
@@ -1746,7 +1768,7 @@ physicalType FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType
 void FoodWebModel::FoodWebModel::calculateTemperatureLimitation(int depthIndex, int columnIndex){
 	physicalType localeTemperature = -temperature[depthIndex][columnIndex];
 	physicalType temperatureBell = exp(-(pow((this->temperature_optimal+localeTemperature),2.0f)/this->temperature_steepness));
-	physicalType highTemperatureSuppression = 1-1/(1+exp(localeTemperature/this->temperature_suppression_steepness+(this->temperature_optimal+this->temperature_max)/2.0f));
+	physicalType highTemperatureSuppression = 1-1/(1+exp(localeTemperature/this->temperature_suppression_steepness+(this->temperature_max)));
 	temperature_limitation = temperatureBell*highTemperatureSuppression;
 	temperature_limitation_matrix[depthIndex][columnIndex] = temperature_limitation;
 }

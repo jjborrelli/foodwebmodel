@@ -99,7 +99,7 @@ typedef struct {
 	grazer_reproduction_proportion_investment_multiplier;
 
 	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours,
-	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours;
+	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours, grazer_agglomeration_cohort_threshold;
 
 	int grazer_layer_center_index;
 

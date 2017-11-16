@@ -86,8 +86,13 @@ namespace FoodWebModel {
 		biomassType zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 
 #ifdef INDIVIDUAL_BASED_ANIMALS
+#ifdef ANIMAL_COHORT_MAP
 		map<pair<int,int>,AnimalCohort> zooplankton, bottomGrazers;
 		map<pair<int,int>,AnimalCohort> floatingPredator, bottomPredator;
+#else
+		vector<AnimalCohort> zooplankton, bottomGrazers;
+		vector<AnimalCohort> floatingPredator, bottomPredator;
+#endif
 #else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
 		biomassType verticalMigrationZooplanktonBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -180,8 +185,14 @@ namespace FoodWebModel {
 		void updateRegisterVariables();
 		void initializePointers();
 #ifdef INDIVIDUAL_BASED_ANIMALS
+#ifdef ANIMAL_COHORT_MAP
 		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal);
 		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal);
+#else
+		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal);
+		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal);
+#endif
+
 #endif
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		void updateDeadBiomass();

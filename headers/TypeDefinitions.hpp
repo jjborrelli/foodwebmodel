@@ -139,7 +139,8 @@ typedef struct {
 	int migrationConstant;
 	mutable AnimalStage stage;
 //	causeOfDeath death;
-	bool isBottomAnimal, upDirection;
+	/* If the animal is a bottom feeder, moves upwards and has matured in the current cycle*/
+	bool isBottomAnimal, upDirection, justMatured;
 	mutable animalCountType numberOfIndividuals;
 	mutable biomassType bodyBiomass, gonadBiomass, starvationBiomass;
 	cohortIDType cohortID;

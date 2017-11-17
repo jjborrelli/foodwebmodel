@@ -103,7 +103,7 @@ protected:
 
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
-	cohortIDType *cohortID;
+//	cohortIDType *cohortID;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
 
 	/* Zooplankton parameter weights*/

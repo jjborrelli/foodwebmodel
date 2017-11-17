@@ -269,7 +269,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
 	grazerDynamics.randomGenerator=new default_random_engine(grazerDynamics.random_seed);
-	grazerDynamics.cohortID=&(this->cohortID);
+//	grazerDynamics.cohortID=&(this->cohortID);
 
 }
 
@@ -1299,6 +1299,10 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 
 		}
 	}
+#ifdef INDIVIDUAL_BASED_ANIMALS
+	/* IMPORTANT: clear the cohort ID at the creation of juveniles*/
+	this->cohortID=0;
+#endif
 	/* Copy initial biomass vector*/
 	for(int i=0; i<MAX_COLUMN_INDEX; i++){
 		/* Initialize periphyton and bottom feeder biomass*/
@@ -1310,7 +1314,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		/* Copy bottom grazer biomass per cell*/
 #ifdef  INDIVIDUAL_BASED_ANIMALS
 		/*Initialize cohort IDs*/
-		this->cohortID=0;
+
 		addAnimalCohorts(maxDepthIndex[i],i,readProcessedData.initial_grazer_count[maxDepthIndex[i]][i], bottomGrazers, true);
 #else
 		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
@@ -1356,7 +1360,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsig
 	void FoodWebModel::FoodWebModel::addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal){
 #endif
 	if(count>0){
-		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Juvenile, isBottomAnimal);
+//		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Juvenile, isBottomAnimal);
 		addAnimalCohort(depthIndex,columnIndex,count, animals, AnimalStage::Mature, isBottomAnimal);
 	}
 }
@@ -1375,6 +1379,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 //		newCohort.ageInHours=newCohort.hoursWithoutFood=0;
 //		newCohort.death=None;
 		newCohort.cohortID=this->cohortID++;
+		newCohort.justMatured=false;
 		newCohort.latestMigrationIndex=0;
 		newCohort.migrationConstant=-(this->grazer_layer_center_index-depthIndex);
 		if(abs<int>((int)newCohort.migrationConstant)>2){
@@ -1387,6 +1392,9 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
 		newCohort.upDirection=false;
+		if(indexToDepth[maxDepthIndex[newCohort.y]]>=TRACED_COHORT_DEPTH&&newCohort.migrationConstant==0){
+			cout<<"Optimal grazer ID is "<<newCohort.cohortID<<"."<<endl;
+		}
 		if(indexToDepth[maxDepthIndex[newCohort.y]]>=TRACED_COHORT_DEPTH&&grazerDynamics.tracedCohort.numberOfIndividuals==0){
 			/*Create traced cohort*/
 			grazerDynamics.tracedCohort=newCohort;

@@ -1859,6 +1859,8 @@ void AnimalBiomassDynamics::agglomerateCohorts(vector<AnimalCohort> *animals){
 			animalMigrationBuffer[cohortCoordinates].bodyBiomass+=it->bodyBiomass;
 			animalMigrationBuffer[cohortCoordinates].numberOfIndividuals+=it->numberOfIndividuals;
 			animalMigrationBuffer[cohortCoordinates].gonadBiomass+=it->gonadBiomass;
+			/* Use a consistent rule for cohort ID (the minimum)*/
+			animalMigrationBuffer[cohortCoordinates].cohortID=min<int>(animalMigrationBuffer[cohortCoordinates].cohortID, it->cohortID);
 		}
 	}
 	animals->clear();

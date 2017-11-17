@@ -39,7 +39,11 @@ protected:
 	map<pair<int,int>,AnimalCohort> *floatingAnimals, *bottomAnimals;
 #else
 	vector<AnimalCohort> *floatingAnimals, *bottomAnimals;
+#ifdef CONGLOMERATE_ALL_COHORTS
+	map<pair<int,int>, AnimalCohort> animalMigrationBuffer;
+#else
 	map<pair<int,int>, AnimalCohort> floatingReallocatedCohorts, bottomReallocatedCohorts;
+#endif
 #endif
 	/* Attributes for internal usage for cohort modeling*/
 	double reproduction_proportion_investment;
@@ -254,7 +258,11 @@ protected:
 #else
 	void matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals);
 	void reallocateSmallCohorts();
+#ifdef CONGLOMERATE_ALL_COHORTS
+	void agglomerateCohorts(vector<AnimalCohort> *animals);
+#else
 	void reallocateSmallCohorts(vector<AnimalCohort> *animals, map<pair<int,int>,AnimalCohort>& reallocatedCohorts);
+#endif
 #endif
 	void removeEmptyCohorts();
 #else

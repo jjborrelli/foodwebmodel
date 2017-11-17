@@ -489,7 +489,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #ifdef ANIMAL_COHORT_MAP
 	cout<<"Using animal cohort map."<<endl;
 #else
+#ifdef CONGLOMERATE_ALL_COHORTS
+	cout<<"Using cohort conglomerate."<<endl;
+#else
 	cout<<"Using animal cohort vector."<<endl;
+#endif
 #endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;

@@ -1215,6 +1215,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
+	calculateKairomonesConcetration();
 	findNormalizingFactors();
 	findOptimalDepthIndexes();
 #ifdef ANIMAL_COHORT_MAP
@@ -1924,5 +1925,17 @@ void AnimalBiomassDynamics::reallocateSmallCohorts(vector<AnimalCohort> *animals
 #endif
 #endif
 
+void AnimalBiomassDynamics::calculateKairomonesConcetration(){
+	/* Kairomone levels depend on day and night cycles*/
+	physicalType surfaceKairomones = (*current_hour%HOURS_PER_DAY)<(HOURS_PER_DAY/2)?this->kairomones_level_day:this->kairomones_level_night;
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
+		for(int depthIndex=0; depthIndex<maxDepthIndex[columnIndex]; ++depthIndex){
+			physicalType localeDepth=this->indexToDepth[depthIndex];
+			/* Assume a sigmoid diffusion function for kairomones, like any other chemical compound (like inorganic chemicals)*/
+			this->kairomoneConcentration[depthIndex][columnIndex]=surfaceKairomones*(1-1/(1+exp(-(localeDepth-this->kairomones_thermocline))));
+		}
+	}
+
+}
 #endif
 } /* namespace FoodWebModel */

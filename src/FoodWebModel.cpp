@@ -265,6 +265,9 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
 	grazerDynamics.layer_center_index=simArguments.grazer_layer_center_index;
 	grazerDynamics.light_migration_weight=simArguments.grazer_light_migration_weight;
+	grazerDynamics.kairomones_level_day=simArguments.kairomones_level_day;
+	grazerDynamics.kairomones_level_night=simArguments.kairomones_level_night;
+	grazerDynamics.kairomones_thermocline=simArguments.kairomones_thermocline;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
@@ -540,7 +543,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
 	cout<<"Using grazer light optimal value "<<grazerDynamics.light_optimal_value<<"."<<endl;
 	cout<<"Using grazer velocity downward pull "<<grazerDynamics.velocity_downward_pull<<"."<<endl;
-
+	cout<<"Using kairomones level day "<<grazerDynamics.kairomones_level_day<<"."<<endl;
+	cout<<"Using kairomones level night "<<grazerDynamics.kairomones_level_night<<"."<<endl;
+	cout<<"Using kairomones thermocline value "<<grazerDynamics.kairomones_thermocline<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
@@ -635,6 +640,9 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
 		parameterFileStream<<"GrazerLightOptimalValue;"<<grazerDynamics.light_optimal_value<<endl;
 		parameterFileStream<<"GrazerMigrationLightWeight;"<<grazerDynamics.light_migration_weight<<endl;
+		parameterFileStream<<"KairomonesLevelDay;"<<grazerDynamics.kairomones_level_day<<endl;
+		parameterFileStream<<"KairomonesLevelNight;"<<grazerDynamics.kairomones_level_night<<endl;
+		parameterFileStream<<"KairomonesThermocline;"<<grazerDynamics.kairomones_thermocline<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;

@@ -479,6 +479,18 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_migration_consumption= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("KairomonesLevelDay")){
+		simArguments.kairomones_level_day= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("KairomonesLevelNight")){
+		simArguments.kairomones_level_night= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("KairomoneThermocline")){
+		simArguments.kairomones_thermocline= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PredatorBaseMortality")){
 		simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
 		return;

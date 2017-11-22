@@ -110,6 +110,8 @@ typedef struct {
 	predator_carrying_capacity_intercept,
 	predator_maximum_found_biomass;
 
+	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline;
+
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,
 	phosphorus_half_saturation,
 	phosphorus_functional_factor,

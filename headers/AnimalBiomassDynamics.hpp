@@ -178,6 +178,13 @@ protected:
 	/*Migration score weight*/
 	physicalType light_migration_weight;
 
+
+	/* Kairomone parameters*/
+	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline;
+
+	/* Kairomone concentration at depth. This will be eventually in the instance modeling planktivore dynamics*/
+	biomassType kairomoneConcentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+
 	/*Special traced adult cohort and flag to set that it has been created*/
 	AnimalCohort tracedCohort;
 	int tracedCohortID;
@@ -215,6 +222,8 @@ protected:
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 #ifdef INDIVIDUAL_BASED_ANIMALS
+
+	/* Migration functions */
 	void migrateAnimalCohorts();
 	void migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep);
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
@@ -239,6 +248,7 @@ protected:
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
 	void consumeDuringMigration(int initialDepth, int finalDepth, std::vector<AnimalCohort>::iterator it);
 	void findNormalizingFactors();
+	void calculateKairomonesConcetration();
 	physicalType calculateLightPropensity(int initialDepth, int finalDepth);
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);

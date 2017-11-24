@@ -25,6 +25,9 @@ class AnimalBiomassDynamics {
 public:
 	AnimalBiomassDynamics();
 	virtual ~AnimalBiomassDynamics();
+	/* Initialize all the animal structures before simulation*/
+	void initializeSimulationStructures();
+	void takeAnimalDynamicsStep();
 protected:
 	std::ostringstream lineBuffer, animalBiomassBuffer;
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -165,12 +168,12 @@ protected:
 	biomassType *deadFloatingBiomass[MAX_DEPTH_INDEX], *deadBottomBiomass;
 #endif
 	physicalType reabsorbed_animal_nutrients_proportion, critical_depth, critical_light_intensity, velocity_downward_pull, light_optimal_value;
-	std::default_random_engine* randomGenerator;
-	unsigned int random_seed;
+	std::default_random_engine* animalRandomGenerator;
 
 	/* Best depth index per column*/
 
 	int optimalDepthIndexes[MAX_COLUMN_INDEX];
+	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/*Summing of optimal values for normalization*/
 	physicalType sumOptimalLightValues, sumOptimalFoodValues;
@@ -185,6 +188,13 @@ protected:
 	/* Kairomone concentration at depth. This will be eventually in the instance modeling planktivore dynamics*/
 	biomassType kairomoneConcentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
+	/* Migration based on random walk*/
+	int max_vertical_migration, max_horizontal_migration;
+	vector<int> verticalMigrationIndexes, horizontalMigrationIndexes;
+	bool dayTime;
+	unsigned int max_search_steps;
+	double random_walk_probability_weight;
+
 	/*Special traced adult cohort and flag to set that it has been created*/
 	AnimalCohort tracedCohort;
 	int tracedCohortID;
@@ -193,7 +203,7 @@ protected:
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
 #endif
-
+private:
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	void updateCohortBiomass(AnimalCohort& cohort);
@@ -211,6 +221,8 @@ protected:
 #else
 	biomassType animalBiomassDifferential(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType animalBiomass);
 #endif
+
+	/* Methods for updating the biomass in animals*/
 	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, double consumedProportion=1.0f);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
@@ -223,33 +235,47 @@ protected:
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
-	/* Migration functions */
+	/* Migration methods */
 	void migrateAnimalCohorts();
-	void migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep);
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
-	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
 	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
-	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
 	bool updateMigrationTable(AnimalCohort& cohort, int migrateStep);
-	void migrateJuvenileCohortStructurally(AnimalCohort& cohort, int migrateStep);
 	void clearMigrationParameters();
 
-	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
-	void migrateJuvenileCohortDepthDependent(AnimalCohort& cohort);
-	void migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it);
-
+	/* Different methods for adult migration (map-based)*/
+	void migrateAdultsCohortsStructurally(std::map<pair<int,int>,AnimalCohort> *animals, int migrationStep);
+	void migrateAdultCohortsDepthDependent(std::map<pair<int,int>,AnimalCohort> *animals);
 	int migrateCohortsDepthDependent(AnimalCohort& cohort);
 	int migrateCohortsFixedFrequency(AnimalCohort& cohort);
 	int migrateCohortsOptimizedDepth(AnimalCohort& cohort);
 	void migrateAdultCohort(AnimalCohort& cohort);
 	void migrateExistingAdultCohort(AnimalCohort& cohort, int depthIndex, int columnIndex);
-	void findOptimalDepthIndex(unsigned int column);
-	void findOptimalDepthIndexes();
+	void migrateCohortsUsingRandomWalk();
+	void migrateCohortsUsingRandomWalk(vector<AnimalCohort>& cohorts);
+
+	/* Different methods for juvenile migration (vector-based)*/
+	void migrateJuvenileCohortsStructurally(vector<AnimalCohort>& juveniles, int migrateStep);
+	void migrateJuvenileCohortStructurally(AnimalCohort& cohort, int migrateStep);
+	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
+	void migrateJuvenileCohortDepthDependent(AnimalCohort& cohort);
+	void migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it);
+	void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
+
+	/*If animals consume during migration, use these methods*/
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
 	void consumeDuringMigration(int initialDepth, int finalDepth, std::vector<AnimalCohort>::iterator it);
+
+	/* Calculating the optimal migration index for animals*/
+	void findOptimalDepthIndexes();
+	void findOptimalDepthIndex(unsigned int column);
 	void findNormalizingFactors();
+
 	void calculateKairomonesConcetration();
 	physicalType calculateLightPropensity(int initialDepth, int finalDepth);
+
+	void generateMigrationIndexes();
+
+	/*Maturation and reproduction methods*/
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
 	void animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass);
 #elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
@@ -281,6 +307,9 @@ protected:
 #endif
 	biomassType getFoodBiomass(AnimalCohort& cohort);
 #endif
+	biomassType getFoodBiomass(bool bottom, int columnIndex, int depthIndex);
+
+	/* External factors affecting animal metabolism*/
 	void salinityMortality(biomassType localeBiomass);
 	void calculateLowOxigenMortality(biomassType inputBiomass);
 	void stroganovApproximation(physicalType localeTemperature);
@@ -292,7 +321,7 @@ protected:
 //	void verticalMigrateAnimalsPreference();
 	void calculateLocalPreferenceScore();
 	void reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom);
-	biomassType getFoodBiomass(bool bottom, int columnIndex, int depthIndex);
+
 
 };
 

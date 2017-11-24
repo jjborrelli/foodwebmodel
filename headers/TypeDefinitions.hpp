@@ -99,7 +99,7 @@ typedef struct {
 	grazer_reproduction_proportion_investment_multiplier;
 
 	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours,
-	grazer_random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours, grazer_agglomeration_cohort_threshold;
+	random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours, grazer_agglomeration_cohort_threshold;
 
 	int grazer_layer_center_index;
 
@@ -111,6 +111,9 @@ typedef struct {
 	predator_maximum_found_biomass;
 
 	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline;
+	int max_vertical_migration, max_horizontal_migration;
+	int grazer_max_search_steps;
+	double grazer_random_walk_probability_weight;
 
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,
 	phosphorus_half_saturation,

@@ -122,6 +122,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 		}
 	}
 	copyPointersToAnimalDynamics();
+	grazerDynamics.initializeSimulationStructures();
 	for(current_hour=0; current_hour<simulation_cycles; current_hour++){
 		/* Register standard biomass and slough to file at the given hour frequency*/
 		if(current_hour%TIME_MESSAGE_RESOLUTION==0)
@@ -162,57 +163,85 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	return 0;
 }
 
-void FoodWebModel::FoodWebModel::setFileParameters(
+void FoodWebModel::FoodWebModel::setGeneralParameters(
 		const SimulationArguments& simArguments) {
 	/*Read numeric parameters*/
 	this->algae_biomass_differential_production_scale =
 			simArguments.algae_biomass_differential_production_scale;
-
 	this->simulation_cycles = simArguments.simulationCycles;
 	this->phosphorus_half_saturation = simArguments.phosphorus_half_saturation;
-	this->phosphorus_functional_factor = simArguments.phosphorus_functional_factor;
-	this->phosphorus_functional_constant_response_1 = simArguments.phosphorus_functional_constant_response_1;
-	this->phosphorus_functional_constant_response_2 = simArguments.phosphorus_functional_constant_response_2;
-	this->phosphorus_functional_step_1 = simArguments.phosphorus_functional_step_1;
-	this->nitrogen_half_saturation=simArguments.nitrogen_half_saturation;
-	this->nitrogen_functional_constant_response=simArguments.nitrogen_functional_constant_response;
-	this->nitrogen_functional_step=simArguments.nitrogen_functional_step;
-	this->nitrogen_phosphorus_lower_bound=simArguments.nitrogen_phosphorus_lower_bound;
-	this->nitrogen_phosphorus_upper_bound=simArguments.nitrogen_phosphorus_upper_bound;
-	this->temperature_optimal=simArguments.temperature_optimal;
-	this->temperature_steepness=simArguments.temperature_steepness;
-	this->temperature_suppression_steepness=simArguments.temperature_suppression_steepness;
-	this->temperature_max=simArguments.temperature_max;
+	this->phosphorus_functional_factor =
+			simArguments.phosphorus_functional_factor;
+	this->phosphorus_functional_constant_response_1 =
+			simArguments.phosphorus_functional_constant_response_1;
+	this->phosphorus_functional_constant_response_2 =
+			simArguments.phosphorus_functional_constant_response_2;
+	this->phosphorus_functional_step_1 =
+			simArguments.phosphorus_functional_step_1;
+	this->nitrogen_half_saturation = simArguments.nitrogen_half_saturation;
+	this->nitrogen_functional_constant_response =
+			simArguments.nitrogen_functional_constant_response;
+	this->nitrogen_functional_step = simArguments.nitrogen_functional_step;
+	this->nitrogen_phosphorus_lower_bound =
+			simArguments.nitrogen_phosphorus_lower_bound;
+	this->nitrogen_phosphorus_upper_bound =
+			simArguments.nitrogen_phosphorus_upper_bound;
+	this->temperature_optimal = simArguments.temperature_optimal;
+	this->temperature_steepness = simArguments.temperature_steepness;
+	this->temperature_suppression_steepness =
+			simArguments.temperature_suppression_steepness;
+	this->temperature_max = simArguments.temperature_max;
 	this->light_allowance_weight = simArguments.light_allowance_weight;
 	this->light_allowance_proportion = simArguments.light_allowance_proportion;
 	this->nutrient_derivative = simArguments.nutrient_derivative;
 	this->nutrient_growth = simArguments.nutrient_growth;
-	this->algal_respiration_at_20_degrees = simArguments.algal_respiration_at_20_degrees;
-	this->exponential_temperature_algal_respiration_coefficient = simArguments.exponential_temperature_algal_respiration_coefficient;
-	this->intrinsic_algae_mortality_rate = simArguments.intrinsic_algae_mortality_rate;
+	this->algal_respiration_at_20_degrees =
+			simArguments.algal_respiration_at_20_degrees;
+	this->exponential_temperature_algal_respiration_coefficient =
+			simArguments.exponential_temperature_algal_respiration_coefficient;
+	this->intrinsic_algae_mortality_rate =
+			simArguments.intrinsic_algae_mortality_rate;
 	this->intrinsic_settling_rate = simArguments.intrinsic_settling_rate;
-	this->algal_fraction_sloughed= simArguments.algal_fraction_sloughed;
-	this->maximum_algae_resources_death = simArguments.maximum_algae_resources_death;
+	this->algal_fraction_sloughed = simArguments.algal_fraction_sloughed;
+	this->maximum_algae_resources_death =
+			simArguments.maximum_algae_resources_death;
 	this->light_steepness = simArguments.light_steepness;
 	this->light_lower_quantile = simArguments.light_lower_quantile;
 	this->light_upper_quantile = simArguments.light_upper_quantile;
 	this->light_steepness_factor = simArguments.light_steepness_factor;
-	this->diatom_attenuation_coefficient = simArguments.diatom_attenuation_coefficient;
+	this->diatom_attenuation_coefficient =
+			simArguments.diatom_attenuation_coefficient;
 	this->limitation_scale_weight = simArguments.limitation_scale_weight;
-	this->algal_carrying_capacity_coefficient = simArguments.algal_carrying_capacity_coefficient;
-	this->algal_carrying_capacity_intercept = simArguments.algal_carrying_capacity_intercept;
-	this->maximum_found_algal_biomass=simArguments.maximum_found_algal_biomass;
+	this->algal_carrying_capacity_coefficient =
+			simArguments.algal_carrying_capacity_coefficient;
+	this->algal_carrying_capacity_intercept =
+			simArguments.algal_carrying_capacity_intercept;
+	this->maximum_found_algal_biomass =
+			simArguments.maximum_found_algal_biomass;
+	this->algal_mortality_scale = simArguments.algal_mortality_scale;
+	this->phosphorous_weight = simArguments.phosphorous_weight;
+	this->decaying_phosphorus_factor = simArguments.decaying_phosphorus_factor;
+	this->retained_phosphorus_factor = simArguments.retained_phosphorus_factor;
+	this->wash_up_dead_biomass_proportion =
+			simArguments.wash_up_dead_biomass_proportion;
+	this->wash_down_dead_biomass_proportion =
+			simArguments.wash_down_dead_biomass_proportion;
+	this->algae_biomass_conservation_factor =
+			simArguments.algae_biomass_conservation_factor;
+	this->grazer_layer_center_index = simArguments.grazer_layer_center_index;
+}
+
+void FoodWebModel::FoodWebModel::setFileParameters(
+		const SimulationArguments& simArguments) {
+	/*Read numeric parameters*/
+	setGeneralParameters(simArguments);
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	this->reabsorbed_algal_nutrients_proportion=simArguments.reabsorbed_algal_nutrients_proportion;
 #endif
-	this->algal_mortality_scale=simArguments.algal_mortality_scale;
-	this->phosphorous_weight=simArguments.phosphorous_weight;
-	this->decaying_phosphorus_factor=simArguments.decaying_phosphorus_factor;
-	this->retained_phosphorus_factor=simArguments.retained_phosphorus_factor;
-	this->wash_up_dead_biomass_proportion=simArguments.wash_up_dead_biomass_proportion;
-	this->wash_down_dead_biomass_proportion=simArguments.wash_down_dead_biomass_proportion;
-	this->algae_biomass_conservation_factor=simArguments.algae_biomass_conservation_factor;
-	this->grazer_layer_center_index=simArguments.grazer_layer_center_index;
+	/*Initialize the generator of random numbers*/
+	this->random_seed=simArguments.random_seed;
+	this->randomNumberGenerator=new default_random_engine(this->random_seed);
+	srand(this->random_seed);
 	initializeGrazerAttributes(simArguments);
 }
 
@@ -256,7 +285,6 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
 	grazerDynamics.reproduction_proportion_investment_constant=simArguments.grazer_reproduction_proportion_investment_constant;
 	grazerDynamics.reproduction_proportion_investment_multiplier=simArguments.grazer_reproduction_proportion_investment_multiplier;
-	grazerDynamics.random_seed=simArguments.grazer_random_seed;
 	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
 	grazerDynamics.critical_depth=simArguments.grazer_critical_depth;
@@ -268,10 +296,15 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.kairomones_level_day=simArguments.kairomones_level_day;
 	grazerDynamics.kairomones_level_night=simArguments.kairomones_level_night;
 	grazerDynamics.kairomones_thermocline=simArguments.kairomones_thermocline;
+	grazerDynamics.max_vertical_migration=simArguments.max_vertical_migration;
+	grazerDynamics.max_horizontal_migration=simArguments.max_horizontal_migration;
+	grazerDynamics.max_search_steps = simArguments.grazer_max_search_steps;
+	grazerDynamics.random_walk_probability_weight= simArguments.grazer_random_walk_probability_weight;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
-	grazerDynamics.randomGenerator=new default_random_engine(grazerDynamics.random_seed);
+	grazerDynamics.animalRandomGenerator=this->randomNumberGenerator;
+
 //	grazerDynamics.cohortID=&(this->cohortID);
 
 }
@@ -498,6 +531,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using animal cohort vector."<<endl;
 #endif
 #endif
+#ifdef RANDOM_WALK_MIGRATION
+	cout<<"Using random walk migration."<<endl;
+#else
+	cout<<"Not using random walk migration."<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
@@ -546,10 +584,14 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using kairomones level day "<<grazerDynamics.kairomones_level_day<<"."<<endl;
 	cout<<"Using kairomones level night "<<grazerDynamics.kairomones_level_night<<"."<<endl;
 	cout<<"Using kairomones thermocline value "<<grazerDynamics.kairomones_thermocline<<"."<<endl;
+	cout<<"Using grazer maximum vertical migration value "<<grazerDynamics.max_vertical_migration<<"."<<endl;
+	cout<<"Using grazer maximum horizontal migration value "<<grazerDynamics.max_horizontal_migration<<"."<<endl;
+	cout<<"Using maximum migration search steps "<<grazerDynamics.max_search_steps<<"."<<endl;
+	cout<<"Using random walk probability weight "<<grazerDynamics.random_walk_probability_weight<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
-	cout<<"Using grazer random seed "<<grazerDynamics.random_seed<<"."<<endl;
+	cout<<"Using random seed "<<this->random_seed<<"."<<endl;
 	cout<<"Using phosphorus half saturation "<<this->phosphorus_half_saturation<<"."<<endl;
 	cout<<"Using phosphorus functional factor "<<this->phosphorus_functional_factor<<"."<<endl;
 	cout<<"Using phosphorus functional constant response 1 "<<this->phosphorus_functional_constant_response_1<<"."<<endl;
@@ -643,11 +685,15 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"KairomonesLevelDay;"<<grazerDynamics.kairomones_level_day<<endl;
 		parameterFileStream<<"KairomonesLevelNight;"<<grazerDynamics.kairomones_level_night<<endl;
 		parameterFileStream<<"KairomonesThermocline;"<<grazerDynamics.kairomones_thermocline<<endl;
+		parameterFileStream<<"MaxVerticalMigration;"<<grazerDynamics.max_vertical_migration<<endl;
+		parameterFileStream<<"MaxHorizontalMigration;"<<grazerDynamics.max_horizontal_migration<<endl;
+		parameterFileStream<<"MaxSearchSteps;"<<grazerDynamics.max_search_steps<<endl;
+		parameterFileStream<<"RandomWalkProbabilityWeight;"<<grazerDynamics.random_walk_probability_weight<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
 #endif
-		parameterFileStream<<"GrazerRandomSeed;"<<grazerDynamics.random_seed<<endl;
+		parameterFileStream<<"GrazerRandomSeed;"<<this->random_seed<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityCoefficient;"<<this->algal_carrying_capacity_coefficient<<endl;
 		parameterFileStream<<"AlgalCarryingCapacityIntercept;"<<this->algal_carrying_capacity_intercept<<endl;
 		parameterFileStream<<"AlgalMaximumFoundBiomass;"<<this->maximum_found_algal_biomass<<endl;
@@ -773,12 +819,7 @@ void FoodWebModel::FoodWebModel::step(){
 #endif
 	updateAlgaeBiomass();
 	updateAlgaeVerticalMigration();
-	grazerDynamics.updateAnimalBiomass();
-	grazerDynamics.migrateAnimalCohorts();
-#ifndef ANIMAL_COHORT_MAP
-	grazerDynamics.removeEmptyCohorts();
-	grazerDynamics.reallocateSmallCohorts();
-#endif
+	grazerDynamics.takeAnimalDynamicsStep();
 //	predatorDynamics.updateAnimalBiomass();
 }
 

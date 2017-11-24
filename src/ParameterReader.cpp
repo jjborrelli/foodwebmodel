@@ -452,7 +452,7 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		return;
 	}
 	if(!parameterName.compare("GrazerRandomSeed")){
-		simArguments.grazer_random_seed= atoi(parameterValue.c_str());
+		simArguments.random_seed= atoi(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("GrazerVelocityDownwardPull")){
@@ -489,6 +489,22 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 	}
 	if(!parameterName.compare("KairomoneThermocline")){
 		simArguments.kairomones_thermocline= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("MaxVerticalMigration")){
+		simArguments.max_vertical_migration= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("MaxHorizontalMigration")){
+		simArguments.max_horizontal_migration= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("MaxSearchSteps")){
+		simArguments.grazer_max_search_steps= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("RandomWalkProbabilityWeight")){
+		simArguments.grazer_random_walk_probability_weight= atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("PredatorBaseMortality")){

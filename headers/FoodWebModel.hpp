@@ -34,6 +34,9 @@ namespace FoodWebModel {
 #ifdef INDIVIDUAL_BASED_ANIMALS
 		cohortIDType cohortID;
 #endif
+
+
+
 		/*Class attributes*/
 	protected:
 		ReadProcessedData readProcessedData;
@@ -171,6 +174,10 @@ namespace FoodWebModel {
 
 		AnimalBiomassDynamics grazerDynamics, predatorDynamics;
 
+
+		/* Generator of random numbers */
+		std::default_random_engine* randomNumberGenerator;
+		int random_seed;
 		/*Class methods*/
 
 	public:
@@ -180,7 +187,7 @@ namespace FoodWebModel {
 
 	protected:
 
-		/* Main functions*/
+		/* Main methods*/
 		void step();
 		void updateRegisterVariables();
 		void initializePointers();
@@ -197,6 +204,9 @@ namespace FoodWebModel {
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		void updateDeadBiomass();
 #endif
+
+		/*Initialization I/O methods*/
+		void setGeneralParameters(const SimulationArguments& simArguments);
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);
 		void setFileParameters(const SimulationArguments& simArguments);
@@ -220,7 +230,7 @@ namespace FoodWebModel {
 		void saltConcentrationAtDepth(int depthIndex, int columnIndex);
 		void salinityEffect(unsigned int depthIndex, unsigned int columnIndex, physicalType saltConcentration);
 
-		/*Photosynthesis variable state*/
+		/*Photosynthesis*/
 		void chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom);
 		physicalType calculateNutrientLimitation(biomassType localPointBiomass, physicalType phosphorusConcentration, physicalType functionalStep, physicalType constant1, physicalType constant2);
 		void updateAlgaeVerticalMigration();

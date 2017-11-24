@@ -154,7 +154,7 @@ static const unsigned int MAX_LIGHT_DATA = 8593;
 static const biomassType PHOTOSYNTHESIS_FACTOR = 1.0f;
 
 
-static const unsigned int HOURS_PER_DAY = 24, DAYS_PER_YEAR=365;
+static const unsigned int HOURS_PER_DAY = 24, DAYS_PER_YEAR=365, HOURS_PER_HALF_DAY=HOURS_PER_DAY/2;
 
 static const unsigned int HOURS_PER_YEAR = HOURS_PER_DAY*DAYS_PER_YEAR;
 

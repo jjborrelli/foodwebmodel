@@ -78,14 +78,32 @@ void operator*=(AnimalCohort& cohort1, const double number){
 
 namespace FoodWebModel {
 
-AnimalBiomassDynamics::AnimalBiomassDynamics():randomGenerator(NULL) {
+AnimalBiomassDynamics::AnimalBiomassDynamics():animalRandomGenerator(NULL) {
 	tracedCohort.numberOfIndividuals=0;
 	// TODO Auto-generated constructor stub
 
 }
 
 AnimalBiomassDynamics::~AnimalBiomassDynamics() {
-	delete randomGenerator;
+	delete animalRandomGenerator;
+}
+
+void AnimalBiomassDynamics::initializeSimulationStructures(){
+	for (int horizontalIndex = -this->max_horizontal_migration; horizontalIndex <=this->max_horizontal_migration; ++horizontalIndex) {
+		this->horizontalMigrationIndexes.push_back(horizontalIndex);
+	}
+
+}
+
+
+void AnimalBiomassDynamics::takeAnimalDynamicsStep(){
+	dayTime = (*current_hour%HOURS_PER_DAY)<(HOURS_PER_HALF_DAY);
+	updateAnimalBiomass();
+	migrateAnimalCohorts();
+#ifndef ANIMAL_COHORT_MAP
+	removeEmptyCohorts();
+	reallocateSmallCohorts();
+#endif
 }
 
 void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom) {
@@ -1216,8 +1234,12 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
 	calculateKairomonesConcetration();
+	generateMigrationIndexes();
 	findNormalizingFactors();
 	findOptimalDepthIndexes();
+#ifdef RANDOM_WALK_MIGRATION
+	migrateCohortsUsingRandomWalk();
+#else
 #ifdef ANIMAL_COHORT_MAP
 	migrateAdultCohorts(floatingAnimals,migrationStep);
 #else
@@ -1231,6 +1253,7 @@ void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	migrateJuvenileCohortsDepthDependent(floatingJuveniles);
 #else
 	migrateJuvenileCohortsStructurally(floatingJuveniles,migrationStep);
+#endif
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* Register the migration movement*/
@@ -1379,6 +1402,24 @@ void AnimalBiomassDynamics::migrateJuvenileCohortsStructurally(vector<AnimalCoho
 	}
 }
 
+void AnimalBiomassDynamics::migrateCohortsUsingRandomWalk(){
+	migrateCohortsUsingRandomWalk(*floatingAnimals);
+	migrateCohortsUsingRandomWalk(floatingJuveniles);
+	if(tracedCohort.numberOfIndividuals!=0){
+		migrateCohortUsingRandomWalk(tracedCohort);
+	}
+}
+
+void AnimalBiomassDynamics::migrateCohortsUsingRandomWalk(vector<AnimalCohort>& cohorts){
+	for (std::vector<AnimalCohort>::iterator it = cohorts.begin();
+			it != cohorts.end(); ++it) {
+		migrateCohortUsingRandomWalk(*it);
+		//(*it)*=0.9f;
+	}
+			/*Migrate traced cohort as a special case*/
+
+}
+
 bool AnimalBiomassDynamics::updateMigrationTable(AnimalCohort& cohort, int migrationStep){
 	/*Migrate the center of biomass of the animal cohorts*/
 	int destinationX =cohort.x+migrationStep;
@@ -1490,6 +1531,51 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 		}
 	}
 
+}
+
+
+/* Migrate juvenile cohorts assuming a stochastic approach. Cohorts might move to a suboptimal cell to escape from local maxima*/
+void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
+	double searchStepCounter=1;
+	for (std::vector<int>::iterator horizontalIndex = horizontalMigrationIndexes.begin();
+			horizontalIndex != horizontalMigrationIndexes.end()&&searchStepCounter<=this->max_search_steps; ++horizontalIndex) {
+		for (std::vector<int>::iterator verticalIndex = verticalMigrationIndexes.begin();
+				verticalIndex != verticalMigrationIndexes.end()&&searchStepCounter<=this->max_search_steps; ++verticalIndex) {
+			/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
+			int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
+			int destinationVertical = localeVerticalCoordinate+*verticalIndex;
+			int destinationHorizontal = localeHorizontalCoordinate+*horizontalIndex;
+			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
+				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
+					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
+						/*If the cell is reachable*/
+						biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate],
+								destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
+						if(destinationFitnessValue>originFitnessValue){
+							/*If the destination fitness value is greater than the previous fitness value, move the group*/
+							cohort.x=destinationVertical;
+							cohort.y=destinationHorizontal;
+						} else{
+							/*Otherwise, move it with a certain probability proportional to the fitness difference*/
+
+							double randomNumber = ((double) rand() / (RAND_MAX));
+							double acceptanceProbabilityExponent = random_walk_probability_weight*(destinationFitnessValue-originFitnessValue)/searchStepCounter;
+							double movementProbability = exp(acceptanceProbabilityExponent);
+							if(randomNumber<=movementProbability){
+								cohort.x=destinationVertical;
+								cohort.y=destinationHorizontal;
+							}
+						}
+						/* Update the number of search steps per group*/
+						searchStepCounter++;
+					}
+				}
+			}
+
+		}
+		//(*it)*=0.9f;
+	}
+			/*Migrate traced cohort as a special case*/
 }
 
 
@@ -1752,6 +1838,9 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 		/*Amount of food normalized*/
 		physicalType localeFood=(1-light_migration_weight)*floatingFoodBiomass[depthIndex][columnIndex]/sumOptimalFoodValues;
 		physicalType localeComposedValue = localeLight+localeFood;
+
+		/* Register the locale fitness value*/
+		localeFitnessValue[depthIndex][columnIndex] = localeComposedValue;
 		if(localeComposedValue>valueToOptimize){
 			/* Update of the new value is greater than the previous*/
 			valueToOptimize = localeComposedValue;
@@ -1896,7 +1985,7 @@ void AnimalBiomassDynamics::agglomerateCohorts(vector<AnimalCohort> *animals){
 void AnimalBiomassDynamics::reallocateSmallCohorts(vector<AnimalCohort> *animals, map<pair<int,int>,AnimalCohort>& reallocatedCohorts){
 
 	/*Iterate over the large cohorts*/
-	std::shuffle(animals->begin(), animals->end(), *randomGenerator);
+	std::shuffle(animals->begin(), animals->end(), *animalRandomGenerator);
 	for(vector<AnimalCohort>::iterator it=animals->begin(); it!=animals->end(); ++it){
 		pair<int,int> cohortCoordinates = pair<int,int>(it->x,it->y);
 		if(reallocatedCohorts.find(cohortCoordinates)!=reallocatedCohorts.end()){
@@ -1927,15 +2016,32 @@ void AnimalBiomassDynamics::reallocateSmallCohorts(vector<AnimalCohort> *animals
 
 void AnimalBiomassDynamics::calculateKairomonesConcetration(){
 	/* Kairomone levels depend on day and night cycles*/
-	physicalType surfaceKairomones = (*current_hour%HOURS_PER_DAY)<(HOURS_PER_DAY/2)?this->kairomones_level_day:this->kairomones_level_night;
+	physicalType surfaceKairomones = dayTime?this->kairomones_level_day:this->kairomones_level_night;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
 		for(int depthIndex=0; depthIndex<maxDepthIndex[columnIndex]; ++depthIndex){
 			physicalType localeDepth=this->indexToDepth[depthIndex];
-			/* Assume a sigmoid diffusion function for kairomones, like any other chemical compound (like inorganic chemicals)*/
+			/* Assume a sigmoid diffusion function for kairomones, like any other chemical compound (e.g. inorganic chemicals)*/
 			this->kairomoneConcentration[depthIndex][columnIndex]=surfaceKairomones*(1-1/(1+exp(-(localeDepth-this->kairomones_thermocline))));
 		}
 	}
 
 }
+
+/* Generate the vertical and horizontal migration indexes*/
+void AnimalBiomassDynamics::generateMigrationIndexes(){
+/* The available indexes for horizontal migration do not change according to daytime*/
+	std::shuffle(horizontalMigrationIndexes.begin(), horizontalMigrationIndexes.end(), *animalRandomGenerator);
+
+	/* During daytime, daphnia move downwards. During nighttime, they move upwards*/
+	int initialVerticalIndex=dayTime?-this->max_vertical_migration:0;
+	int finalVerticalIndex=dayTime?0:this->max_vertical_migration;
+	for (int verticalIndex = initialVerticalIndex; verticalIndex <= finalVerticalIndex; ++verticalIndex) {
+		verticalMigrationIndexes.push_back(verticalIndex);
+	}
+	std::shuffle(verticalMigrationIndexes.begin(), verticalMigrationIndexes.end(), *animalRandomGenerator);
+
+}
+
+
 #endif
 } /* namespace FoodWebModel */

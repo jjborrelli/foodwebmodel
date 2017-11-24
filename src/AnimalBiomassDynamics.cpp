@@ -2033,8 +2033,8 @@ void AnimalBiomassDynamics::generateMigrationIndexes(){
 	std::shuffle(horizontalMigrationIndexes.begin(), horizontalMigrationIndexes.end(), *animalRandomGenerator);
 
 	/* During daytime, daphnia move downwards. During nighttime, they move upwards*/
-	int initialVerticalIndex=dayTime?-this->max_vertical_migration:0;
-	int finalVerticalIndex=dayTime?0:this->max_vertical_migration;
+	int initialVerticalIndex=dayTime?0:-this->max_vertical_migration;
+	int finalVerticalIndex=dayTime?this->max_vertical_migration:0;
 	for (int verticalIndex = initialVerticalIndex; verticalIndex <= finalVerticalIndex; ++verticalIndex) {
 		verticalMigrationIndexes.push_back(verticalIndex);
 	}

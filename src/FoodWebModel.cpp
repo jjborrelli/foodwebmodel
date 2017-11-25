@@ -107,7 +107,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, LightAtDepth, Stage, CohortID"<<endl;
+	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, LightAtDepth, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, Stage, CohortID"<<endl;
 	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, MigrationConstant, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
@@ -1440,6 +1440,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
 		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
+		newCohort.previousFitnessValue=newCohort.currentFitnessValue=0.0f;
 		newCohort.upDirection=false;
 		if(indexToDepth[maxDepthIndex[newCohort.y]]>=TRACED_COHORT_DEPTH&&newCohort.migrationConstant==0){
 			cout<<"Optimal grazer ID is "<<newCohort.cohortID<<"."<<endl;

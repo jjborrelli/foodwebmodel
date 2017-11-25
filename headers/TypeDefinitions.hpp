@@ -148,6 +148,7 @@ typedef struct {
 	bool isBottomAnimal, upDirection, justMatured;
 	mutable animalCountType numberOfIndividuals;
 	mutable biomassType bodyBiomass, gonadBiomass, starvationBiomass;
+	mutable biomassType previousFitnessValue, currentFitnessValue;
 	cohortIDType cohortID;
 } AnimalCohort;
 

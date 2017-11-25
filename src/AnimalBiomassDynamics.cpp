@@ -475,7 +475,8 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		if(natural_dead_individuals>0){
 //			cout<<"Natural dead individuals greater than 0."<<endl;
 //		}
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		biomassType fitnessDifference = cohort.currentFitnessValue-cohort.previousFitnessValue;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 //#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 //		if(lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
 					//cout<<"Juvenile lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
@@ -1111,7 +1112,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 		lineBuffer<<commaString<<0;
 		lineBuffer<<commaString<<0;
 #endif
-		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<0<<commaString<<0<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->lakeLightAtDepth[eggCohort.x][eggCohort.y]<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
+		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<0<<commaString<<0<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->lakeLightAtDepth[eggCohort.x][eggCohort.y]<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
 		animalBiomassBuffer<<lineBuffer.str();
 #endif
 		/*If the egg has hatched, add to the adult cohort*/
@@ -1137,6 +1138,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		/* The migration constant is not used in the juvenile stage*/
 	    		animalCohort.migrationConstant = eggCohort.migrationConstant;
 	    		animalCohort.ageInHours=0;
+	    		animalCohort.previousFitnessValue=animalCohort.currentFitnessValue=0.0f;
 	    		animalCohort.upDirection = false;
 #ifdef MATURE_JUVENILES
 	    		animalCohort.stage=AnimalStage::Juvenile;
@@ -1537,33 +1539,37 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 /* Migrate juvenile cohorts assuming a stochastic approach. Cohorts might move to a suboptimal cell to escape from local maxima*/
 void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	double searchStepCounter=1;
+	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
+	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
+	cohort.previousFitnessValue =cohort.currentFitnessValue= originFitnessValue;
 	for (std::vector<int>::iterator horizontalIndex = horizontalMigrationIndexes.begin();
 			horizontalIndex != horizontalMigrationIndexes.end()&&searchStepCounter<=this->max_search_steps; ++horizontalIndex) {
 		for (std::vector<int>::iterator verticalIndex = verticalMigrationIndexes.begin();
 				verticalIndex != verticalMigrationIndexes.end()&&searchStepCounter<=this->max_search_steps; ++verticalIndex) {
 			/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
-			int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
+
 			int destinationVertical = localeVerticalCoordinate+*verticalIndex;
 			int destinationHorizontal = localeHorizontalCoordinate+*horizontalIndex;
 			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
 					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
 						/*If the cell is reachable*/
-						biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate],
-								destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
+						biomassType destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
 						if(destinationFitnessValue>originFitnessValue){
 							/*If the destination fitness value is greater than the previous fitness value, move the group*/
 							cohort.x=destinationVertical;
 							cohort.y=destinationHorizontal;
+							cohort.currentFitnessValue=destinationFitnessValue;
 						} else{
 							/*Otherwise, move it with a certain probability proportional to the fitness difference*/
 
 							double randomNumber = ((double) rand() / (RAND_MAX));
-							double acceptanceProbabilityExponent = random_walk_probability_weight*(destinationFitnessValue-originFitnessValue)/searchStepCounter;
+							double acceptanceProbabilityExponent = (destinationFitnessValue-originFitnessValue)/(this->random_walk_probability_weight*searchStepCounter);
 							double movementProbability = exp(acceptanceProbabilityExponent);
 							if(randomNumber<=movementProbability){
 								cohort.x=destinationVertical;
 								cohort.y=destinationHorizontal;
+								cohort.currentFitnessValue=destinationFitnessValue;
 							}
 						}
 						/* Update the number of search steps per group*/

@@ -197,7 +197,7 @@ protected:
 
 	/* Migration based on random walk*/
 	int max_vertical_migration, max_horizontal_migration;
-	vector<int> verticalMigrationIndexes, horizontalMigrationIndexes;
+	vector<pair<int,int>> migrationIndexPairs;
 	bool dayTime;
 	unsigned int max_search_steps;
 	double random_walk_probability_weight;

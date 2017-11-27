@@ -90,8 +90,12 @@ AnimalBiomassDynamics::~AnimalBiomassDynamics() {
 
 void AnimalBiomassDynamics::initializeSimulationStructures(){
 	for (int horizontalIndex = -this->max_horizontal_migration; horizontalIndex <=this->max_horizontal_migration; ++horizontalIndex) {
-		this->horizontalMigrationIndexes.push_back(horizontalIndex);
+		for (int verticalIndex = -this->max_vertical_migration; verticalIndex <=this->max_vertical_migration; ++verticalIndex) {
+			/* The migration pairs will be shuffled each simulation step*/
+			this->migrationIndexPairs.push_back(std::make_pair(verticalIndex, horizontalIndex));
+		}
 	}
+
 
 }
 
@@ -1543,14 +1547,15 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
 	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
 	cohort.previousFitnessValue =cohort.currentFitnessValue= originFitnessValue;
-	for (std::vector<int>::iterator horizontalIndex = horizontalMigrationIndexes.begin();
-			horizontalIndex != horizontalMigrationIndexes.end()&&searchStepCounter<=this->max_search_steps; ++horizontalIndex) {
-		for (std::vector<int>::iterator verticalIndex = verticalMigrationIndexes.begin();
-				verticalIndex != verticalMigrationIndexes.end()&&searchStepCounter<=this->max_search_steps; ++verticalIndex) {
+	for (std::vector<pair<int,int>>::iterator migrationIndexPair = migrationIndexPairs.begin();
+			migrationIndexPair != migrationIndexPairs.end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
+		/* Retrieve migration indexes*/
+		int verticalIndex=migrationIndexPair->first, horizontalIndex=migrationIndexPair->second;
+		/*Daytime migration goes downwards (positive depth index), nighttime migration goes upwards (negative depth index)*/
+		if((verticalIndex>0&&this->dayTime)||(verticalIndex<0&&!this->dayTime)){
 			/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
-
-			int destinationVertical = localeVerticalCoordinate+*verticalIndex;
-			int destinationHorizontal = localeHorizontalCoordinate+*horizontalIndex;
+			int destinationVertical = localeVerticalCoordinate+verticalIndex;
+			int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
 			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
 					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
@@ -1578,11 +1583,10 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 					}
 				}
 			}
-
 		}
-		//(*it)*=0.9f;
 	}
-			/*Migrate traced cohort as a special case*/
+	//(*it)*=0.9f;
+	/*Migrate traced cohort as a special case*/
 }
 
 
@@ -2045,16 +2049,9 @@ void AnimalBiomassDynamics::calculateKairomonesConcetration(){
 
 /* Generate the vertical and horizontal migration indexes*/
 void AnimalBiomassDynamics::generateMigrationIndexes(){
-/* The available indexes for horizontal migration do not change according to daytime*/
-	std::shuffle(horizontalMigrationIndexes.begin(), horizontalMigrationIndexes.end(), *animalRandomGenerator);
 
-	/* During daytime, daphnia move downwards. During nighttime, they move upwards*/
-	int initialVerticalIndex=dayTime?0:-this->max_vertical_migration;
-	int finalVerticalIndex=dayTime?this->max_vertical_migration:0;
-	for (int verticalIndex = initialVerticalIndex; verticalIndex <= finalVerticalIndex; ++verticalIndex) {
-		verticalMigrationIndexes.push_back(verticalIndex);
-	}
-	std::shuffle(verticalMigrationIndexes.begin(), verticalMigrationIndexes.end(), *animalRandomGenerator);
+	/* Generate the list of index pairs for the current cycle*/
+	std::shuffle(migrationIndexPairs.begin(), migrationIndexPairs.end(), *animalRandomGenerator);
 
 }
 

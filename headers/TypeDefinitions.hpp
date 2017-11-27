@@ -115,6 +115,9 @@ typedef struct {
 	int grazer_max_search_steps;
 	double grazer_random_walk_probability_weight;
 
+
+	int planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
+
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,
 	phosphorus_half_saturation,
 	phosphorus_functional_factor,

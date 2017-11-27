@@ -1235,7 +1235,8 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
-	calculateKairomonesConcetration();
+//	calculateKairomonesConcetration();
+	calculatePlanktivoreBiomass();
 	generateMigrationIndexes();
 	findNormalizingFactors();
 	findOptimalDepthIndexes();
@@ -1909,7 +1910,7 @@ void AnimalBiomassDynamics::registerMigration(){
 void AnimalBiomassDynamics::findNormalizingFactors(){
 	sumOptimalLightValues=sumOptimalFoodValues=0.0f;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-		for(int depthIndex=0; depthIndex<maxDepthIndex[columnIndex]; ++depthIndex){
+		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
 			/*Sum the inverse of the distance to optimal light*/
 			sumOptimalLightValues+=calculateLightPropensity(depthIndex, columnIndex);
 			/*Sum the value of food*/
@@ -1919,7 +1920,16 @@ void AnimalBiomassDynamics::findNormalizingFactors(){
 }
 
 physicalType AnimalBiomassDynamics::calculateLightPropensity(int depthIndex, int columnIndex){
-	return 1.0f/fabs(lakeLightAtDepth[depthIndex][columnIndex]-light_optimal_value+1);
+	/* Distance to optimal light is used for fitness*/
+	physicalType localeLakeLightAtDepth = lakeLightAtDepth[depthIndex][columnIndex];
+//	return 1.0f/fabs((localeLakeLightAtDepth-light_optimal_value)+1);
+	/* To model risk of predation, light is multiplied by planktivore biomass*/
+	biomassType locakePlanktivoreBiomass = this->planktivoreBiomass[depthIndex][columnIndex];
+	biomassType calculatedLightPropensity = 1.0f/((localeLakeLightAtDepth*locakePlanktivoreBiomass)+1.0f);
+	if(calculatedLightPropensity!=1.0f){
+		cout<<"Light propensity greater than 0."<<endl;
+	}
+	return calculatedLightPropensity;
 }
 
 void AnimalBiomassDynamics::removeEmptyCohorts(){
@@ -2024,7 +2034,7 @@ void AnimalBiomassDynamics::calculateKairomonesConcetration(){
 	/* Kairomone levels depend on day and night cycles*/
 	physicalType surfaceKairomones = dayTime?this->kairomones_level_day:this->kairomones_level_night;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-		for(int depthIndex=0; depthIndex<maxDepthIndex[columnIndex]; ++depthIndex){
+		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
 			physicalType localeDepth=this->indexToDepth[depthIndex];
 			/* Assume a sigmoid diffusion function for kairomones, like any other chemical compound (e.g. inorganic chemicals)*/
 			this->kairomoneConcentration[depthIndex][columnIndex]=surfaceKairomones*(1-1/(1+exp(-(localeDepth-this->kairomones_thermocline))));
@@ -2048,6 +2058,31 @@ void AnimalBiomassDynamics::generateMigrationIndexes(){
 
 }
 
+void AnimalBiomassDynamics::calculatePlanktivoreBiomass(){
+	/* Select biomass center according to light*/
+	physicalType planktivoreBiomassFactor = dayTime?this->kairomones_level_day:this->kairomones_level_night;
+	int biomassCenter = this->dayTime?this->planktivore_biomass_center_day:planktivore_biomass_center_night;
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
+			/* Planktivore migration is limited by lake depth */
+		int localeDepth=maxDepthIndex[columnIndex];
+			int localePlanktivoreBiomassCenter = min<int>(localeDepth, biomassCenter);
+			/* Planktivores are present in a depth-limited band*/
+			int initialPlanktivoreBiomassDepth = max<int>(0, localePlanktivoreBiomassCenter-this->planktivore_biomass_width),
+					finalPlanktivoreBiomassDepth = min<int>(localeDepth, localePlanktivoreBiomassCenter+this->planktivore_biomass_width);
+			for(int depthIndex=0; depthIndex<=localeDepth; ++depthIndex){
+				if(depthIndex>=initialPlanktivoreBiomassDepth&&depthIndex>=finalPlanktivoreBiomassDepth){
+					/* If the depth is within this band, use lighttime dependent biomass*/
+					this->planktivoreBiomass[depthIndex][columnIndex]=planktivoreBiomassFactor;
+				}
+				else{
+					/*Otherwise, clear fish biomass*/
+					this->planktivoreBiomass[depthIndex][columnIndex]=0.0f;
+				}
+
+			}
+	}
+
+}
 
 #endif
 } /* namespace FoodWebModel */

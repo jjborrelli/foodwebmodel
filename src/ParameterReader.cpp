@@ -491,6 +491,18 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.kairomones_thermocline= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PlanktivoreBiomassCenterDay")){
+		simArguments.planktivore_biomass_center_day= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PlanktivoreBiomassCenterNight")){
+		simArguments.planktivore_biomass_center_night= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("PlanktivoreBiomassWidth")){
+		simArguments.planktivore_biomass_width= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("MaxVerticalMigration")){
 		simArguments.max_vertical_migration= atoi(parameterValue.c_str());
 		return;

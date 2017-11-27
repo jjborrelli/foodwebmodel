@@ -188,6 +188,13 @@ protected:
 	/* Kairomone concentration at depth. This will be eventually in the instance modeling planktivore dynamics*/
 	biomassType kairomoneConcentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
+	/* Distribution of planktivore biomass across depths*/
+	biomassType planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
+
+	/*Planktivore biomass at each depth and column */
+	biomassType planktivoreBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+
+
 	/* Migration based on random walk*/
 	int max_vertical_migration, max_horizontal_migration;
 	vector<int> verticalMigrationIndexes, horizontalMigrationIndexes;
@@ -272,6 +279,8 @@ private:
 
 	void calculateKairomonesConcetration();
 	physicalType calculateLightPropensity(int initialDepth, int finalDepth);
+
+	void calculatePlanktivoreBiomass();
 
 	void generateMigrationIndexes();
 

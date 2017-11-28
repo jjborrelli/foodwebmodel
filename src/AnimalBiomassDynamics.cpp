@@ -1570,7 +1570,7 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 							/*Otherwise, move it with a certain probability proportional to the fitness difference*/
 
 							double randomNumber = ((double) rand() / (RAND_MAX));
-							double acceptanceProbabilityExponent = (destinationFitnessValue-originFitnessValue)/(this->random_walk_probability_weight*searchStepCounter);
+							double acceptanceProbabilityExponent = (destinationFitnessValue-originFitnessValue)/(this->random_walk_probability_weight);
 							double movementProbability = exp(acceptanceProbabilityExponent);
 							if(randomNumber<=movementProbability){
 								cohort.x=destinationVertical;
@@ -2060,23 +2060,23 @@ void AnimalBiomassDynamics::calculatePlanktivoreBiomass(){
 	physicalType planktivoreBiomassFactor = dayTime?this->kairomones_level_day:this->kairomones_level_night;
 	int biomassCenter = this->dayTime?this->planktivore_biomass_center_day:planktivore_biomass_center_night;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-			/* Planktivore migration is limited by lake depth */
+		/* Planktivore migration is limited by lake depth */
 		int localeDepth=maxDepthIndex[columnIndex];
-			int localePlanktivoreBiomassCenter = min<int>(localeDepth, biomassCenter);
-			/* Planktivores are present in a depth-limited band*/
-			int initialPlanktivoreBiomassDepth = max<int>(0, localePlanktivoreBiomassCenter-this->planktivore_biomass_width),
-					finalPlanktivoreBiomassDepth = min<int>(localeDepth, localePlanktivoreBiomassCenter+this->planktivore_biomass_width);
-			for(int depthIndex=0; depthIndex<=localeDepth; ++depthIndex){
-				if(depthIndex>=initialPlanktivoreBiomassDepth&&depthIndex>=finalPlanktivoreBiomassDepth){
-					/* If the depth is within this band, use lighttime dependent biomass*/
-					this->planktivoreBiomass[depthIndex][columnIndex]=planktivoreBiomassFactor;
-				}
-				else{
-					/*Otherwise, clear fish biomass*/
-					this->planktivoreBiomass[depthIndex][columnIndex]=0.0f;
-				}
-
+		int localePlanktivoreBiomassCenter = min<int>(localeDepth, biomassCenter);
+		/* Planktivores are present in a depth-limited band*/
+		int initialPlanktivoreBiomassDepth = max<int>(0, localePlanktivoreBiomassCenter-this->planktivore_biomass_width),
+				finalPlanktivoreBiomassDepth = min<int>(localeDepth, localePlanktivoreBiomassCenter+this->planktivore_biomass_width);
+		for(int depthIndex=0; depthIndex<=localeDepth; ++depthIndex){
+			if(depthIndex>=initialPlanktivoreBiomassDepth&&depthIndex<=finalPlanktivoreBiomassDepth){
+				/* If the depth is within this band, use lighttime dependent biomass*/
+				this->planktivoreBiomass[depthIndex][columnIndex]=planktivoreBiomassFactor;
 			}
+			else{
+				/*Otherwise, clear fish biomass*/
+				this->planktivoreBiomass[depthIndex][columnIndex]=0.0f;
+			}
+
+		}
 	}
 
 }

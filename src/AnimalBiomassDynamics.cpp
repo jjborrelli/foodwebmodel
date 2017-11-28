@@ -1953,9 +1953,9 @@ physicalType AnimalBiomassDynamics::calculatePredationPropensity(int depthIndex,
 	/* To model risk of predation, light is multiplied by planktivore biomass*/
 	biomassType locakePlanktivoreBiomass = this->planktivoreBiomass[depthIndex][columnIndex];
 	biomassType calculatedLightPropensity = 1.0f/((localeLakeLightAtDepth*locakePlanktivoreBiomass)+1.0f);
-	if(calculatedLightPropensity!=1.0f){
-		cout<<"Light propensity greater than 0."<<endl;
-	}
+//	if(calculatedLightPropensity!=1.0f){
+//		cout<<"Light propensity greater than 0."<<endl;
+//	}
 	return calculatedLightPropensity;
 }
 

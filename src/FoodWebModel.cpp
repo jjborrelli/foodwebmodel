@@ -107,7 +107,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, LightAtDepth, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, Stage, CohortID"<<endl;
+	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, DepthInMeters, LightAtDepth, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, Stage, CohortID"<<endl;
 	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, MigrationConstant, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
@@ -289,6 +289,8 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
 	grazerDynamics.critical_depth=simArguments.grazer_critical_depth;
 	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
+	grazerDynamics.ind_food_starvation_threshold=simArguments.grazer_ind_food_starvation_threshold;
+	grazerDynamics.starvation_max_hours=simArguments.grazer_starvation_max_hours;
 	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
 	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
 	grazerDynamics.layer_center_index=simArguments.grazer_layer_center_index;
@@ -536,8 +538,18 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #endif
 #ifdef RANDOM_WALK_MIGRATION
 	cout<<"Using random walk migration."<<endl;
+#ifdef DAPHNIA_CIRCADIAN_CYCLE
+	cout<<"Using daphnia circadian cycle"<<endl;
+#else
+	cout<<"Not using daphnia circadian cycle"<<endl;
+#endif
 #else
 	cout<<"Not using random walk migration."<<endl;
+#endif
+#ifdef LINEAR_MIGRATION_COMBINATION
+	cout<<"Using linear migration combination"<<endl;
+#else
+	cout<<"Using rule-based migration combination"<<endl;
 #endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
@@ -581,6 +593,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
 	cout<<"Using grazer critical depth "<<grazerDynamics.critical_depth<<"."<<endl;
+	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
+	cout<<"Using grazer individual food starvation threshold "<<grazerDynamics.ind_food_starvation_threshold<<"."<<endl;
+	cout<<"Using grazer starvation max hours "<<grazerDynamics.starvation_max_hours<<"."<<endl;
 	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
 	cout<<"Using grazer light optimal value "<<grazerDynamics.light_optimal_value<<"."<<endl;
 	cout<<"Using grazer velocity downward pull "<<grazerDynamics.velocity_downward_pull<<"."<<endl;
@@ -686,6 +701,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerDeadAnimalProportion;"<<grazerDynamics.dead_animal_proportion<<endl;
 		parameterFileStream<<"GrazerVelocityDownwardPull;"<<grazerDynamics.velocity_downward_pull<<endl;
 		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
+		parameterFileStream<<"GrazingStarvationThreshold;"<<grazerDynamics.ind_food_starvation_threshold<<endl;
+		parameterFileStream<<"GrazingStarvationMaxHours;"<<grazerDynamics.starvation_max_hours<<endl;
 		parameterFileStream<<"GrazerLightOptimalValue;"<<grazerDynamics.light_optimal_value<<endl;
 		parameterFileStream<<"GrazerMigrationLightWeight;"<<grazerDynamics.light_migration_weight<<endl;
 		parameterFileStream<<"KairomonesLevelDay;"<<grazerDynamics.kairomones_level_day<<endl;
@@ -1438,7 +1455,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 //		newCohort.death=None;
 		newCohort.cohortID=this->cohortID++;
 		newCohort.justMatured=false;
-		newCohort.latestMigrationIndex=0;
+		newCohort.latestMigrationIndex=newCohort.hoursInStarvation=0;
 		newCohort.migrationConstant=-(this->grazer_layer_center_index-depthIndex);
 		if(abs<int>((int)newCohort.migrationConstant)>2){
 			cout<<"Far away elements."<<endl;

@@ -33,11 +33,9 @@ void operator+=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
 	cohort1.bodyBiomass+=cohort2.bodyBiomass;
 	cohort1.numberOfIndividuals+=cohort2.numberOfIndividuals;
 	cohort1.gonadBiomass+=cohort2.gonadBiomass;
-
 	cohort1.latestMigrationIndex=cohort2.latestMigrationIndex;
 	cohort1.migrationConstant=cohort2.migrationConstant;
-
-
+	cohort1.hoursInStarvation=max<int>(cohort1.hoursInStarvation,cohort2.hoursInStarvation);
 }
 
 void operator-=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
@@ -480,7 +478,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //			cout<<"Natural dead individuals greater than 0."<<endl;
 //		}
 		biomassType fitnessDifference = cohort.currentFitnessValue-cohort.previousFitnessValue;
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<indexToDepth[cohort.x]<<commaString<<lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.hoursInStarvation<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 //#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 //		if(lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
 					//cout<<"Juvenile lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
@@ -926,15 +924,15 @@ void AnimalBiomassDynamics::calculatePredationPressure(animalCountType zooplankt
 void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biomassType foodBiomass){
 	if(foodBiomass<this->food_starvation_threshold){
 			/* If starving, increment the number of hours without food*/
-			cohort.hoursWithoutFood++;
-		if(cohort.hoursWithoutFood>=this->max_hours_without_food){
+			cohort.hoursInStarvation++;
+		if(cohort.hoursInStarvation>=this->max_hours_without_food){
 			/* If starving above the maximum, kill the cohort*/
 			cohort.numberOfIndividuals=0;
 			cohort.death=Starvation;
 		}
 	} else{
 		/* IF there is enough food, reset the number of hours without food*/
-		cohort.hoursWithoutFood=0;
+		cohort.hoursInStarvation=0;
 	}
 
 }
@@ -948,7 +946,7 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 	animals_dead_by_starvation= cohort.starvationBiomass/this->initial_grazer_weight[cohort.stage];
 
 	if(animals_dead_by_starvation>0){
-
+		cohort.hoursInStarvation++;
 		cohort.starvationBiomass=0.0f;
 		cohort.numberOfIndividuals-=animals_dead_by_starvation;
 		cohort.numberOfIndividuals=max<animalCountType>(cohort.numberOfIndividuals, 0);
@@ -956,6 +954,8 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 //				cout<<"The actual number of animals dead by starvation is "<<animalsDeadByStarvation<<" for "<<cohort<<endl;
 //			}
 
+	} else{
+		cohort.hoursInStarvation=0;
 	}
 #else
 	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_grazer_weight[cohort.stage];
@@ -1141,7 +1141,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.latestMigrationIndex=0;
 	    		/* The migration constant is not used in the juvenile stage*/
 	    		animalCohort.migrationConstant = eggCohort.migrationConstant;
-	    		animalCohort.ageInHours=0;
+	    		animalCohort.ageInHours=animalCohort.hoursInStarvation=0;
 	    		animalCohort.previousFitnessValue=animalCohort.currentFitnessValue=0.0f;
 	    		animalCohort.upDirection = false;
 #ifdef MATURE_JUVENILES
@@ -1545,14 +1545,25 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	double searchStepCounter=1;
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
+#ifdef	LINEAR_MIGRATION_COMBINATION
 	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
+#else
+	/* If the model is running in rule-based mode, only expose to migration when starvation occurs. Otherwise, follow the standard circadian rhythm*/
+	biomassType originFitnessValue = predatorPropensity[localeVerticalCoordinate][localeHorizontalCoordinate];
+	bool starvationMode = cohort.hoursInStarvation>this->starvation_max_hours;
+	if(starvationMode){
+		originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
+	}
+#endif
 	cohort.previousFitnessValue =cohort.currentFitnessValue= originFitnessValue;
 	for (std::vector<pair<int,int>>::iterator migrationIndexPair = migrationIndexPairs.begin();
 			migrationIndexPair != migrationIndexPairs.end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
 		/* Retrieve migration indexes*/
 		int verticalIndex=migrationIndexPair->first, horizontalIndex=migrationIndexPair->second;
+#ifdef DAPHNIA_CIRCADIAN_CYCLE
 		/*Daytime migration goes downwards (positive depth index), nighttime migration goes upwards (negative depth index)*/
 		if((verticalIndex>0&&this->dayTime)||(verticalIndex<0&&!this->dayTime)){
+#endif
 			/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
 			int destinationVertical = localeVerticalCoordinate+verticalIndex;
 			int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
@@ -1560,7 +1571,15 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
 					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
 						/*If the cell is reachable*/
+#ifdef	LINEAR_MIGRATION_COMBINATION
 						biomassType destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
+#else
+						/* If the model is running in rule-based mode, only expose to migration when starvation occurs. Otherwise, follow the standard circadian rhythm*/
+						biomassType destinationFitnessValue = predatorPropensity[destinationVertical][destinationHorizontal];
+						if(starvationMode){
+							destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
+						}
+#endif
 						if(destinationFitnessValue>originFitnessValue){
 							/*If the destination fitness value is greater than the previous fitness value, move the group*/
 							cohort.x=destinationVertical;
@@ -1583,7 +1602,9 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 					}
 				}
 			}
+#ifdef DAPHNIA_CIRCADIAN_CYCLE
 		}
+#endif
 	}
 	//(*it)*=0.9f;
 	/*Migrate traced cohort as a special case*/
@@ -1840,16 +1861,15 @@ void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
 
 	int optimalDepthIndex=0;
 	/*Calculate the value to optimize as the weighted sum of the inverse of the distance to optimal light normalized and the amount of food normalized*/
-	physicalType lightValueToOptimize=(light_migration_weight)*calculateLightPropensity(0,columnIndex)/sumOptimalLightValues;
+	physicalType lightValueToOptimize=(light_migration_weight)*predatorPropensity[0][columnIndex]/sumOptimalLightValues;
 	physicalType foodValueToOptimize =(1-light_migration_weight)*floatingFoodBiomass[0][columnIndex]/sumOptimalFoodValues;
 	physicalType valueToOptimize = lightValueToOptimize+foodValueToOptimize;
 	for (int depthIndex = 1; depthIndex <= maxDepthIndex[columnIndex]; ++depthIndex) {
 		/*Inverse of the distance to optimal light normalized*/
-		physicalType localeLight = light_migration_weight*calculateLightPropensity(depthIndex,columnIndex)/sumOptimalLightValues;
+		physicalType localeLight = light_migration_weight*predatorPropensity[depthIndex][columnIndex]/sumOptimalLightValues;
 		/*Amount of food normalized*/
 		physicalType localeFood=(1-light_migration_weight)*floatingFoodBiomass[depthIndex][columnIndex]/sumOptimalFoodValues;
 		physicalType localeComposedValue = localeLight+localeFood;
-
 		/* Register the locale fitness value*/
 		localeFitnessValue[depthIndex][columnIndex] = localeComposedValue;
 		if(localeComposedValue>valueToOptimize){
@@ -1911,19 +1931,22 @@ void AnimalBiomassDynamics::registerMigration(){
 }
 
 /*Calculate the summing of all light and food values*/
+
+
 void AnimalBiomassDynamics::findNormalizingFactors(){
 	sumOptimalLightValues=sumOptimalFoodValues=0.0f;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
 		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
 			/*Sum the inverse of the distance to optimal light*/
-			sumOptimalLightValues+=calculateLightPropensity(depthIndex, columnIndex);
+			predatorPropensity[depthIndex][columnIndex]=calculatePredationPropensity(depthIndex, columnIndex);
+			sumOptimalLightValues+=predatorPropensity[depthIndex][columnIndex];
 			/*Sum the value of food*/
 			sumOptimalFoodValues+=floatingFoodBiomass[depthIndex][columnIndex];
 		}
 	}
 }
 
-physicalType AnimalBiomassDynamics::calculateLightPropensity(int depthIndex, int columnIndex){
+physicalType AnimalBiomassDynamics::calculatePredationPropensity(int depthIndex, int columnIndex){
 	/* Distance to optimal light is used for fitness*/
 	physicalType localeLakeLightAtDepth = lakeLightAtDepth[depthIndex][columnIndex];
 //	return 1.0f/fabs((localeLakeLightAtDepth-light_optimal_value)+1);

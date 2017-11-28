@@ -173,6 +173,9 @@ protected:
 	/* Best depth index per column*/
 
 	int optimalDepthIndexes[MAX_COLUMN_INDEX];
+
+	/* Fitness value per cell for each depth and column*/
+	biomassType predatorPropensity[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/*Summing of optimal values for normalization*/
@@ -194,6 +197,9 @@ protected:
 	/*Planktivore biomass at each depth and column */
 	biomassType planktivoreBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
+	/* Starvation parameters affecting migration*/
+	double ind_food_starvation_threshold;
+	int starvation_max_hours;
 
 	/* Migration based on random walk*/
 	int max_vertical_migration, max_horizontal_migration;
@@ -278,7 +284,7 @@ private:
 	void findNormalizingFactors();
 
 	void calculateKairomonesConcetration();
-	physicalType calculateLightPropensity(int initialDepth, int finalDepth);
+	physicalType calculatePredationPropensity(int initialDepth, int finalDepth);
 
 	void calculatePlanktivoreBiomass();
 

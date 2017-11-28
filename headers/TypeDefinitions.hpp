@@ -118,6 +118,9 @@ typedef struct {
 
 	int planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
 
+	double grazer_ind_food_starvation_threshold;
+	int grazer_starvation_max_hours;
+
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,
 	phosphorus_half_saturation,
 	phosphorus_functional_factor,
@@ -152,6 +155,7 @@ typedef struct {
 	mutable animalCountType numberOfIndividuals;
 	mutable biomassType bodyBiomass, gonadBiomass, starvationBiomass;
 	mutable biomassType previousFitnessValue, currentFitnessValue;
+	int hoursInStarvation;
 	cohortIDType cohortID;
 } AnimalCohort;
 

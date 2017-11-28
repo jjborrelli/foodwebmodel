@@ -463,6 +463,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_critical_light_intensity= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerStarvationThreshold")){
+		simArguments.grazer_ind_food_starvation_threshold= atof(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("GrazingStarvationMaxHours")){
+		simArguments.grazer_starvation_max_hours= atoi(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerCriticalDepth")){
 		simArguments.grazer_critical_depth= atof(parameterValue.c_str());
 		return;

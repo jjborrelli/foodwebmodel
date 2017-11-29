@@ -110,7 +110,7 @@ void AnimalBiomassDynamics::initializeSimulationStructures(){
 
 
 void AnimalBiomassDynamics::takeAnimalDynamicsStep(){
-	dayTime = (*current_hour%HOURS_PER_DAY)<(HOURS_PER_HALF_DAY);
+	this->dayTime = (*current_hour%HOURS_PER_DAY)<(HOURS_PER_HALF_DAY);
 	updateAnimalBiomass();
 	migrateAnimalCohorts();
 #ifndef ANIMAL_COHORT_MAP
@@ -1558,6 +1558,9 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
 	/* Check if the group is in a cell that is too dark. Therefore, daphnia will migrate out of it*/
 	bool currentCellTooDark= lakeLightAtDepth[localeVerticalCoordinate][localeHorizontalCoordinate]<this->minimum_tolerable_light;
+	if(currentCellTooDark){
+		cout<<"Cell too dark."<<endl;
+	}
 #ifdef	LINEAR_MIGRATION_COMBINATION
 	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
 #else
@@ -1578,7 +1581,7 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 			int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
 			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
-					physicalType destinationLightLevel = lakeLightAtDepth[destinationVertical][destinationVertical];
+					physicalType destinationLightLevel = lakeLightAtDepth[destinationVertical][destinationHorizontal];
 					/*If the cell exists and has enough light*/
 					if(maxDepthIndex[destinationHorizontal]>=destinationVertical&&destinationLightLevel>=this->minimum_tolerable_light){
 						/*If the cell is reachable*/
@@ -2069,7 +2072,7 @@ void AnimalBiomassDynamics::reallocateSmallCohorts(vector<AnimalCohort> *animals
 
 void AnimalBiomassDynamics::calculateKairomonesConcetration(){
 	/* Kairomone levels depend on day and night cycles*/
-	physicalType surfaceKairomones = dayTime?this->kairomones_level_day:this->kairomones_level_night;
+	physicalType surfaceKairomones = this->dayTime?this->kairomones_level_day:this->kairomones_level_night;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
 		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
 			physicalType localeDepth=this->indexToDepth[depthIndex];
@@ -2099,7 +2102,7 @@ void AnimalBiomassDynamics::generateMigrationIndexes(){
 
 void AnimalBiomassDynamics::calculatePlanktivoreBiomass(){
 	/* Select biomass center according to light*/
-	physicalType planktivoreBiomassFactor = dayTime?this->kairomones_level_day:this->kairomones_level_night;
+	physicalType planktivoreBiomassFactor = this->dayTime?this->kairomones_level_day:this->kairomones_level_night;
 	int biomassCenter = this->dayTime?this->planktivore_biomass_center_day:planktivore_biomass_center_night;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
 		/* Planktivore migration is limited by lake depth */

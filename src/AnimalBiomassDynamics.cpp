@@ -45,6 +45,8 @@ void operator-=(AnimalCohort& cohort1, const AnimalCohort& cohort2){
 	cohort1.bodyBiomass -= cohort2.bodyBiomass;
 	cohort1.numberOfIndividuals -= cohort2.numberOfIndividuals;
 	cohort1.gonadBiomass -= cohort2.gonadBiomass;
+	cohort1.hoursInStarvation=max(cohort1.hoursInStarvation,cohort2.hoursInStarvation);
+
 
 }
 
@@ -945,7 +947,9 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort, biom
 		/* IF there is enough food, reset the number of hours without food*/
 		cohort.hoursInStarvation=0;
 	}
-
+	if(cohort.hoursInStarvation>this->starvation_max_hours){
+		cout<<"Starvation."<<endl;
+	}
 }
 #elif defined(ANIMAL_STARVATION_PROPORTION_LOST_BIOMASS)
 
@@ -967,6 +971,9 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 
 	} else{
 		cohort.hoursInStarvation=0;
+	}
+	if(cohort.hoursInStarvation>this->starvation_max_hours){
+		cout<<"Starvation."<<endl;
 	}
 #else
 	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_grazer_weight[cohort.stage];
@@ -1216,6 +1223,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 			cohortCopy.starvationBiomass=it->starvationBiomass;
 			cohortCopy.latestMigrationIndex=it->latestMigrationIndex;
 			cohortCopy.migrationConstant=it->migrationConstant;
+			cohortCopy.hoursInStarvation=it->hoursInStarvation;
 			pair<int,int> cohortCoordinates(cohortCopy.x, cohortCopy.y);
 //			if(indexToDepth[maxDepthIndex[cohortCopy.y]]>=TRACED_COHORT_DEPTH&&tracedCohort.numberOfIndividuals==0){
 //				/*Create traced cohort*/
@@ -1362,7 +1370,7 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 						createdCohort.starvationBiomass=migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex];
 						createdCohort.isBottomAnimal=false;
 						createdCohort.ageInHours=0;
-						createdCohort.latestMigrationIndex = 0;
+						createdCohort.latestMigrationIndex= createdCohort.hoursInStarvation = 0;
 						createdCohort.cohortID=migratedFloatingAnimalCohortID[depthIndex][columnIndex];;
 						(*animals)[migratedCoordinates]=createdCohort;
 						if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){
@@ -1558,9 +1566,9 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
 	/* Check if the group is in a cell that is too dark. Therefore, daphnia will migrate out of it*/
 	bool currentCellTooDark= lakeLightAtDepth[localeVerticalCoordinate][localeHorizontalCoordinate]<this->minimum_tolerable_light;
-	if(currentCellTooDark){
-		cout<<"Cell too dark."<<endl;
-	}
+//	if(currentCellTooDark){
+//		cout<<"Cell too dark."<<endl;
+//	}
 #ifdef	LINEAR_MIGRATION_COMBINATION
 	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
 #else
@@ -2011,12 +2019,14 @@ void AnimalBiomassDynamics::agglomerateCohorts(vector<AnimalCohort> *animals){
 			maxID=max<int>(maxID, it->cohortID);
 		} else{
 			/* Otherwise, add it*/
-			animalCountType totalAnimals = it->numberOfIndividuals + it->numberOfIndividuals;
-			float animalProportion1 = (float)it->numberOfIndividuals/(float)totalAnimals, animalProportion2=(float)it->numberOfIndividuals/(float)totalAnimals;
-			animalMigrationBuffer[cohortCoordinates].ageInHours=(it->ageInHours*animalProportion1+it->ageInHours*animalProportion2);
+			AnimalCohort& localeCohort =animalMigrationBuffer[cohortCoordinates];
+			animalCountType totalAnimals = it->numberOfIndividuals + localeCohort.numberOfIndividuals;
+			float animalProportion1 = (float)it->numberOfIndividuals/(float)totalAnimals, animalProportion2=(float)localeCohort.numberOfIndividuals/(float)totalAnimals;
+			animalMigrationBuffer[cohortCoordinates].ageInHours=(it->ageInHours*animalProportion1+localeCohort.ageInHours*animalProportion2);
 			animalMigrationBuffer[cohortCoordinates].bodyBiomass+=it->bodyBiomass;
 			animalMigrationBuffer[cohortCoordinates].numberOfIndividuals+=it->numberOfIndividuals;
 			animalMigrationBuffer[cohortCoordinates].gonadBiomass+=it->gonadBiomass;
+			animalMigrationBuffer[cohortCoordinates].hoursInStarvation=max(it->hoursInStarvation, localeCohort.hoursInStarvation);
 
 			/* Use a consistent rule for cohort ID (the minimum)*/
 			if(!it->justMatured){
@@ -2053,6 +2063,7 @@ void AnimalBiomassDynamics::reallocateSmallCohorts(vector<AnimalCohort> *animals
 			it->bodyBiomass+=foundCohort.bodyBiomass;
 			it->numberOfIndividuals+=foundCohort.numberOfIndividuals;
 			it->gonadBiomass+=foundCohort.gonadBiomass;
+			it->hoursInStarvation+=max(it->hoursInStarvation,foundCohort.hoursInStarvation);
 			/* Erase reallocated cohort*/
 			reallocatedCohorts.erase(cohortCoordinates);
 		}

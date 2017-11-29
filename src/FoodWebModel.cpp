@@ -288,6 +288,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
 	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
 	grazerDynamics.critical_depth=simArguments.grazer_critical_depth;
+	grazerDynamics.minimum_tolerable_light=simArguments.grazer_minimum_tolerable_light;
 	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
 	grazerDynamics.ind_food_starvation_threshold=simArguments.grazer_ind_food_starvation_threshold;
 	grazerDynamics.starvation_max_hours=simArguments.grazer_starvation_max_hours;
@@ -609,6 +610,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer maximum horizontal migration value "<<grazerDynamics.max_horizontal_migration<<"."<<endl;
 	cout<<"Using maximum migration search steps "<<grazerDynamics.max_search_steps<<"."<<endl;
 	cout<<"Using random walk probability weight "<<grazerDynamics.random_walk_probability_weight<<"."<<endl;
+	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
@@ -716,6 +718,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"MaxSearchSteps;"<<grazerDynamics.max_search_steps<<endl;
 		parameterFileStream<<"RandomWalkProbabilityWeight;"<<grazerDynamics.random_walk_probability_weight<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
+		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
 #endif

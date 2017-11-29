@@ -90,7 +90,18 @@ void AnimalBiomassDynamics::initializeSimulationStructures(){
 	for (int horizontalIndex = -this->max_horizontal_migration; horizontalIndex <=this->max_horizontal_migration; ++horizontalIndex) {
 		for (int verticalIndex = -this->max_vertical_migration; verticalIndex <=this->max_vertical_migration; ++verticalIndex) {
 			/* The migration pairs will be shuffled each simulation step*/
+#ifdef DAPHNIA_CIRCADIAN_CYCLE
+			pair<int,int> migrationPair=std::make_pair(verticalIndex, horizontalIndex);
+			if(verticalIndex>=0){
+				this->daytimeMigrationIndexPairs.push_back(migrationPair);
+			}
+			if(verticalIndex<=0){
+				this->nighttimeMigrationIndexPairs.push_back(migrationPair);
+
+			}
+#else
 			this->migrationIndexPairs.push_back(std::make_pair(verticalIndex, horizontalIndex));
+#endif
 		}
 	}
 
@@ -1545,6 +1556,8 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	double searchStepCounter=1;
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
+	/* Check if the group is in a cell that is too dark. Therefore, daphnia will migrate out of it*/
+	bool currentCellTooDark= lakeLightAtDepth[localeVerticalCoordinate][localeHorizontalCoordinate]<this->minimum_tolerable_light;
 #ifdef	LINEAR_MIGRATION_COMBINATION
 	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
 #else
@@ -1556,20 +1569,18 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	}
 #endif
 	cohort.previousFitnessValue =cohort.currentFitnessValue= originFitnessValue;
-	for (std::vector<pair<int,int>>::iterator migrationIndexPair = migrationIndexPairs.begin();
-			migrationIndexPair != migrationIndexPairs.end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
+	for (std::vector<pair<int,int>>::iterator migrationIndexPair = hourlyMigrationIndexPairs->begin();
+			migrationIndexPair != hourlyMigrationIndexPairs->end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
 		/* Retrieve migration indexes*/
 		int verticalIndex=migrationIndexPair->first, horizontalIndex=migrationIndexPair->second;
-#ifdef DAPHNIA_CIRCADIAN_CYCLE
-		/*Daytime migration goes downwards (positive depth index), nighttime migration goes upwards (negative depth index)*/
-		if((verticalIndex>0&&this->dayTime)||(verticalIndex<0&&!this->dayTime)){
-#endif
 			/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
 			int destinationVertical = localeVerticalCoordinate+verticalIndex;
 			int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
 			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
-					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
+					physicalType destinationLightLevel = lakeLightAtDepth[destinationVertical][destinationVertical];
+					/*If the cell exists and has enough light*/
+					if(maxDepthIndex[destinationHorizontal]>=destinationVertical&&destinationLightLevel>=this->minimum_tolerable_light){
 						/*If the cell is reachable*/
 #ifdef	LINEAR_MIGRATION_COMBINATION
 						biomassType destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
@@ -1580,11 +1591,13 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 							destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
 						}
 #endif
-						if(destinationFitnessValue>originFitnessValue){
+						/* If the group needs to migrate because of the darkness, it may accept a suboptimal destination cell*/
+						if(destinationFitnessValue>originFitnessValue||currentCellTooDark){
 							/*If the destination fitness value is greater than the previous fitness value, move the group*/
 							cohort.x=destinationVertical;
 							cohort.y=destinationHorizontal;
 							cohort.currentFitnessValue=destinationFitnessValue;
+							currentCellTooDark= false;
 						} else{
 							/*Otherwise, move it with a certain probability proportional to the fitness difference*/
 
@@ -1602,9 +1615,6 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 					}
 				}
 			}
-#ifdef DAPHNIA_CIRCADIAN_CYCLE
-		}
-#endif
 	}
 	//(*it)*=0.9f;
 	/*Migrate traced cohort as a special case*/
@@ -2074,8 +2084,17 @@ void AnimalBiomassDynamics::calculateKairomonesConcetration(){
 void AnimalBiomassDynamics::generateMigrationIndexes(){
 
 	/* Generate the list of index pairs for the current cycle*/
-	std::shuffle(migrationIndexPairs.begin(), migrationIndexPairs.end(), *animalRandomGenerator);
+#ifdef DAPHNIA_CIRCADIAN_CYCLE
+	if(this->dayTime){
+		hourlyMigrationIndexPairs=&daytimeMigrationIndexPairs;
+	} else{
+		hourlyMigrationIndexPairs=&nighttimeMigrationIndexPairs;
+	}
 
+#else
+	hourlyMigrationIndexPairs=&migrationIndexPairs;
+#endif
+	std::shuffle(hourlyMigrationIndexPairs->begin(), hourlyMigrationIndexPairs->end(), *animalRandomGenerator);
 }
 
 void AnimalBiomassDynamics::calculatePlanktivoreBiomass(){

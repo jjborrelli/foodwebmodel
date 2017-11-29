@@ -523,6 +523,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_max_search_steps= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerMinimumTolerableLight")){
+		simArguments.grazer_minimum_tolerable_light= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("RandomWalkProbabilityWeight")){
 		simArguments.grazer_random_walk_probability_weight= atof(parameterValue.c_str());
 		return;

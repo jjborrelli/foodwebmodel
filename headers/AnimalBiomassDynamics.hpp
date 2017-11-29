@@ -203,11 +203,18 @@ protected:
 
 	/* Migration based on random walk*/
 	int max_vertical_migration, max_horizontal_migration;
+#ifdef DAPHNIA_CIRCADIAN_CYCLE
+	vector<pair<int,int>> daytimeMigrationIndexPairs, nighttimeMigrationIndexPairs;
+#else
 	vector<pair<int,int>> migrationIndexPairs;
+#endif
+	vector<pair<int,int>>* hourlyMigrationIndexPairs;
 	bool dayTime;
 	unsigned int max_search_steps;
 	double random_walk_probability_weight;
 
+	/* Minimum tolerable light for Daphnia*/
+	physicalType minimum_tolerable_light;
 	/*Special traced adult cohort and flag to set that it has been created*/
 	AnimalCohort tracedCohort;
 	int tracedCohortID;

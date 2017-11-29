@@ -23,6 +23,6 @@ species, including:
 
 The food web modeled is illustrated in the following figure:
 
-<div align="center"/><img alt="Diagram of the food web model" src="images/food_web_model.png" style="width: 300px;"></div>
+<div align="center"/><img alt="Diagram of the food web model" src="images/food_web_model_small.png" style="width: 300px;"></div>
 
 

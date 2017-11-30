@@ -972,9 +972,9 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 	} else{
 		cohort.hoursInStarvation=0;
 	}
-	if(cohort.hoursInStarvation>this->starvation_max_hours){
-		cout<<"Starvation."<<endl;
-	}
+//	if(cohort.hoursInStarvation>this->starvation_max_hours){
+//		cout<<"Starvation."<<endl;
+//	}
 #else
 	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_grazer_weight[cohort.stage];
 	biomassType biomassPerIndividual = cohort.bodyBiomass/cohort.numberOfIndividuals;
@@ -1565,7 +1565,8 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	double searchStepCounter=1;
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
 	/* Check if the group is in a cell that is too dark. Therefore, daphnia will migrate out of it*/
-	bool currentCellTooDark= lakeLightAtDepth[localeVerticalCoordinate][localeHorizontalCoordinate]<this->minimum_tolerable_light;
+	physicalType localeLightLevel=lakeLightAtDepth[localeVerticalCoordinate][localeHorizontalCoordinate];
+	bool currentCellTooDark= localeLightLevel<this->minimum_tolerable_light;
 //	if(currentCellTooDark){
 //		cout<<"Cell too dark."<<endl;
 //	}
@@ -1590,8 +1591,8 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
 					physicalType destinationLightLevel = lakeLightAtDepth[destinationVertical][destinationHorizontal];
-					/*If the cell exists and has enough light*/
-					if(maxDepthIndex[destinationHorizontal]>=destinationVertical&&destinationLightLevel>=this->minimum_tolerable_light){
+					/*If the cell exists and has enough light, attempt movement. If the current cell is too dark and the destination cell has more light, attempt movement*/
+					if(maxDepthIndex[destinationHorizontal]>=destinationVertical&&(destinationLightLevel>=this->minimum_tolerable_light||(currentCellTooDark&&(destinationLightLevel>localeLightLevel)))){
 						/*If the cell is reachable*/
 #ifdef	LINEAR_MIGRATION_COMBINATION
 						biomassType destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
@@ -1608,7 +1609,9 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 							cohort.x=destinationVertical;
 							cohort.y=destinationHorizontal;
 							cohort.currentFitnessValue=destinationFitnessValue;
-							currentCellTooDark= false;
+							/*Update light values*/
+							localeLightLevel=destinationLightLevel;
+							currentCellTooDark= localeLightLevel<this->minimum_tolerable_light;
 						} else{
 							/*Otherwise, move it with a certain probability proportional to the fitness difference*/
 
@@ -1619,6 +1622,9 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 								cohort.x=destinationVertical;
 								cohort.y=destinationHorizontal;
 								cohort.currentFitnessValue=destinationFitnessValue;
+								/*Update light values*/
+								localeLightLevel=destinationLightLevel;
+								currentCellTooDark= localeLightLevel<this->minimum_tolerable_light;
 							}
 						}
 						/* Update the number of search steps per group*/

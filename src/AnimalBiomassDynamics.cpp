@@ -1949,7 +1949,8 @@ void AnimalBiomassDynamics::registerMigration(){
 //		cout<<"Hour limit reached."<<endl;
 //	}
 	if(tracedCohort.numberOfIndividuals!=0){
-		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
+		biomassType fitnessDifference = tracedCohort.currentFitnessValue-tracedCohort.previousFitnessValue;
+		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<this->indexToDepth[tracedCohort.x]<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.previousFitnessValue<<commaString<<tracedCohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<tracedCohort.hoursInStarvation<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
 //		if(tracedCohort.x!=0){
 //			cout<<"Non-zero depth detected."<<endl;
 //		}

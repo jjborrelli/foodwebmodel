@@ -108,7 +108,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, DepthInMeters, LightAtDepth, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, Stage, CohortID"<<endl;
-	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, MigrationConstant, CohortID"<<endl;
+	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, DepthInMeters, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, MigrationConstant, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;

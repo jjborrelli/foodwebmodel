@@ -445,6 +445,20 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 			cout<<"Error. Negative dying individuals."<<endl;
 		}
 	}
+	/* Calculate predation mortality */
+	if(cohort.numberOfIndividuals>0){
+		if(planktivoreBiomass[cohort.x][cohort.y]>0.0f){
+			/* If there are plantivores in the region, consume grazer biomass*/
+			/* Calculate predated biomass*/
+			biomassType predationFactor=planktivoreBiomass[cohort.x][cohort.y]*this->predation_index;
+			biomassType grazerPredatedBiomass=predationFactor*cohort.bodyBiomass;
+			animalCountType predatedIndividuals = grazerPredatedBiomass/this->initial_grazer_weight[cohort.stage];
+
+			/* Remove predated individuals*/
+			cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-predatedIndividuals);
+			cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-grazerPredatedBiomass);
+		}
+	}
 
 	/*Remove starved animals in the cohort*/
 	/*if(consumed_biomass>0){

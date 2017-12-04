@@ -302,6 +302,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.planktivore_biomass_center_day=simArguments.planktivore_biomass_center_day;
 	grazerDynamics.planktivore_biomass_center_night=simArguments.planktivore_biomass_center_night;
 	grazerDynamics.planktivore_biomass_width=simArguments.planktivore_biomass_width;
+	grazerDynamics.predation_index=simArguments.grazer_predation_index;
 	grazerDynamics.max_vertical_migration=simArguments.max_vertical_migration;
 	grazerDynamics.max_horizontal_migration=simArguments.max_horizontal_migration;
 	grazerDynamics.max_search_steps = simArguments.grazer_max_search_steps;
@@ -606,6 +607,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using planktivore biomass center day "<<grazerDynamics.planktivore_biomass_center_night<<"."<<endl;
 	cout<<"Using planktivore biomass center night "<<grazerDynamics.planktivore_biomass_width<<"."<<endl;
 	cout<<"Using planktivore biomass width "<<grazerDynamics.kairomones_thermocline<<"."<<endl;
+	cout<<"Using planktivore predation index "<<grazerDynamics.predation_index<<"."<<endl;
 	cout<<"Using grazer maximum vertical migration value "<<grazerDynamics.max_vertical_migration<<"."<<endl;
 	cout<<"Using grazer maximum horizontal migration value "<<grazerDynamics.max_horizontal_migration<<"."<<endl;
 	cout<<"Using maximum migration search steps "<<grazerDynamics.max_search_steps<<"."<<endl;
@@ -713,6 +715,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"PlanktivoreBiomassCenterDay;"<<grazerDynamics.planktivore_biomass_center_day<<endl;
 		parameterFileStream<<"PlanktivoreBiomassCenterNight;"<<grazerDynamics.planktivore_biomass_center_night<<endl;
 		parameterFileStream<<"PlanktivoreBiomassWidth;"<<grazerDynamics.planktivore_biomass_width<<endl;
+		parameterFileStream<<"GrazerPredationIndex;"<<grazerDynamics.predation_index<<endl;
 		parameterFileStream<<"MaxVerticalMigration;"<<grazerDynamics.max_vertical_migration<<endl;
 		parameterFileStream<<"MaxHorizontalMigration;"<<grazerDynamics.max_horizontal_migration<<endl;
 		parameterFileStream<<"MaxSearchSteps;"<<grazerDynamics.max_search_steps<<endl;

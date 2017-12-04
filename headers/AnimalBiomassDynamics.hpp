@@ -193,6 +193,7 @@ protected:
 
 	/* Distribution of planktivore biomass across depths*/
 	biomassType planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
+	biomassType predation_index;
 
 	/*Planktivore biomass at each depth and column */
 	biomassType planktivoreBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];

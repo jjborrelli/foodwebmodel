@@ -175,11 +175,11 @@ protected:
 	int optimalDepthIndexes[MAX_COLUMN_INDEX];
 
 	/* Fitness value per cell for each depth and column*/
-	biomassType predatorPropensity[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	biomassType predatorSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/*Summing of optimal values for normalization*/
-	physicalType sumOptimalLightValues, sumOptimalFoodValues;
+	physicalType sumOptimalPredatorSafetyValues, sumOptimalFoodValues;
 
 	/*Migration score weight*/
 	physicalType light_migration_weight;
@@ -198,6 +198,9 @@ protected:
 	/*Planktivore biomass at each depth and column */
 	biomassType planktivoreBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
+	/* Predated indiviuals in the current step. An array is used instead of an attribute in the Cohort structure because we are interested in the individuals predated in the current step*/
+	animalCountType predatedIndividuals[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+
 	/* Starvation parameters affecting migration*/
 	double ind_food_starvation_threshold;
 	int starvation_max_hours;
@@ -213,6 +216,7 @@ protected:
 	bool dayTime;
 	unsigned int max_search_steps;
 	double random_walk_probability_weight;
+	biomassType minimum_predation_safety;
 
 	/* Minimum tolerable light for Daphnia*/
 	physicalType minimum_tolerable_light;
@@ -292,7 +296,7 @@ private:
 	void findNormalizingFactors();
 
 	void calculateKairomonesConcetration();
-	physicalType calculatePredationPropensity(int initialDepth, int finalDepth);
+	physicalType calculatePredationSafety(int initialDepth, int finalDepth);
 
 	void calculatePlanktivoreBiomass();
 

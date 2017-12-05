@@ -535,6 +535,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_random_walk_probability_weight= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerMinimumPredationSafety")){
+		simArguments.grazer_minimum_predation_safety=atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("PredatorBaseMortality")){
 		simArguments.predator_base_mortality_proportion= atof(parameterValue.c_str());
 		return;

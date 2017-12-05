@@ -121,7 +121,7 @@ typedef struct {
 	double grazer_ind_food_starvation_threshold;
 	int grazer_starvation_max_hours;
 	physicalType grazer_minimum_tolerable_light;
-	biomassType grazer_predation_index;
+	biomassType grazer_predation_index, grazer_minimum_predation_safety;
 
 
 	physicalType light_steepness, diatom_attenuation_coefficient, limitation_scale_weight,

@@ -107,8 +107,8 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, DepthInMeters, LightAtDepth, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, Stage, CohortID"<<endl;
-	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, DepthInMeters, LightAtDepth, LastMigration, GrazerCount, GrazerBiomass, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, MigrationConstant, CohortID"<<endl;
+	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, DepthInMeters, LightAtDepth, LightAtSurface, PlanktivoreBiomassAtSurface, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, PredationSafetyAtSurface, Stage, CohortID"<<endl;
+	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, DepthInMeters, LightAtDepth, LightAtSurface, PlanktivoreBiomassAtSurface, LastMigration, GrazerCount, GrazerBiomass, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, PredationSafetyAtSurface, MigrationConstant, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;

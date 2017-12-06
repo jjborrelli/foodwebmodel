@@ -261,6 +261,7 @@ private:
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 	/* Migration methods */
+	void calculateMigrationValues();
 	void migrateAnimalCohorts();
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
@@ -296,7 +297,7 @@ private:
 	void findNormalizingFactors();
 
 	void calculateKairomonesConcetration();
-	physicalType calculatePredationSafety(int initialDepth, int finalDepth);
+	physicalType calculatePredatorSafety(int initialDepth, int finalDepth);
 
 	void calculatePlanktivoreBiomass();
 

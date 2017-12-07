@@ -510,7 +510,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //			cout<<"Natural dead individuals greater than 0."<<endl;
 //		}
 		biomassType fitnessDifference = cohort.currentFitnessValue-cohort.previousFitnessValue;
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<indexToDepth[cohort.x]<<commaString<<this->lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<this->lakeLightAtDepth[0][cohort.y]<<commaString<<this->planktivoreBiomass[0][cohort.y]<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.hoursInStarvation<<commaString<<this->predatedIndividuals[cohort.x][cohort.y]<<commaString<<this->predatorSafety[cohort.x][cohort.y]/sumOptimalPredatorSafetyValues<<commaString<<this->predatorSafety[0][cohort.y]/sumOptimalPredatorSafetyValues<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<indexToDepth[cohort.x]<<commaString<<this->lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<this->lakeLightAtDepth[0][cohort.y]<<commaString<<cohort.currentFoodBiomass<<commaString<<this->floatingFoodBiomass[0][cohort.y]<<commaString<<this->planktivoreBiomass[0][cohort.y]<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.hoursInStarvation<<commaString<<this->predatedIndividuals[cohort.x][cohort.y]<<commaString<<this->predatorSafety[cohort.x][cohort.y]/sumOptimalPredatorSafetyValues<<commaString<<this->predatorSafety[0][cohort.y]/sumOptimalPredatorSafetyValues<<commaString<<cohort.predatorFitness<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 //#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 //		if(lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
 					//cout<<"Juvenile lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
@@ -1153,7 +1153,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 		lineBuffer<<commaString<<0;
 		lineBuffer<<commaString<<0;
 #endif
-		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<0<<commaString<<0<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->indexToDepth[eggCohort.x]<<commaString<<this->lakeLightAtDepth[eggCohort.x][eggCohort.y]<<commaString<<this->lakeLightAtDepth[0][eggCohort.y]<<commaString<<this->planktivoreBiomass[0][eggCohort.y]<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->predatorSafety[eggCohort.x][eggCohort.y]<<commaString<<this->predatorSafety[0][eggCohort.y]/sumOptimalPredatorSafetyValues<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
+		lineBuffer<<commaString<<0<<commaString<<eggCohort.numberOfEggs<<commaString<<0<<commaString<<0<<commaString<<eggCohort.biomass<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->indexToDepth[eggCohort.x]<<commaString<<this->lakeLightAtDepth[eggCohort.x][eggCohort.y]<<commaString<<this->lakeLightAtDepth[0][eggCohort.y]<<commaString<<this->floatingFoodBiomass[eggCohort.x][eggCohort.y]<<commaString<<this->floatingFoodBiomass[0][eggCohort.y]<<commaString<<this->planktivoreBiomass[0][eggCohort.y]<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<0<<commaString<<this->predatorSafety[eggCohort.x][eggCohort.y]<<commaString<<this->predatorSafety[0][eggCohort.y]/sumOptimalPredatorSafetyValues<<commaString<<0<<commaString<<AnimalStage::Egg<<commaString<<eggCohort.cohortID<<endl;
 		animalBiomassBuffer<<lineBuffer.str();
 #endif
 		/*If the egg has hatched, add to the adult cohort*/
@@ -1180,6 +1180,8 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.migrationConstant = eggCohort.migrationConstant;
 	    		animalCohort.ageInHours=animalCohort.hoursInStarvation=0;
 	    		animalCohort.previousFitnessValue=animalCohort.currentFitnessValue=0.0f;
+	    		animalCohort.currentFoodBiomass=animalCohort.currentPredatorSafety=0.0f;
+	    		animalCohort.predatorFitness=predatorFitnessType::Unassigned;
 	    		animalCohort.upDirection = false;
 #ifdef MATURE_JUVENILES
 	    		animalCohort.stage=AnimalStage::Juvenile;
@@ -1243,6 +1245,10 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 			cohortCopy.latestMigrationIndex=it->latestMigrationIndex;
 			cohortCopy.migrationConstant=it->migrationConstant;
 			cohortCopy.hoursInStarvation=it->hoursInStarvation;
+			cohortCopy.currentFitnessValue=it->currentFitnessValue;
+			cohortCopy.currentFoodBiomass=it->currentFoodBiomass;
+			cohortCopy.currentPredatorSafety=it->currentPredatorSafety;
+			cohortCopy.predatorFitness=it->predatorFitness;
 			pair<int,int> cohortCoordinates(cohortCopy.x, cohortCopy.y);
 //			if(indexToDepth[maxDepthIndex[cohortCopy.y]]>=TRACED_COHORT_DEPTH&&tracedCohort.numberOfIndividuals==0){
 //				/*Create traced cohort*/
@@ -1587,9 +1593,6 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	double searchStepCounter=1;
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
-	/* Check if the group is in a cell that is too dark. Therefore, daphnia will migrate out of it*/
-	physicalType localeLightLevel=lakeLightAtDepth[localeVerticalCoordinate][localeHorizontalCoordinate];
-	bool currentCellTooDark= localeLightLevel<this->minimum_tolerable_light;
 //	if(currentCellTooDark){
 //		cout<<"Cell too dark."<<endl;
 //	}
@@ -1603,6 +1606,14 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 		originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
 	}
 #endif
+	/* Check if the group is in a cell that is too predated. Therefore, daphnia will migrate out of it*/
+		biomassType localePredationSafety=cohort.currentPredatorSafety=predatorSafety[localeVerticalCoordinate][localeHorizontalCoordinate],
+				localeFoodBiomass=cohort.currentFoodBiomass=floatingFoodBiomass[localeVerticalCoordinate][localeHorizontalCoordinate];
+		bool currentCellTooPredated= localePredationSafety<this->minimum_predation_safety;
+		cohort.predatorFitness=currentCellTooPredated?predatorFitnessType::Predator:predatorFitnessType::Food;
+		/* If the cell is too predated, the fitness value is predator safety. Otherwise, the fitness value is food*/
+	originFitnessValue = currentCellTooPredated?predatorSafety[localeVerticalCoordinate][localeHorizontalCoordinate]:
+			floatingFoodBiomass[localeVerticalCoordinate][localeHorizontalCoordinate];
 	cohort.previousFitnessValue =cohort.currentFitnessValue= originFitnessValue;
 	for (std::vector<pair<int,int>>::iterator migrationIndexPair = hourlyMigrationIndexPairs->begin();
 			migrationIndexPair != hourlyMigrationIndexPairs->end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
@@ -1613,9 +1624,12 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 			int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
 			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
-					physicalType destinationLightLevel = lakeLightAtDepth[destinationVertical][destinationHorizontal];
+					/* Calculate destination predation safety and food*/
+					biomassType destinationPredationSafety = predatorSafety[destinationVertical][destinationHorizontal],
+							destinationFoodBiomass=floatingFoodBiomass[destinationVertical][destinationHorizontal];
 					/*If the cell exists and has enough light, attempt movement. If the current cell is too dark and the destination cell has more light, attempt movement*/
-					if(maxDepthIndex[destinationHorizontal]>=destinationVertical&&(destinationLightLevel>=this->minimum_tolerable_light||(currentCellTooDark&&(destinationLightLevel>localeLightLevel)))){
+					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
+						if(destinationPredationSafety>=this->minimum_predation_safety||(currentCellTooPredated&&(destinationPredationSafety>localePredationSafety))){
 						/*If the cell is reachable*/
 #ifdef	LINEAR_MIGRATION_COMBINATION
 						biomassType destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
@@ -1626,34 +1640,43 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 							destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
 						}
 #endif
-						/* If the group needs to migrate because of the darkness, it may accept a suboptimal destination cell*/
-						if(destinationFitnessValue>originFitnessValue||currentCellTooDark){
-							/*If the destination fitness value is greater than the previous fitness value, move the group*/
-							cohort.x=destinationVertical;
-							cohort.y=destinationHorizontal;
-							cohort.currentFitnessValue=destinationFitnessValue;
-							/*Update light values*/
-							localeLightLevel=destinationLightLevel;
-							currentCellTooDark= localeLightLevel<this->minimum_tolerable_light;
+						/* If the cell is too predated, the fitness value is predator safety. Otherwise, the fitness value is food*/
+						destinationFitnessValue = currentCellTooPredated?predatorSafety[destinationVertical][destinationHorizontal]:
+																floatingFoodBiomass[destinationVertical][destinationHorizontal];
+						bool destinationSafetyGreater=destinationPredationSafety>localePredationSafety,
+								destinationFoodGreater=destinationFoodBiomass>localeFoodBiomass;
+						/* Marker to check if the cohort moves or not*/
+						bool groupMigrated=false;
+						if(((!currentCellTooPredated)&&destinationFoodGreater)||(currentCellTooPredated&&destinationSafetyGreater)){
+							/*If the current cell is too predated, maximize safety. Otherwise, maximize food */
+							groupMigrated=true;
+
 						} else{
 							/*Otherwise, move it with a certain probability proportional to the fitness difference*/
-
 							double randomNumber = ((double) rand() / (RAND_MAX));
 							double acceptanceProbabilityExponent = (destinationFitnessValue-originFitnessValue)/(this->random_walk_probability_weight);
 							double movementProbability = exp(acceptanceProbabilityExponent);
 							if(randomNumber<=movementProbability){
-								cohort.x=destinationVertical;
-								cohort.y=destinationHorizontal;
-								cohort.currentFitnessValue=destinationFitnessValue;
-								/*Update light values*/
-								localeLightLevel=destinationLightLevel;
-								currentCellTooDark= localeLightLevel<this->minimum_tolerable_light;
+								groupMigrated=true;
 							}
+						}
+						if(groupMigrated){
+							cohort.x=destinationVertical;
+							cohort.y=destinationHorizontal;
+							cohort.currentPredatorSafety=destinationPredationSafety,
+									cohort.currentFoodBiomass=destinationFoodBiomass,
+									cohort.currentFitnessValue=destinationFitnessValue;
+							/*Update predation and food values*/
+							localePredationSafety=destinationPredationSafety;
+							localeFoodBiomass=destinationFoodBiomass;
+							cohort.predatorFitness=currentCellTooPredated?predatorFitnessType::Predator:predatorFitnessType::Food;
+							currentCellTooPredated= localePredationSafety<this->minimum_predation_safety;
 						}
 						/* Update the number of search steps per group*/
 						searchStepCounter++;
 					}
 				}
+			}
 			}
 	}
 	//(*it)*=0.9f;
@@ -1981,7 +2004,7 @@ void AnimalBiomassDynamics::registerMigration(){
 //	}
 	if(tracedCohort.numberOfIndividuals!=0){
 		biomassType fitnessDifference = tracedCohort.currentFitnessValue-tracedCohort.previousFitnessValue;
-		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<this->indexToDepth[tracedCohort.x]<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<lakeLightAtDepth[0][tracedCohort.y]<<commaString<<planktivoreBiomass[0][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.previousFitnessValue<<commaString<<tracedCohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<tracedCohort.hoursInStarvation<<commaString<<this->predatedIndividuals[tracedCohort.x][tracedCohort.y]<<commaString<<this->predatorSafety[tracedCohort.x][tracedCohort.y]/sumOptimalPredatorSafetyValues<<commaString<<this->predatorSafety[0][tracedCohort.y]/sumOptimalPredatorSafetyValues<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
+		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<this->indexToDepth[tracedCohort.x]<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<lakeLightAtDepth[0][tracedCohort.y]<<commaString<<tracedCohort.currentFoodBiomass<<commaString<<this->floatingFoodBiomass[0][tracedCohort.y]<<commaString<<planktivoreBiomass[0][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.previousFitnessValue<<commaString<<tracedCohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<tracedCohort.hoursInStarvation<<commaString<<this->predatedIndividuals[tracedCohort.x][tracedCohort.y]<<commaString<<this->predatorSafety[tracedCohort.x][tracedCohort.y]/sumOptimalPredatorSafetyValues<<commaString<<this->predatorSafety[0][tracedCohort.y]/sumOptimalPredatorSafetyValues<<commaString<<tracedCohort.predatorFitness<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
 //		if(tracedCohort.x!=0){
 //			cout<<"Non-zero depth detected."<<endl;
 //		}
@@ -2003,9 +2026,9 @@ void AnimalBiomassDynamics::findNormalizingFactors(){
 			sumOptimalFoodValues+=floatingFoodBiomass[depthIndex][columnIndex];
 		}
 	}
-#ifdef MINIMUM_PREDATION_SAFETY
+//#ifdef MINIMUM_PREDATION_SAFETY
 	sumOptimalPredatorSafetyValues=1.0f;
-#endif
+//#endif
 }
 
 physicalType AnimalBiomassDynamics::calculatePredatorSafety(int depthIndex, int columnIndex){

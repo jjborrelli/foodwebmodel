@@ -107,8 +107,8 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	outputPredatorFile<<"Depth, Column, Time, AlgaeType, PredatorBiomassDifferential, PredatorBiomass, PredatorCount"<<endl;
 #endif
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, DepthInMeters, LightAtDepth, LightAtSurface, PlanktivoreBiomassAtSurface, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, PredationSafetyAtSurface, Stage, CohortID"<<endl;
-	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, DepthInMeters, LightAtDepth, LightAtSurface, PlanktivoreBiomassAtSurface, LastMigration, GrazerCount, GrazerBiomass, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, PredationSafetyAtSurface, MigrationConstant, CohortID"<<endl;
+	outputGrazerFile<<", GonadBiomass, FoodBeforeEating, FoodAfterEating, Grazing, CarryingCapacity, ReproductionInvestment, StroganovAdjustment, DepthInMeters, LightAtDepth, LightAtSurface, FoodBiomass, FoodBiomassAtSurface, PlanktivoreBiomassAtSurface, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, PredationSafetyAtSurface, PredationFitness, Stage, CohortID"<<endl;
+	grazerTraceFile<<"Depth, Column, Time, AlgaeType, Stage, DepthInMeters, LightAtDepth, LightAtSurface, FoodBiomass, FoodBiomassAtSurface, PlanktivoreBiomassAtSurface, LastMigration, GrazerCount, GrazerBiomass, PreviousFitnessValue, CurrentFitnessValue, FitnessDifference, HoursInStarvation, PredatedBiomass, PredationSafety, PredationSafetyAtSurface, PredationFitness, MigrationConstant, CohortID"<<endl;
 	predatorTraceFile<<"Depth, Column, Time, AlgaeType, PredatorStage, PredatorIndividuals, PredatorBodyBiomass, PredatorGonadBiomass, PredatorCohortID"<<endl;
 #endif
 	outputPhysicalFile<<"Depth, Column, Time, AlgaeType, Temperature, TemperatureAngularFrequency, TemperatureSine, SaltAtDepthExponent, SaltConcentration, SaltEffect, SaltExponent, PhosphorusAtDepthExponent, PhosphorusConcentration, PhosphorusConcentrationAtBottom, LightAtTop"<<endl;
@@ -1471,6 +1471,8 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 		newCohort.justMatured=false;
 		newCohort.latestMigrationIndex=newCohort.hoursInStarvation=0;
 		newCohort.migrationConstant=-(this->grazer_layer_center_index-depthIndex);
+		newCohort.currentFitnessValue=newCohort.currentFoodBiomass=newCohort.currentPredatorSafety=0.0f;
+		newCohort.predatorFitness=predatorFitnessType::Unassigned;
 		if(abs<int>((int)newCohort.migrationConstant)>2){
 			cout<<"Far away elements."<<endl;
 		}

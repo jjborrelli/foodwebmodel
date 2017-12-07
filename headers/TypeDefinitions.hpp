@@ -146,6 +146,7 @@ typedef struct {
 #ifdef INDIVIDUAL_BASED_ANIMALS
 typedef enum {Egg=0, Juvenile=1, Mature=2} AnimalStage;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
+typedef enum {Predator=0, Food=1, Unassigned=2} predatorFitnessType;
 
 typedef struct {
 	mutable int x, y, ageInHours, latestMigrationIndex;
@@ -157,7 +158,12 @@ typedef struct {
 	bool isBottomAnimal, upDirection, justMatured;
 	mutable animalCountType numberOfIndividuals;
 	mutable biomassType bodyBiomass, gonadBiomass, starvationBiomass;
+
+	/* Fitness metrics*/
 	mutable biomassType previousFitnessValue, currentFitnessValue;
+	mutable biomassType currentPredatorSafety, currentFoodBiomass;
+	/* Predator if the fitness is predator fitness (current cell too predated), food otherwise*/
+	predatorFitnessType predatorFitness;
 	int hoursInStarvation;
 	cohortIDType cohortID;
 } AnimalCohort;

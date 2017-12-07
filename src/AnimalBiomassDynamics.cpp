@@ -76,6 +76,18 @@ void operator*=(AnimalCohort& cohort1, const double number){
 }
 
 
+AnimalCohort operator*(const AnimalCohort& cohort1, const double number){
+	AnimalCohort returnedCohort=cohort1;
+	returnedCohort.bodyBiomass*=number;
+	returnedCohort.gonadBiomass*=number;
+	returnedCohort.numberOfIndividuals*=number;
+	 if(returnedCohort.numberOfIndividuals<0){
+		 cout<<"Error. Negative product of individuals."<<endl;
+	 }
+	 return returnedCohort;
+
+}
+
 namespace FoodWebModel {
 
 AnimalBiomassDynamics::AnimalBiomassDynamics():animalRandomGenerator(NULL) {
@@ -1591,11 +1603,12 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 
 /* Migrate juvenile cohorts assuming a stochastic approach. Cohorts might move to a suboptimal cell to escape from local maxima*/
 void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
+	generateMigrationIndexes();
 	double searchStepCounter=1;
 	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
-//	if(currentCellTooDark){
-//		cout<<"Cell too dark."<<endl;
-//	}
+	//	if(currentCellTooDark){
+	//		cout<<"Cell too dark."<<endl;
+	//	}
 #ifdef	LINEAR_MIGRATION_COMBINATION
 	biomassType originFitnessValue = localeFitnessValue[localeVerticalCoordinate][localeHorizontalCoordinate];
 #else
@@ -1607,11 +1620,11 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	}
 #endif
 	/* Check if the group is in a cell that is too predated. Therefore, daphnia will migrate out of it*/
-		biomassType localePredationSafety=cohort.currentPredatorSafety=predatorSafety[localeVerticalCoordinate][localeHorizontalCoordinate],
-				localeFoodBiomass=cohort.currentFoodBiomass=floatingFoodBiomass[localeVerticalCoordinate][localeHorizontalCoordinate];
-		bool currentCellTooPredated= localePredationSafety<this->minimum_predation_safety;
-		cohort.predatorFitness=currentCellTooPredated?predatorFitnessType::Predator:predatorFitnessType::Food;
-		/* If the cell is too predated, the fitness value is predator safety. Otherwise, the fitness value is food*/
+	biomassType localePredationSafety=cohort.currentPredatorSafety=predatorSafety[localeVerticalCoordinate][localeHorizontalCoordinate],
+			localeFoodBiomass=cohort.currentFoodBiomass=floatingFoodBiomass[localeVerticalCoordinate][localeHorizontalCoordinate];
+	bool currentCellTooPredated= localePredationSafety<this->minimum_predation_safety;
+	cohort.predatorFitness=currentCellTooPredated?predatorFitnessType::Predator:predatorFitnessType::Food;
+	/* If the cell is too predated, the fitness value is predator safety. Otherwise, the fitness value is food*/
 	originFitnessValue = currentCellTooPredated?predatorSafety[localeVerticalCoordinate][localeHorizontalCoordinate]:
 			floatingFoodBiomass[localeVerticalCoordinate][localeHorizontalCoordinate];
 	cohort.previousFitnessValue =cohort.currentFitnessValue= originFitnessValue;
@@ -1619,17 +1632,17 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 			migrationIndexPair != hourlyMigrationIndexPairs->end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
 		/* Retrieve migration indexes*/
 		int verticalIndex=migrationIndexPair->first, horizontalIndex=migrationIndexPair->second;
-			/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
-			int destinationVertical = localeVerticalCoordinate+verticalIndex;
-			int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
-			if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
-				if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
-					/* Calculate destination predation safety and food*/
-					biomassType destinationPredationSafety = predatorSafety[destinationVertical][destinationHorizontal],
-							destinationFoodBiomass=floatingFoodBiomass[destinationVertical][destinationHorizontal];
-					/*If the cell exists and has enough light, attempt movement. If the current cell is too dark and the destination cell has more light, attempt movement*/
-					if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
-						if(destinationPredationSafety>=this->minimum_predation_safety||(currentCellTooPredated&&(destinationPredationSafety>localePredationSafety))){
+		/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
+		int destinationVertical = localeVerticalCoordinate+verticalIndex;
+		int destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
+		if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
+			if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX){
+				/* Calculate destination predation safety and food*/
+				biomassType destinationPredationSafety = predatorSafety[destinationVertical][destinationHorizontal],
+						destinationFoodBiomass=floatingFoodBiomass[destinationVertical][destinationHorizontal];
+				/*If the cell exists and has enough light, attempt movement. If the current cell is too dark and the destination cell has more light, attempt movement*/
+				if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
+					if(destinationPredationSafety>=this->minimum_predation_safety||(currentCellTooPredated&&(destinationPredationSafety>localePredationSafety))){
 						/*If the cell is reachable*/
 #ifdef	LINEAR_MIGRATION_COMBINATION
 						biomassType destinationFitnessValue = localeFitnessValue[destinationVertical][destinationHorizontal];
@@ -1642,7 +1655,7 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 #endif
 						/* If the cell is too predated, the fitness value is predator safety. Otherwise, the fitness value is food*/
 						destinationFitnessValue = currentCellTooPredated?predatorSafety[destinationVertical][destinationHorizontal]:
-																floatingFoodBiomass[destinationVertical][destinationHorizontal];
+								floatingFoodBiomass[destinationVertical][destinationHorizontal];
 						bool destinationSafetyGreater=destinationPredationSafety>localePredationSafety,
 								destinationFoodGreater=destinationFoodBiomass>localeFoodBiomass;
 						/* Marker to check if the cohort moves or not*/
@@ -1677,7 +1690,7 @@ void AnimalBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 					}
 				}
 			}
-			}
+		}
 	}
 	//(*it)*=0.9f;
 	/*Migrate traced cohort as a special case*/
@@ -2107,7 +2120,37 @@ void AnimalBiomassDynamics::agglomerateCohorts(vector<AnimalCohort> *animals){
 	animals->clear();
 	for(map<pair<int,int>,AnimalCohort>::iterator it=animalMigrationBuffer.begin(); it!=animalMigrationBuffer.end(); ++it){
 		/* Put the cohorts back in the vector*/
-		animals->push_back(it->second);
+		AnimalCohort iteratedCohort = it->second;
+#ifdef SPLIT_COHORTS
+		if(iteratedCohort.numberOfIndividuals>this->cohort_splitting_limit){
+			/* If there are more animals than the maximum allowed per cohort, split in multiple cohorts*/
+			/* A counter will be used to count the remaining individuals to reassign to new cohorts*/
+			animalCountType remainingIndividuals=iteratedCohort.numberOfIndividuals;
+			bool gonadBiomassAssigned=false;
+			while(remainingIndividuals>0){
+				animalCountType cohortIndividuals = min<animalCountType>(this->cohort_splitting_limit, remainingIndividuals);
+				remainingIndividuals-=cohortIndividuals;
+				/* Cohort biomass is distributed according to the number of individuals in the cohort*/
+				double biomassProportion = ((double)cohortIndividuals)/((double)iteratedCohort.numberOfIndividuals);
+				AnimalCohort aggregatedCohort=iteratedCohort*biomassProportion;
+				aggregatedCohort.numberOfIndividuals=cohortIndividuals;
+				aggregatedCohort.cohortID=(*this->cohortID)++;
+				/* Gonad biomass is assigned to a single cohort to avoid dispersion*/
+				if(!gonadBiomassAssigned){
+					aggregatedCohort.gonadBiomass=iteratedCohort.gonadBiomass;
+					gonadBiomassAssigned=true;
+				}else{
+					aggregatedCohort.gonadBiomass=0.0f;
+				}
+				animals->push_back(aggregatedCohort);
+			}
+		} else{
+			/* Otherwise, add the entire cohort*/
+			animals->push_back(iteratedCohort);
+		}
+#else
+		animals->push_back(iteratedCohort);
+#endif
 	}
 //	cout<<"Number of animals: "<<animals->size()<<"."<<endl;
 }

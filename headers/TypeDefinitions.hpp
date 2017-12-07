@@ -114,7 +114,7 @@ typedef struct {
 	int max_vertical_migration, max_horizontal_migration;
 	int grazer_max_search_steps;
 	double grazer_random_walk_probability_weight;
-
+	animalCountType grazer_cohort_splitting_limit;
 
 	int planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
 

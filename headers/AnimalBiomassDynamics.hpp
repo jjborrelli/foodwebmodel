@@ -106,7 +106,7 @@ protected:
 
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
-//	cohortIDType *cohortID;
+	cohortIDType *cohortID;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
 
 	/* Zooplankton parameter weights*/
@@ -204,6 +204,9 @@ protected:
 	/* Starvation parameters affecting migration*/
 	double ind_food_starvation_threshold;
 	int starvation_max_hours;
+
+	/* Maximum number of animals allowed per cohort*/
+	animalCountType cohort_splitting_limit;
 
 	/* Migration based on random walk*/
 	int max_vertical_migration, max_horizontal_migration;

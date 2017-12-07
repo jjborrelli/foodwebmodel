@@ -308,12 +308,13 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.max_search_steps = simArguments.grazer_max_search_steps;
 	grazerDynamics.random_walk_probability_weight= simArguments.grazer_random_walk_probability_weight;
 	grazerDynamics.minimum_predation_safety=simArguments.grazer_minimum_predation_safety;
+	grazerDynamics.cohort_splitting_limit=simArguments.grazer_cohort_splitting_limit;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
 #endif
 	grazerDynamics.animalRandomGenerator=this->randomNumberGenerator;
 
-//	grazerDynamics.cohortID=&(this->cohortID);
+	grazerDynamics.cohortID=&(this->cohortID);
 
 }
 
@@ -535,6 +536,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 #ifdef CONGLOMERATE_ALL_COHORTS
 	cout<<"Using cohort conglomerate."<<endl;
+#ifdef SPLIT_COHORTS
+	cout<<"Splitting cohorts."<<endl;
+#else
+	cout<<"Not splitting cohorts."<<endl;
+#endif
 #else
 	cout<<"Using animal cohort vector."<<endl;
 #endif
@@ -619,6 +625,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using maximum migration search steps "<<grazerDynamics.max_search_steps<<"."<<endl;
 	cout<<"Using random walk probability weight "<<grazerDynamics.random_walk_probability_weight<<"."<<endl;
 	cout<<"Using maximum predation safety "<<grazerDynamics.minimum_predation_safety<<"."<<endl;
+	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
@@ -728,6 +735,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"MaxSearchSteps;"<<grazerDynamics.max_search_steps<<endl;
 		parameterFileStream<<"RandomWalkProbabilityWeight;"<<grazerDynamics.random_walk_probability_weight<<endl;
 		parameterFileStream<<"GrazerMinimumPredationSafety;"<<grazerDynamics.minimum_predation_safety<<endl;
+		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS

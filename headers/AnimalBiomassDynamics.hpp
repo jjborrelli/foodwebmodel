@@ -176,7 +176,9 @@ protected:
 
 	/* Fitness value per cell for each depth and column*/
 	biomassType predatorSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	biomassType normalizedFloatingFoodBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+//	biomassType lightSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/*Summing of optimal values for normalization*/
 	physicalType sumOptimalPredatorSafetyValues, sumOptimalFoodValues;
@@ -217,9 +219,12 @@ protected:
 #endif
 	vector<pair<int,int>>* hourlyMigrationIndexPairs;
 	bool dayTime;
+
+	/*Input parameters for migration*/
 	unsigned int max_search_steps;
 	double random_walk_probability_weight;
 	biomassType minimum_predation_safety;
+	physicalType maximum_light_tolerated, light_safety_weight;
 
 	/* Minimum tolerable light for Daphnia*/
 	physicalType minimum_tolerable_light;

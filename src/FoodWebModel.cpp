@@ -308,6 +308,8 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.max_search_steps = simArguments.grazer_max_search_steps;
 	grazerDynamics.random_walk_probability_weight= simArguments.grazer_random_walk_probability_weight;
 	grazerDynamics.minimum_predation_safety=simArguments.grazer_minimum_predation_safety;
+	grazerDynamics.maximum_light_tolerated=simArguments.grazer_maximum_light_tolerated;
+	grazerDynamics.light_safety_weight=simArguments.grazer_light_safety_weight;
 	grazerDynamics.cohort_splitting_limit=simArguments.grazer_cohort_splitting_limit;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
@@ -625,6 +627,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using maximum migration search steps "<<grazerDynamics.max_search_steps<<"."<<endl;
 	cout<<"Using random walk probability weight "<<grazerDynamics.random_walk_probability_weight<<"."<<endl;
 	cout<<"Using maximum predation safety "<<grazerDynamics.minimum_predation_safety<<"."<<endl;
+	cout<<"Using maximum light tolerated "<<grazerDynamics.maximum_light_tolerated<<"."<<endl;
+	cout<<"Using grazer light safety weight "<<grazerDynamics.light_safety_weight<<"."<<endl;
 	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
@@ -735,6 +739,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"MaxSearchSteps;"<<grazerDynamics.max_search_steps<<endl;
 		parameterFileStream<<"RandomWalkProbabilityWeight;"<<grazerDynamics.random_walk_probability_weight<<endl;
 		parameterFileStream<<"GrazerMinimumPredationSafety;"<<grazerDynamics.minimum_predation_safety<<endl;
+		parameterFileStream<<"GrazerMaximumLightTolerated;"<<grazerDynamics.maximum_light_tolerated<<endl;
+		parameterFileStream<<"GrazerLightSafetyWeight;"<<grazerDynamics.light_safety_weight<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;

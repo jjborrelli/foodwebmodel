@@ -539,6 +539,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_minimum_predation_safety=atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerMaximumLightTolerated")){
+			simArguments.grazer_maximum_light_tolerated=atof(parameterValue.c_str());
+			return;
+		}
+	if(!parameterName.compare("GrazerLightSafetyWeight")){
+				simArguments.grazer_light_safety_weight=atof(parameterValue.c_str());
+				return;
+			}
 	if(!parameterName.compare("GrazerCohortSplittingLimit")){
 		simArguments.grazer_cohort_splitting_limit=atoi(parameterValue.c_str());
 		return;

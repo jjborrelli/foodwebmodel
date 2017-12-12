@@ -310,6 +310,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.minimum_predation_safety=simArguments.grazer_minimum_predation_safety;
 	grazerDynamics.maximum_light_tolerated=simArguments.grazer_maximum_light_tolerated;
 	grazerDynamics.light_safety_weight=simArguments.grazer_light_safety_weight;
+	grazerDynamics.light_safety_threshold=simArguments.grazer_light_safety_threshold;
 	grazerDynamics.cohort_splitting_limit=simArguments.grazer_cohort_splitting_limit;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
@@ -567,6 +568,11 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Not using minimum predation safety threshold"<<endl;
 #endif
+#ifdef THRESHOLD_LIGHT_SAFETY
+	cout<<"Using threshold light safety"<<endl;
+#else
+	cout<<"Not using threshold light safety"<<endl;
+#endif
 	cout<<"Using phosphorous weight "<<this->phosphorous_weight<<"."<<endl;
 	cout<<"Using decaying phosphorous factor "<<this->decaying_phosphorus_factor<<"."<<endl;
 	cout<<"Using retained phosphorous factor "<<this->retained_phosphorus_factor<<"."<<endl;
@@ -629,6 +635,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using maximum predation safety "<<grazerDynamics.minimum_predation_safety<<"."<<endl;
 	cout<<"Using maximum light tolerated "<<grazerDynamics.maximum_light_tolerated<<"."<<endl;
 	cout<<"Using grazer light safety weight "<<grazerDynamics.light_safety_weight<<"."<<endl;
+	cout<<"Using grazer light safety threshold "<<grazerDynamics.light_safety_threshold<<"."<<endl;
 	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
@@ -741,6 +748,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerMinimumPredationSafety;"<<grazerDynamics.minimum_predation_safety<<endl;
 		parameterFileStream<<"GrazerMaximumLightTolerated;"<<grazerDynamics.maximum_light_tolerated<<endl;
 		parameterFileStream<<"GrazerLightSafetyWeight;"<<grazerDynamics.light_safety_weight<<endl;
+		parameterFileStream<<"GrazerLightSafetyThreshold;"<<grazerDynamics.light_safety_threshold<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
 		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;

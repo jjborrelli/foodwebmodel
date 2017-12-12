@@ -106,6 +106,8 @@ protected:
 
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
+	/* Number of cells in the system*/
+	unsigned int cell_counter;
 	cohortIDType *cohortID;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
 
@@ -178,10 +180,12 @@ protected:
 	biomassType predatorSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType normalizedFloatingFoodBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-//	biomassType lightSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+#ifndef THRESHOLD_LIGHT_SAFETY
+	biomassType lightSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], averageLightSafety;
+#endif
 
 	/*Summing of optimal values for normalization*/
-	physicalType sumOptimalPredatorSafetyValues, sumOptimalFoodValues;
+	physicalType averagePredatorSafety, averageFood;
 
 	/*Migration score weight*/
 	physicalType light_migration_weight;
@@ -224,7 +228,7 @@ protected:
 	unsigned int max_search_steps;
 	double random_walk_probability_weight;
 	biomassType minimum_predation_safety;
-	physicalType maximum_light_tolerated, light_safety_weight;
+	physicalType maximum_light_tolerated, light_safety_weight, light_safety_threshold;
 
 	/* Minimum tolerable light for Daphnia*/
 	physicalType minimum_tolerable_light;

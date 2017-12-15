@@ -441,7 +441,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	cohort.bodyBiomass+=bodyBiomassInvestment;
 //	cohort.numberOfIndividuals=cohort.bodyBiomass/(biomassType)initial_grazer_weight[cohort.stage];
 	/*Remove dead animals in the cohort*/
-	if(animal_mortality>0){
+//	if(animal_mortality>0){
 		biomassType biomassAfterEating = getFoodBiomass(cohort);
 		if(biomassAfterEating==0.0f){
 			/* If there is no food, all individuals die*/
@@ -450,9 +450,10 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //			deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		} else{
 			/* Otherwise, only a number die*/
-			biomassType starvationProportion = (cohort.numberOfIndividuals/biomassAfterEating);
-			starvationProportion*=this->starvation_factor;
-			natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+			animalCountType starvationProportion = (cohort.numberOfIndividuals/biomassAfterEating)*this->starvation_factor;
+//			starvationProportion*=this->starvation_factor;
+			//natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+			natural_dead_individuals=this->animal_base_mortality_proportion*cohort.numberOfIndividuals+starvationProportion;
 //			if(cohort.numberOfIndividuals<=natural_dead_individuals){
 //				cout<<"Zero individuals."<<endl;
 //			}
@@ -466,7 +467,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 		if(cohort.numberOfIndividuals<0){
 			cout<<"Error. Negative dying individuals."<<endl;
 		}
-	}
+//	}
 	/* Calculate predation mortality */
 	if(cohort.numberOfIndividuals>0){
 		if(planktivoreBiomass[cohort.x][cohort.y]>0.0f){

@@ -1871,10 +1871,11 @@ physicalType FoodWebModel::FoodWebModel::calculateNutrientLimitation(biomassType
 		biomassType chemical_concentration_in_grams=phosphorusConcentration*MICROGRAM_TO_GRAM*M3_TO_LITER;
 		nutrient_limitation=chemical_concentration_in_grams/(chemical_concentration_in_grams+this->phosphorus_half_saturation);
 #elif defined(SEVERAL_LEVELS_LIMITATION_QUOTIENT)
-		nutrient_limitation = 1;///(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
+		nutrient_limitation = 1.0f;///(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_1));
 		  if(phosphorusConcentration>functionalStep){
 			  /* Formula taken from [1] H. Xu, H. W. Paerl, B. Qin, G. Zhu, and G. Gaoa, “Nitrogen and phosphorus inputs control phytoplankton growth in eutrophic Lake Taihu, China,” Limnol. Oceanogr., vol. 55, no. 1, pp. 420–432, Jan. 2010.*/
-			  constant1*phosphorusConcentration/(phosphorusConcentration+constant2)/HOURS_PER_DAY+1.0f;
+//			  nutrient_limitation = constant1*phosphorusConcentration/(phosphorusConcentration+constant2)/HOURS_PER_DAY+1.0f;
+			  nutrient_limitation = constant1*phosphorusConcentration/(phosphorusConcentration+constant2)/HOURS_PER_DAY;
 //			  nutrient_limitation = 1/(1+this->phosphorus_half_saturation*exp(-phosphorusConcentration*this->phosphorus_functional_factor+this->phosphorus_functional_constant_response_2))+1;
 		  }
 #else

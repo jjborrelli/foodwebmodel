@@ -80,6 +80,7 @@ typedef struct {
 	grazer_dead_animals_per_lost_biomass_and_concentration,
 	grazer_maximum_found_biomass,
 	grazer_food_starvation_threshold,
+	grazer_maximum_gonad_weight_allocation,
 	grazer_egg_allocation_threshold,
 	grazer_starvation_factor,
 	grazer_dead_animal_proportion,

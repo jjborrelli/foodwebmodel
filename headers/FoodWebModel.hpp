@@ -21,6 +21,8 @@
 #include "ModelConstants.hpp"
 #include "ReadProcessedData.hpp"
 #include "AnimalBiomassDynamics.hpp"
+#include "FishBiomassDynamics.hpp"
+#include "GrazerBiomassDynamics.hpp"
 
 
 
@@ -172,7 +174,8 @@ namespace FoodWebModel {
 		std::ofstream outputAssertionViolationFile;
 		#endif
 
-		AnimalBiomassDynamics grazerDynamics, predatorDynamics;
+		GrazerBiomassDynamics grazerDynamics;
+		FishBiomassDynamics planktivoreDynamics;
 
 
 		/* Generator of random numbers */
@@ -210,7 +213,9 @@ namespace FoodWebModel {
 		void printSimulationMode();
 		void writeSimulatedParameters(const string& parameterSimulationRoute);
 		void setFileParameters(const SimulationArguments& simArguments);
-		void initializeGrazerAttributes(const SimulationArguments& simArguments);
+		void initializeAnimalAttributes(const SimulationArguments& simArguments);
+		void initializeGrazerAttributes(const SimulationArguments& simArguments, GrazerBiomassDynamics& grazerDynamics);
+		void initializeAnimalAttributes(const SimulationArguments& simArguments, AnimalBiomassDynamics& speciesDynamics);
 		void openSimulationFiles(const SimulationArguments& simArguments);
 		void closeSimulationFiles();
 
@@ -254,7 +259,7 @@ namespace FoodWebModel {
 		void calculateAlgalCarryingCapacityMortality(biomassType localPointBiomass);
 		void algaeSinking(int depthIndex, int columnIndex);
 		void algaeSlough(int columnIndex);
-	void copyPointersToAnimalDynamics();
+		void copyPointersToAnimalDynamics();
 };
 }
 

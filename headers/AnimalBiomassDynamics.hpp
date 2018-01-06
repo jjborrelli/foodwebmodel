@@ -22,6 +22,7 @@ namespace FoodWebModel {
 
 class AnimalBiomassDynamics {
 	friend class FoodWebModel;
+	friend class FishBiomassDynamics;
 public:
 	AnimalBiomassDynamics();
 	virtual ~AnimalBiomassDynamics();
@@ -100,9 +101,10 @@ protected:
 #endif
 
 	biomassType initial_grazer_weight[MAX_CLASS_INDEX];
-	/* Food biomass and differential in micrograms*/
-	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
-	biomassType *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
+
+	/* Safety of cells according to predation risk*/
+	biomassType predation_index;
+	biomassType predatorSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/* Pointers connecting to the physical model*/
 	unsigned int *maxDepthIndex, *current_hour;
@@ -110,6 +112,16 @@ protected:
 	unsigned int cell_counter;
 	cohortIDType *cohortID;
 	physicalType *salinity_effect_matrix[MAX_DEPTH_INDEX];
+
+
+
+	/* Best depth index per column*/
+
+	int optimalDepthIndexes[MAX_COLUMN_INDEX];
+
+	/* Fitness value per cell for each depth and column*/
+	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	biomassType normalizedFloatingFoodBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/* Zooplankton parameter weights*/
 	biomassType animal_base_mortality_proportion;
@@ -151,38 +163,27 @@ protected:
 	/* Animal physical attributes*/
 	physicalType stroganov_adjustment, ZMax;
 
-	/* Animal migration attributes*/
-	biomassType floatingAnimalBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
-	biomassType verticalMigrationAnimalBiomassBuffer[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	/* Grazer individual count. Transformed to biomass using the rule: (count*grazer weight in micrograms)*/
 	biomassType foodPreferenceScore[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 	/* Gonad biomass allocation */
-	double reproduction_proportion_investment_amplitude, reproduction_proportion_investment_coefficient, reproduction_proportion_investment_intercept, reproduction_proportion_investment_constant, reproduction_proportion_investment_multiplier, dead_animal_proportion;
+	double reproduction_proportion_investment_amplitude, reproduction_proportion_investment_coefficient, reproduction_proportion_investment_intercept, reproduction_proportion_investment_constant, reproduction_proportion_investment_multiplier, dead_animal_proportion, maximum_gonad_weight_allocation;
 
 
 	/* Gonad biomass metrics */
 	biomassType reproduction_investment_subtraction, reproduction_investment_exponent, reproduction_investment_power;
 
 	biomassType locale_algae_biomass_before_eating, locale_algae_biomass_after_eating;
+
+
+	/* Food biomass and differential in micrograms*/
+	biomassType *floatingFoodBiomass[MAX_DEPTH_INDEX], *bottomFoodBiomass;
+	biomassType *floatingFoodBiomassDifferential[MAX_DEPTH_INDEX], *bottomFoodBiomassDifferential;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	/* Dead biomass */
 	biomassType *deadFloatingBiomass[MAX_DEPTH_INDEX], *deadBottomBiomass;
 #endif
-	physicalType reabsorbed_animal_nutrients_proportion, critical_depth, critical_light_intensity, velocity_downward_pull, light_optimal_value;
-	std::default_random_engine* animalRandomGenerator;
 
-	/* Best depth index per column*/
-
-	int optimalDepthIndexes[MAX_COLUMN_INDEX];
-
-	/* Fitness value per cell for each depth and column*/
-	biomassType predatorSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-	biomassType normalizedFloatingFoodBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-	biomassType localeFitnessValue[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-#ifndef THRESHOLD_LIGHT_SAFETY
-	biomassType lightSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], averageLightSafety;
-#endif
 
 	/*Summing of optimal values for normalization*/
 	physicalType averagePredatorSafety, averageFood;
@@ -190,19 +191,8 @@ protected:
 	/*Migration score weight*/
 	physicalType light_migration_weight;
 
-
-	/* Kairomone parameters*/
-	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline;
-
-	/* Kairomone concentration at depth. This will be eventually in the instance modeling planktivore dynamics*/
-	biomassType kairomoneConcentration[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-
-	/* Distribution of planktivore biomass across depths*/
-	biomassType planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
-	biomassType predation_index;
-
-	/*Planktivore biomass at each depth and column */
-	biomassType planktivoreBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	/* Generator for random numbers*/
+	std::default_random_engine* animalRandomGenerator;
 
 	/* Predated indiviuals in the current step. An array is used instead of an attribute in the Cohort structure because we are interested in the individuals predated in the current step*/
 	animalCountType predatedIndividuals[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -228,14 +218,24 @@ protected:
 	unsigned int max_search_steps;
 	double random_walk_probability_weight;
 	biomassType minimum_predation_safety;
+
+	/*Parameters relative to light*/
+#ifndef THRESHOLD_LIGHT_SAFETY
+	biomassType lightSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], averageLightSafety;
+#endif
+
 	physicalType maximum_light_tolerated, light_safety_weight, light_safety_threshold;
 
 	/* Minimum tolerable light for Daphnia*/
 	physicalType minimum_tolerable_light;
+
 	/*Special traced adult cohort and flag to set that it has been created*/
 	AnimalCohort tracedCohort;
 	int tracedCohortID;
 
+
+	/*Planktivore biomass at each depth and column */
+	biomassType predatorBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
@@ -260,7 +260,7 @@ private:
 #endif
 
 	/* Methods for updating the biomass in animals*/
-	void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, double consumedProportion=1.0f);
+	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, double consumedProportion=1.0f)=0;
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
 	biomassType basalRespiration(biomassType zooBiomass);
@@ -270,6 +270,9 @@ private:
 	void animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
+	biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
+	virtual void predateCohort(AnimalCohort& cohort)=0;
+	virtual biomassType getFoodBiomass(bool bottom, int depthIndex, int columnIndex);
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 	/* Migration methods */
@@ -277,7 +280,7 @@ private:
 	void migrateAnimalCohorts();
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
-	bool updateMigrationTable(AnimalCohort& cohort, int migrateStep);
+
 	void clearMigrationParameters();
 
 	/* Different methods for adult migration (map-based)*/
@@ -297,7 +300,7 @@ private:
 	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
 	void migrateJuvenileCohortDepthDependent(AnimalCohort& cohort);
 	void migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it);
-	void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
+	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 
 	/*If animals consume during migration, use these methods*/
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
@@ -308,12 +311,11 @@ private:
 	void findOptimalDepthIndex(unsigned int column);
 	void findNormalizingFactors();
 
-	void calculateKairomonesConcetration();
 	physicalType calculatePredatorSafety(int initialDepth, int finalDepth);
 
-	void calculatePlanktivoreBiomass();
+	virtual void calculatePredatorBiomass()=0;
 
-	void generateMigrationIndexes();
+
 
 	/*Maturation and reproduction methods*/
 #ifdef ANIMAL_STARVATION_HOURS_WITHOUT_FOOD
@@ -345,9 +347,8 @@ private:
 	void matureEggs(set<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #endif
 #endif
-	biomassType getFoodBiomass(AnimalCohort& cohort);
+	virtual biomassType getFoodBiomass(const AnimalCohort& cohort);
 #endif
-	biomassType getFoodBiomass(bool bottom, int columnIndex, int depthIndex);
 
 	/* External factors affecting animal metabolism*/
 	void salinityMortality(biomassType localeBiomass);
@@ -361,8 +362,9 @@ private:
 //	void verticalMigrateAnimalsPreference();
 	void calculateLocalPreferenceScore();
 	void reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom);
-
-
+protected:
+	bool updateMigrationTable(AnimalCohort& cohort, int migrateStep);
+	void generateMigrationIndexes();
 };
 
 } /* namespace FoodWebModel */

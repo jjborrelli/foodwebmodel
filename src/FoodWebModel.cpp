@@ -21,7 +21,7 @@ string operator+(string arg1, int arg2){
 
 void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 #ifdef CHECK_ASSERTIONS
-	grazerDynamics.assertionViolationBuffer = &assertionViolationBuffer;
+	planktivoreDynamics.assertionViolationBuffer =grazerDynamics.assertionViolationBuffer = &assertionViolationBuffer;
 #endif
 	/* Set grazer count and biomass pointers to the grazer dynamics objects*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -41,27 +41,27 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 #endif
 	grazerDynamics.bottomFoodBiomass = periBiomass;
 	grazerDynamics.bottomFoodBiomassDifferential = periBiomassDifferential;
-	grazerDynamics.maxDepthIndex = maxDepthIndex;
+	planktivoreDynamics.maxDepthIndex = grazerDynamics.maxDepthIndex = maxDepthIndex;
 	for(int i=0; i<HOURS_PER_DAY; i++){
-		grazerDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=zooplanktonBiomassCenterDifferencePerDepth[i];
+		planktivoreDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=grazerDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=zooplanktonBiomassCenterDifferencePerDepth[i];
 
 	}
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.deadBottomBiomass=deadBottomBiomass;
 #endif
-	grazerDynamics.current_hour = &current_hour;
-	grazerDynamics.indexToDepth=indexToDepth;
+	planktivoreDynamics.current_hour =grazerDynamics.current_hour = &current_hour;
+	planktivoreDynamics.indexToDepth=grazerDynamics.indexToDepth=indexToDepth;
 	for (unsigned int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX;
 			depthIndex++) {
 		grazerDynamics.floatingFoodBiomass[depthIndex] =
 				phytoBiomass[depthIndex];
 		grazerDynamics.floatingFoodBiomassDifferential[depthIndex] = phytoBiomassDifferential[depthIndex];
 
-		grazerDynamics.salinity_effect_matrix[depthIndex] =
+		planktivoreDynamics.salinity_effect_matrix[depthIndex] = grazerDynamics.salinity_effect_matrix[depthIndex] =
 				salinity_effect_matrix[depthIndex];
-		grazerDynamics.lakeLightAtDepth[depthIndex]=lakeLightAtDepth[depthIndex];
-		grazerDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
-		grazerDynamics.temperature[depthIndex]=temperature[depthIndex];
+		planktivoreDynamics.lakeLightAtDepth[depthIndex]=grazerDynamics.lakeLightAtDepth[depthIndex]=lakeLightAtDepth[depthIndex];
+		planktivoreDynamics.previousLakeLightAtDepth[depthIndex]=grazerDynamics.previousLakeLightAtDepth[depthIndex]=previousLakeLightAtDepth[depthIndex];
+		planktivoreDynamics.temperature[depthIndex]=grazerDynamics.temperature[depthIndex]=temperature[depthIndex];
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		grazerDynamics.deadFloatingBiomass[depthIndex]=deadFloatingBiomass[depthIndex];
 #endif
@@ -140,10 +140,10 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 #endif
 			outputAlgaeFile<<algaeBuffer.str();
 			outputGrazerFile<<grazerDynamics.animalBiomassBuffer.str();
-			outputPredatorFile<<predatorDynamics.animalBiomassBuffer.str();
+			outputPredatorFile<<planktivoreDynamics.animalBiomassBuffer.str();
 
 #ifdef EXTENDED_OUTPUT
-			predatorTraceFile<<predatorDynamics.animalTraceBuffer.str();
+			predatorTraceFile<<planktivoreDynamics.animalTraceBuffer.str();
 #endif
 		}
 
@@ -242,60 +242,16 @@ void FoodWebModel::FoodWebModel::setFileParameters(
 	this->random_seed=simArguments.random_seed;
 	this->randomNumberGenerator=new default_random_engine(this->random_seed);
 	srand(this->random_seed);
-	initializeGrazerAttributes(simArguments);
+	initializeAnimalAttributes(simArguments);
 }
 
+void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArguments& simArguments){
+	initializeAnimalAttributes(simArguments, grazerDynamics);
+	initializeGrazerAttributes(simArguments, grazerDynamics);
+	initializeAnimalAttributes(simArguments, planktivoreDynamics);
+}
 
-void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArguments& simArguments){
-	grazerDynamics.animal_base_mortality_proportion=
-			simArguments.grazer_base_mortality_proportion;
-	grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX/ this->ZMax;
-	simArguments.grazer_base_mortality_proportion;
-
-	grazerDynamics.vertical_migration_buffer_size = 2
-			* grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour + 1;
-	grazerDynamics.filtering_rate_per_daphnia = simArguments.grazer_filtering_rate_per_individual;
-	grazerDynamics.filtering_rate_per_individual_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
-	grazerDynamics.consumption_temperature_factor=simArguments.grazer_consumption_temperature_factor;
-	grazerDynamics.filtering_length_coefficient = simArguments.grazer_filtering_length_coefficient;
-	grazerDynamics.filtering_length_exponent = simArguments.grazer_filtering_length_exponent;
-	grazerDynamics.filtering_coefficient = simArguments.grazer_filtering_coefficient;
-	grazerDynamics.filtering_exponent = simArguments.grazer_filtering_exponent;
-	grazerDynamics.basal_respiration_weight = simArguments.grazer_basal_respiration_weight;
-	grazerDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
-	grazerDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
-	grazerDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
-	grazerDynamics.animal_carrying_capacity_amplitude = simArguments.grazer_carrying_capacity_amplitude;
-	grazerDynamics.animal_carrying_capacity_constant = simArguments.grazer_carrying_capacity_constant;
-	grazerDynamics.migration_consumption = simArguments.grazer_migration_consumption;
-	grazerDynamics.dead_animals_per_lost_biomass_and_concentration = simArguments.grazer_dead_animals_per_lost_biomass_and_concentration;
-	grazerDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
-	grazerDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
-	grazerDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
-	grazerDynamics.max_hours_without_food=simArguments.grazer_max_hours_without_food;
-	grazerDynamics.maximum_age_in_hours=simArguments.grazer_maximum_age_in_hours;
-	grazerDynamics.incubation_hours=simArguments.grazer_incubation_hours;
-	grazerDynamics.egg_allocation_threshold=simArguments.grazer_egg_allocation_threshold;
-	grazerDynamics.ovipositing_period=simArguments.grazer_ovipositing_period;
-	grazerDynamics.maturation_hours=simArguments.grazer_maturation_hours;
-	grazerDynamics.agglomeration_cohort_threshold=simArguments.grazer_agglomeration_cohort_threshold;
-	grazerDynamics.reproduction_proportion_investment_amplitude=simArguments.grazer_reproduction_proportion_investment_amplitude;
-	grazerDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
-	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
-	grazerDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
-	grazerDynamics.reproduction_proportion_investment_constant=simArguments.grazer_reproduction_proportion_investment_constant;
-	grazerDynamics.reproduction_proportion_investment_multiplier=simArguments.grazer_reproduction_proportion_investment_multiplier;
-	grazerDynamics.starvation_factor=simArguments.grazer_starvation_factor;
-	grazerDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
-	grazerDynamics.critical_depth=simArguments.grazer_critical_depth;
-	grazerDynamics.minimum_tolerable_light=simArguments.grazer_minimum_tolerable_light;
-	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
-	grazerDynamics.ind_food_starvation_threshold=simArguments.grazer_ind_food_starvation_threshold;
-	grazerDynamics.starvation_max_hours=simArguments.grazer_starvation_max_hours;
-	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
-	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
-	grazerDynamics.layer_center_index=simArguments.grazer_layer_center_index;
-	grazerDynamics.light_migration_weight=simArguments.grazer_light_migration_weight;
+void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArguments& simArguments, GrazerBiomassDynamics& grazerDynamics){
 	grazerDynamics.kairomones_level_day=simArguments.kairomones_level_day;
 	grazerDynamics.kairomones_level_night=simArguments.kairomones_level_night;
 	grazerDynamics.kairomones_thermocline=simArguments.kairomones_thermocline;
@@ -303,21 +259,72 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.planktivore_biomass_center_night=simArguments.planktivore_biomass_center_night;
 	grazerDynamics.planktivore_biomass_width=simArguments.planktivore_biomass_width;
 	grazerDynamics.predation_index=simArguments.grazer_predation_index;
-	grazerDynamics.max_vertical_migration=simArguments.max_vertical_migration;
-	grazerDynamics.max_horizontal_migration=simArguments.max_horizontal_migration;
-	grazerDynamics.max_search_steps = simArguments.grazer_max_search_steps;
-	grazerDynamics.random_walk_probability_weight= simArguments.grazer_random_walk_probability_weight;
-	grazerDynamics.minimum_predation_safety=simArguments.grazer_minimum_predation_safety;
-	grazerDynamics.maximum_light_tolerated=simArguments.grazer_maximum_light_tolerated;
-	grazerDynamics.light_safety_weight=simArguments.grazer_light_safety_weight;
-	grazerDynamics.light_safety_threshold=simArguments.grazer_light_safety_threshold;
-	grazerDynamics.cohort_splitting_limit=simArguments.grazer_cohort_splitting_limit;
-#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
-	grazerDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
-#endif
-	grazerDynamics.animalRandomGenerator=this->randomNumberGenerator;
+	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
+	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
+	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
+}
 
-	grazerDynamics.cohortID=&(this->cohortID);
+void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArguments& simArguments, AnimalBiomassDynamics& speciesDynamics){
+	speciesDynamics.animal_base_mortality_proportion=
+			simArguments.grazer_base_mortality_proportion;
+	speciesDynamics.maximum_distance_daphnia_swum_in_rows_per_hour=MAXIMUM_DISTANCE_DAPHNIA_SWUM_IN_METERS_PER_HOUR * MAX_COLUMN_INDEX/ this->ZMax;
+
+	speciesDynamics.vertical_migration_buffer_size = 2
+			* grazerDynamics.maximum_distance_daphnia_swum_in_rows_per_hour + 1;
+	speciesDynamics.filtering_rate_per_daphnia = simArguments.grazer_filtering_rate_per_individual;
+	speciesDynamics.filtering_rate_per_individual_in_cell_volume=grazerDynamics.filtering_rate_per_daphnia*(MILLILITER_TO_VOLUME_PER_CELL);
+	speciesDynamics.consumption_temperature_factor=simArguments.grazer_consumption_temperature_factor;
+	speciesDynamics.filtering_length_coefficient = simArguments.grazer_filtering_length_coefficient;
+	speciesDynamics.filtering_length_exponent = simArguments.grazer_filtering_length_exponent;
+	speciesDynamics.filtering_coefficient = simArguments.grazer_filtering_coefficient;
+	speciesDynamics.filtering_exponent = simArguments.grazer_filtering_exponent;
+	speciesDynamics.basal_respiration_weight = simArguments.grazer_basal_respiration_weight;
+	speciesDynamics.k_value_respiration = simArguments.grazer_k_value_respiration;
+	speciesDynamics.animal_carrying_capacity_coefficient = simArguments.grazer_carrying_capacity_coefficient;
+	speciesDynamics.animal_carrying_capacity_intercept = simArguments.grazer_carrying_capacity_intercept;
+	speciesDynamics.animal_carrying_capacity_amplitude = simArguments.grazer_carrying_capacity_amplitude;
+	speciesDynamics.animal_carrying_capacity_constant = simArguments.grazer_carrying_capacity_constant;
+	speciesDynamics.migration_consumption = simArguments.grazer_migration_consumption;
+	speciesDynamics.dead_animals_per_lost_biomass_and_concentration = simArguments.grazer_dead_animals_per_lost_biomass_and_concentration;
+	speciesDynamics.maximum_found_animal_biomass=simArguments.grazer_maximum_found_biomass;
+	speciesDynamics.food_conversion_factor=CELL_VOLUME_IN_LITER;
+	speciesDynamics.food_starvation_threshold=simArguments.grazer_food_starvation_threshold;
+	speciesDynamics.max_hours_without_food=simArguments.grazer_max_hours_without_food;
+	speciesDynamics.maximum_age_in_hours=simArguments.grazer_maximum_age_in_hours;
+	speciesDynamics.incubation_hours=simArguments.grazer_incubation_hours;
+	speciesDynamics.maximum_gonad_weight_allocation=simArguments.grazer_maximum_gonad_weight_allocation;
+	speciesDynamics.egg_allocation_threshold=simArguments.grazer_egg_allocation_threshold;
+	speciesDynamics.ovipositing_period=simArguments.grazer_ovipositing_period;
+	speciesDynamics.maturation_hours=simArguments.grazer_maturation_hours;
+	speciesDynamics.agglomeration_cohort_threshold=simArguments.grazer_agglomeration_cohort_threshold;
+	speciesDynamics.reproduction_proportion_investment_amplitude=simArguments.grazer_reproduction_proportion_investment_amplitude;
+	speciesDynamics.reproduction_proportion_investment_coefficient=simArguments.grazer_reproduction_proportion_investment_coefficient;
+	speciesDynamics.reproduction_proportion_investment_intercept=simArguments.grazer_reproduction_proportion_investment_intercept;
+	speciesDynamics.reproduction_proportion_investment_constant=simArguments.grazer_reproduction_proportion_investment_constant;
+	speciesDynamics.reproduction_proportion_investment_multiplier=simArguments.grazer_reproduction_proportion_investment_multiplier;
+	speciesDynamics.starvation_factor=simArguments.grazer_starvation_factor;
+	speciesDynamics.dead_animal_proportion=simArguments.grazer_dead_animal_proportion;
+	speciesDynamics.minimum_tolerable_light=simArguments.grazer_minimum_tolerable_light;
+	speciesDynamics.ind_food_starvation_threshold=simArguments.grazer_ind_food_starvation_threshold;
+	speciesDynamics.starvation_max_hours=simArguments.grazer_starvation_max_hours;
+	speciesDynamics.layer_center_index=simArguments.grazer_layer_center_index;
+	speciesDynamics.light_migration_weight=simArguments.grazer_light_migration_weight;
+
+	speciesDynamics.max_vertical_migration=simArguments.max_vertical_migration;
+	speciesDynamics.max_horizontal_migration=simArguments.max_horizontal_migration;
+	speciesDynamics.max_search_steps = simArguments.grazer_max_search_steps;
+	speciesDynamics.random_walk_probability_weight= simArguments.grazer_random_walk_probability_weight;
+	speciesDynamics.minimum_predation_safety=simArguments.grazer_minimum_predation_safety;
+	speciesDynamics.maximum_light_tolerated=simArguments.grazer_maximum_light_tolerated;
+	speciesDynamics.light_safety_weight=simArguments.grazer_light_safety_weight;
+	speciesDynamics.light_safety_threshold=simArguments.grazer_light_safety_threshold;
+	speciesDynamics.cohort_splitting_limit=simArguments.grazer_cohort_splitting_limit;
+#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	speciesDynamics.reabsorbed_animal_nutrients_proportion=simArguments.grazer_reabsorbed_animal_nutrients_proportion;
+#endif
+	speciesDynamics.animalRandomGenerator=this->randomNumberGenerator;
+
+	speciesDynamics.cohortID=&(this->cohortID);
 
 }
 
@@ -601,6 +608,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer food starvation threshold "<<grazerDynamics.food_starvation_threshold<<"."<<endl;
 	cout<<"Using grazer maximum age in hours "<<grazerDynamics.maximum_age_in_hours<<"."<<endl;
 	cout<<"Using grazer incubation hours "<<grazerDynamics.incubation_hours<<"."<<endl;
+	cout<<"Using maximum gonad allocation "<<grazerDynamics.maximum_gonad_weight_allocation<<"."<<endl;
 	cout<<"Using egg allocation threshold "<<grazerDynamics.egg_allocation_threshold<<"."<<endl;
 	cout<<"Using maximum found grazer biomass "<<grazerDynamics.maximum_found_animal_biomass<<"."<<endl;
 	cout<<"Using grazer ovipositing frequency "<<grazerDynamics.ovipositing_period<<"."<<endl;
@@ -614,10 +622,10 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer light migration weight "<<grazerDynamics.light_migration_weight<<"."<<endl;
 	cout<<"Using grazer starvation factor "<<grazerDynamics.starvation_factor<<"."<<endl;
 	cout<<"Using grazer dead animal proportion "<<grazerDynamics.dead_animal_proportion<<"."<<endl;
-	cout<<"Using grazer critical depth "<<grazerDynamics.critical_depth<<"."<<endl;
-	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
 	cout<<"Using grazer individual food starvation threshold "<<grazerDynamics.ind_food_starvation_threshold<<"."<<endl;
 	cout<<"Using grazer starvation max hours "<<grazerDynamics.starvation_max_hours<<"."<<endl;
+	cout<<"Using grazer critical depth "<<grazerDynamics.critical_depth<<"."<<endl;
+	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
 	cout<<"Using grazer critical light intensity "<<grazerDynamics.critical_light_intensity<<"."<<endl;
 	cout<<"Using grazer light optimal value "<<grazerDynamics.light_optimal_value<<"."<<endl;
 	cout<<"Using grazer velocity downward pull "<<grazerDynamics.velocity_downward_pull<<"."<<endl;
@@ -717,6 +725,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerMaximumFoundBiomass;"<<grazerDynamics.maximum_found_animal_biomass<<endl;
 		parameterFileStream<<"GrazerMaximumAgeInHours;"<<grazerDynamics.maximum_age_in_hours<<endl;
 		parameterFileStream<<"GrazerIncubationHours;"<<grazerDynamics.incubation_hours<<endl;
+		parameterFileStream<<"GrazerMaxGonadAllocation;"<<grazerDynamics.maximum_gonad_weight_allocation<<endl;
 		parameterFileStream<<"GrazerEggAllocationThreshold;"<<grazerDynamics.egg_allocation_threshold<<endl;
 		parameterFileStream<<"GrazerOvipositingFrequency;"<<grazerDynamics.ovipositing_period<<endl;
 		parameterFileStream<<"GrazerMaturationHours;"<<grazerDynamics.maturation_hours<<endl;
@@ -728,12 +737,11 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerReproductionProportionInvestmentMultiplier;"<<grazerDynamics.reproduction_proportion_investment_multiplier<<endl;
 		parameterFileStream<<"GrazerStarvationFactor;"<<grazerDynamics.starvation_factor<<endl;
 		parameterFileStream<<"GrazerDeadAnimalProportion;"<<grazerDynamics.dead_animal_proportion<<endl;
-		parameterFileStream<<"GrazerVelocityDownwardPull;"<<grazerDynamics.velocity_downward_pull<<endl;
-		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
+
 		parameterFileStream<<"GrazingStarvationThreshold;"<<grazerDynamics.ind_food_starvation_threshold<<endl;
 		parameterFileStream<<"GrazingStarvationMaxHours;"<<grazerDynamics.starvation_max_hours<<endl;
-		parameterFileStream<<"GrazerLightOptimalValue;"<<grazerDynamics.light_optimal_value<<endl;
-		parameterFileStream<<"GrazerMigrationLightWeight;"<<grazerDynamics.light_migration_weight<<endl;
+		parameterFileStream<<"GrazerVelocityDownwardPull;"<<grazerDynamics.velocity_downward_pull<<endl;
+		parameterFileStream<<"GrazerCriticalLightIntensity;"<<grazerDynamics.critical_light_intensity<<endl;
 		parameterFileStream<<"KairomonesLevelDay;"<<grazerDynamics.kairomones_level_day<<endl;
 		parameterFileStream<<"KairomonesLevelNight;"<<grazerDynamics.kairomones_level_night<<endl;
 		parameterFileStream<<"KairomonesThermocline;"<<grazerDynamics.kairomones_thermocline<<endl;
@@ -741,6 +749,10 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"PlanktivoreBiomassCenterNight;"<<grazerDynamics.planktivore_biomass_center_night<<endl;
 		parameterFileStream<<"PlanktivoreBiomassWidth;"<<grazerDynamics.planktivore_biomass_width<<endl;
 		parameterFileStream<<"GrazerPredationIndex;"<<grazerDynamics.predation_index<<endl;
+		parameterFileStream<<"GrazerLightOptimalValue;"<<grazerDynamics.light_optimal_value<<endl;
+		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
+		parameterFileStream<<"GrazerMigrationLightWeight;"<<grazerDynamics.light_migration_weight<<endl;
+
 		parameterFileStream<<"MaxVerticalMigration;"<<grazerDynamics.max_vertical_migration<<endl;
 		parameterFileStream<<"MaxHorizontalMigration;"<<grazerDynamics.max_horizontal_migration<<endl;
 		parameterFileStream<<"MaxSearchSteps;"<<grazerDynamics.max_search_steps<<endl;
@@ -750,7 +762,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerLightSafetyWeight;"<<grazerDynamics.light_safety_weight<<endl;
 		parameterFileStream<<"GrazerLightSafetyThreshold;"<<grazerDynamics.light_safety_threshold<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
-		parameterFileStream<<"GrazerCriticalDepth;"<<grazerDynamics.critical_depth<<endl;
+
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
@@ -1365,7 +1377,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 	/* Copy the data to arrays inside the class */
 	/* Copy age class expected weight*/
 	for(int i=0; i<MAX_CLASS_INDEX; i++){
-		grazerDynamics.initial_grazer_weight[i]=readProcessedData.initial_grazer_weight[i];
+		planktivoreDynamics.initial_grazer_weight[i]=grazerDynamics.initial_grazer_weight[i]=readProcessedData.initial_grazer_weight[i];
 	}
 
 	/* Copy depth vector */
@@ -1549,7 +1561,7 @@ FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments
  */
 void FoodWebModel::FoodWebModel::setBathymetricParameters(){
 	calculatePhysicalLakeDescriptors();
-	grazerDynamics.ZMax=this->ZMax;
+	planktivoreDynamics.ZMax=grazerDynamics.ZMax=this->ZMax;
 	/*
 	 *  (AquaTox Documentation, page 45, equation 8)
 	 */

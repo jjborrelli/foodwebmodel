@@ -399,6 +399,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_maximum_age_in_hours= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("GrazerMaxGonadAllocation")){
+		simArguments.grazer_maximum_gonad_weight_allocation= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerIncubationHours")){
 		simArguments.grazer_incubation_hours= atoi(parameterValue.c_str());
 		return;

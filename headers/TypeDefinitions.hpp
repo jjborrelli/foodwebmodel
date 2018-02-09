@@ -65,6 +65,8 @@ typedef struct {
 	intrinsic_settling_rate,
 	algal_fraction_sloughed;
 
+	float initial_algae_coefficient_variation;
+
 /*Movement of dead biomass*/
 	biomassType wash_up_dead_biomass_proportion, wash_down_dead_biomass_proportion, algae_biomass_conservation_factor;
 
@@ -142,7 +144,8 @@ typedef struct {
 
 	physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness, temperature_max;
 
-	unsigned int predator_random_seed;
+	unsigned int predator_random_seed, population_seed;
+
 } SimulationArguments;
 
 /* Types for individual-based dynamics of animals*/

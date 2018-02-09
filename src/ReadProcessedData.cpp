@@ -12,6 +12,8 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include "../headers/truncated_normal.hpp"
+
 
 /*
  * Read the file encoding for the lake depth
@@ -23,11 +25,9 @@
 
 void FoodWebModel::ReadProcessedData::readInitialTemperature(const string& initialTemperatureRoute){
 	cout<<"Reading initial temperature from file: "<<initialTemperatureRoute<<endl;
-	readDataMatrix(initialTemperatureRoute, initial_temperature);
+	//readDataMatrix(initialTemperatureRoute, initial_temperature);
+	readValues<physicalType>(initialTemperatureRoute, initial_temperature, MAX_DEPTH_INDEX);
 	cout<<"Initial temperature read."<<endl;
-
-
-
 }
 
 void FoodWebModel::ReadProcessedData::readTemperatureRange(const string& temperatureRangeRoute){
@@ -109,8 +109,14 @@ void FoodWebModel::ReadProcessedData::readLightAtSurface(const string& lightRout
 }
 
 void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& simArguments){
-	/*Read depth and temperature data*/
+
+	/*Initialize reader parameters*/
 	this->simulationCycles=simArguments.simulationCycles;
+	this->populationSeed=simArguments.population_seed;
+	initial_population_generator = new default_random_engine(this->populationSeed);
+	this->initial_algae_coefficient_variation=simArguments.initial_algae_coefficient_variation;
+
+	/*Read depth and temperature data*/
 	readDepthScale(simArguments.depthScaleRoute);
 	readDepth(simArguments.depthRoute);
 	readInitialTemperature(simArguments.initialTemperatureRoute);
@@ -138,63 +144,87 @@ void FoodWebModel::ReadProcessedData::readDepthScale(const string& depthScaleRou
 template<typename T>
 void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, T** dataMatrix){
 	ifstream dataFile;
-		string readLine;
-		dataFile.open(fileRoute.c_str());
-		/* Read until there are no more lines*/
-		  if (dataFile.is_open())
-		  {
-			  int depth_index=0;
-			  while ( getline (dataFile,readLine,'\n') )
-			     {
-				  /* For each line, split the string and fill in the parsed parameters*/
+	string readLine;
+	dataFile.open(fileRoute.c_str());
+	/* Read until there are no more lines*/
+	if (dataFile.is_open())
+	{
+		int depth_index=0;
+		while ( getline (dataFile,readLine,'\n') )
+		{
+			/* For each line, split the string and fill in the parsed parameters*/
 
-//				  cout<<"Reading line "<<depth_index<<" with content"<<readLine<<"."<<endl;
-				  vector<string> vector_data = split(readLine);
-				  for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
-					  dataMatrix[depth_index][colIndex]=atof(vector_data[colIndex].c_str());
-				  }
-				  depth_index++;
-			     }
-			  dataFile.close();
-		  } else{
-			  /* If the file could not be opened, report an error*/
-			  cerr << "Error: file "<< fileRoute<<" could not be opened."<<endl;
-		  }
+			//				  cout<<"Reading line "<<depth_index<<" with content"<<readLine<<"."<<endl;
+			vector<string> vector_data = split(readLine);
+			for(int colIndex=0; colIndex<MAX_COLUMN_INDEX; colIndex++){
+				dataMatrix[depth_index][colIndex]=atof(vector_data[colIndex].c_str());
+			}
+			depth_index++;
+		}
+		dataFile.close();
+	} else{
+		/* If the file could not be opened, report an error*/
+		cerr << "Error: file "<< fileRoute<<" could not be opened."<<endl;
+	}
+}
+
+template<typename T>
+void FoodWebModel::ReadProcessedData::generateDataUsingPoissonDistribution(T* expectedValues, T** dataMatrix, int matrixRows, int matrixColumns){
+	for (int rowIndex = 0; rowIndex < matrixRows; ++rowIndex) {
+		std::poisson_distribution<T> distribution(expectedValues[rowIndex]);
+
+		for (int columnIndex = 0; columnIndex < matrixColumns; ++columnIndex) {
+			dataMatrix[rowIndex][columnIndex] = distribution(*initial_population_generator);
+		}
+	}
 }
 
 void FoodWebModel::ReadProcessedData::readInitialAlgaeBiomass(const string& initialAlgaeBiomassRoute){
 	cout<<"Reading initial algae biomass from file: "<<initialAlgaeBiomassRoute<<endl;
-	readDataMatrix<biomassType>(initialAlgaeBiomassRoute, initial_algae_biomass);
+	readValues<biomassType>(initialAlgaeBiomassRoute, per_depth_algae_biomass, MAX_DEPTH_INDEX);
+	generateDataUsingTruncatedNormalDistribution(per_depth_algae_biomass, initial_algae_biomass, initial_algae_coefficient_variation, MAX_DEPTH_INDEX, MAX_COLUMN_INDEX);
+	//readDataMatrix<biomassType>(initialAlgaeBiomassRoute, initial_algae_biomass);
 	cout<<"Initial algae biomass read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::generateDataUsingTruncatedNormalDistribution(double* meanValues,double**  dataMatrix, float coefficient_variation, int matrixRows, int matrixColumns){
+	int locale_seed=this->populationSeed;
+	for (int rowIndex = 0; rowIndex < matrixRows; ++rowIndex) {
+		double localeMean = meanValues[rowIndex];
+		double locale_standard_deviation = coefficient_variation*localeMean;
+		for (int columnIndex = 0; columnIndex < matrixColumns; ++columnIndex) {
+
+			double returnedValue = truncated_normal_a_sample( localeMean, locale_standard_deviation, 0.0f, locale_seed);
+			dataMatrix[rowIndex][columnIndex]=returnedValue;
+		}
+	}
 }
 
 
 /* Constructor and destructor to allocate biomass and temperature*/
 FoodWebModel::ReadProcessedData::ReadProcessedData(){
 	initial_algae_biomass =new biomassType*[MAX_DEPTH_INDEX];
-	initial_temperature = new physicalType*[MAX_DEPTH_INDEX];
 	initial_grazer_count = new animalCountType*[MAX_DEPTH_INDEX];
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
 		initial_algae_biomass[i] = new biomassType[MAX_COLUMN_INDEX];
-		initial_temperature[i] = new physicalType[MAX_COLUMN_INDEX];
 		initial_grazer_count[i]= new animalCountType[MAX_COLUMN_INDEX];
 	}
 }
 FoodWebModel::ReadProcessedData::~ReadProcessedData(){
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
 		delete initial_algae_biomass[i];
-		delete initial_temperature[i];
 		delete initial_grazer_count[i];
 	}
 	delete initial_algae_biomass;
-	delete initial_temperature;
 	delete initial_grazer_count;
 }
 
 
 void FoodWebModel::ReadProcessedData::readInitialZooplanktonCount(const string& grazerCountRoute){
 	cout<<"Reading initial grazer count from file: "<<grazerCountRoute<<endl;
-	readDataMatrix<animalCountType>(grazerCountRoute, initial_grazer_count);
+	readValues<animalCountType>(grazerCountRoute, per_depth_grazer_count, MAX_DEPTH_INDEX);
+	generateDataUsingPoissonDistribution<animalCountType>(per_depth_grazer_count, initial_grazer_count, MAX_DEPTH_INDEX, MAX_COLUMN_INDEX);
+//	readDataMatrix<animalCountType>(grazerCountRoute, initial_grazer_count);
 	cout<<"Initial grazer count read."<<endl;
 }
 

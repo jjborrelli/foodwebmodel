@@ -13,7 +13,9 @@
 /* Simulation modes*/
 /* If running in Windows OS, use debug mode*/
 
-#define SIGMOID_CONCENTRATION
+#define CONSTANT_CONCENTRATION
+
+//#define SIGMOID_CONCENTRATION
 
 #define HOMOGENEOUS_DEPTH
 

@@ -459,6 +459,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.random_seed= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PopulationSeed")){
+		simArguments.population_seed= atoi(parameterValue.c_str());
+		return;
+	}
+	if(!parameterName.compare("InitialAlgalCoefficientOfVariation")){
+		simArguments.initial_algae_coefficient_variation= atof(parameterValue.c_str());
+		return;
+	}
 	if(!parameterName.compare("GrazerVelocityDownwardPull")){
 		simArguments.grazer_velocity_downward_pull= atof(parameterValue.c_str());
 		return;

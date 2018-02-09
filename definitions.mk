@@ -1,5 +1,5 @@
 OBJS := FoodWebModel
-COMPS := FoodWebModel ReadProcessedData ParameterReader AnimalBiomassDynamics AuxFunctions GrazerBiomassDynamics FishBiomassDynamics
+COMPS := FoodWebModel ReadProcessedData ParameterReader AnimalBiomassDynamics AuxFunctions GrazerBiomassDynamics FishBiomassDynamics truncated_normal
 SRC := src/main.cpp $(foreach d, $(COMPS), src/${d}.cpp)
 HEADERS := headers/ModelConstants.hpp headers/SimulationModes.hpp $(foreach d, $(COMPS), headers/${d}.hpp)
 

@@ -335,6 +335,9 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 #else
 	cout<<"Running in production mode."<<endl;
 #endif
+#ifdef CONSTANT_CONCENTRATION
+	cout<<"Considering constant concentration"<<endl;
+#else
 #ifdef SIGMOID_CONCENTRATION
 	cout<<"Considering sigmoid concentration"<<endl;
 #else
@@ -349,6 +352,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Modeling chemical concentration as radiated"<<endl;
 #else
 	cout<<"Modeling chemical concentration as non-radiated with depth distance to column bottom"<<endl;
+#endif
 #endif
 #ifdef STABLE_CHLOROPHYLL
 	cout<<"Running with static biomass differential."<<endl;
@@ -1443,7 +1447,7 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
 #endif
 		for(int j=0; j<MAX_DEPTH_INDEX; j++){
-			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j][i];
+			this->temperature[j][i] = this->initial_temperature[j][i] = readProcessedData.initial_temperature[j];
 			this->phytoDifferential[j][i]=0.0f;
 			if(j>=maxDepthIndex[i]){
 				/* If the cell depth is greater than the lake depth, biomass is 0 (out of the lake)*/
@@ -1823,6 +1827,9 @@ void FoodWebModel::FoodWebModel::saltConcentrationAtDepth(int depthIndex, int co
 
 void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, int columnIndex, physicalType concentrationAtBottom){
 	physicalType localeNutrientAtBottom = concentrationAtBottom;
+#ifdef CONSTANT_CONCENTRATION
+	chemical_concentration = localeNutrientAtBottom;
+#else
 #ifdef SIGMOID_CONCENTRATION
 	/* Using depth-dependent sigmoid function from ([1] A. Herbland, D. Delmas, P. Laborde, B. Sautour, and F. Artigas, “Phytoplankton spring bloom of the Gironde plume waters in the Bay of Biscay: early phosphorus limitation and food-web consequences,” Oceanol. Acta, vol. 21, no. 2, pp. 279–291, Mar. 1998.)*/
 	physicalType depthScale = (1.0f+this->nutrient_growth/(1.0f+exp(-this->indexToDepth[depthIndex]+this->nutrient_derivative)));
@@ -1837,8 +1844,7 @@ void FoodWebModel::FoodWebModel::chemicalConcentrationAtDepth(int depthIndex, in
 #endif
 	chemical_concentration =localeNutrientAtBottom*exp(chemical_at_depth_exponent);
 #endif
-
-
+#endif
 }
 
 /* Nutrient biomass growth limitation based on nutrient concentration */

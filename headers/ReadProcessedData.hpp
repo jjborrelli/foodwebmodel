@@ -9,6 +9,7 @@
 #define READPROCESSEDDATA_HPP_
 #include <string>
 #include <vector>
+#include <random>
 #include "TypeDefinitions.hpp"
 #include "ModelConstants.hpp"
 
@@ -19,8 +20,8 @@ namespace FoodWebModel{
 	class ReadProcessedData{
 		friend class FoodWebModel;
 	protected:
-		biomassType **initial_algae_biomass;
-		animalCountType **initial_grazer_count;
+		biomassType **initial_algae_biomass, per_depth_algae_biomass[MAX_DEPTH_INDEX];
+		animalCountType **initial_grazer_count, per_depth_grazer_count[MAX_DEPTH_INDEX];
 
 		/* Grazer weight and distribution taken from [1] M. F. Baudouin and O. Ravera, “Weight, size and chemical composition of some freshwater zooplankters: Daphnia Hyalina (Leydig),” Limnol. Oceanogr., vol. 17, pp. 645–649, 1972.*/
 		double initial_grazer_distribution[MAX_CLASS_INDEX];
@@ -29,10 +30,15 @@ namespace FoodWebModel{
 		biomassType baseBiomassDifferential[MAX_DEPTH_INDEX], zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 
 		/* Physical data*/
-		physicalType **initial_temperature;
+		physicalType initial_temperature[MAX_DEPTH_INDEX];
 		physicalType depth[MAX_COLUMN_INDEX], temperature_range[MAX_DEPTH_INDEX], depth_scale[MAX_DEPTH_INDEX], hourlyLightAtSurface[HOURS_PER_DAY], *phosphorusConcentrationAtBottom, *nitrogenConcentrationAtBottom, *yearlylightAtSurface;
 		physicalType temperature_depth_proportion[MAX_DEPTH_INDEX], temperature_at_day[HOURS_PER_YEAR];
-		unsigned int simulationCycles;
+		unsigned int simulationCycles, populationSeed;
+
+		std::default_random_engine* initial_population_generator;
+
+		float initial_algae_coefficient_variation;
+
 	public:
 		ReadProcessedData();
 		~ReadProcessedData();
@@ -56,6 +62,9 @@ namespace FoodWebModel{
 		void readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute);
 		template<typename T>
 		void readDataMatrix(const string& fileRoute, T** dataMatrix);
+		template<typename T>
+		void generateDataUsingPoissonDistribution(T* expectedValues, T** dataMatrix, int matrixRows, int matrixColumns);
+		void generateDataUsingTruncatedNormalDistribution(double* meanValues,double**  dataMatrix, float coefficient_variation, int matrixRows, int matrixColumns);
 		void readLightAtSurface(const string& lightRoute);
 		void readYearLightIntensity(const string& lightAtSurfaceYearRoute);
 		//int readTemperatureAtSurface(string temperatureAtSurfaceFileRoute);

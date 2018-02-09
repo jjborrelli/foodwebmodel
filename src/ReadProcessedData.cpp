@@ -171,10 +171,17 @@ void FoodWebModel::ReadProcessedData::readDataMatrix(const string& fileRoute, T*
 template<typename T>
 void FoodWebModel::ReadProcessedData::generateDataUsingPoissonDistribution(T* expectedValues, T** dataMatrix, int matrixRows, int matrixColumns){
 	for (int rowIndex = 0; rowIndex < matrixRows; ++rowIndex) {
-		std::poisson_distribution<T> distribution(expectedValues[rowIndex]);
+		T locale_expected_value = expectedValues[rowIndex];
+		std::poisson_distribution<T> distribution(locale_expected_value);
 
 		for (int columnIndex = 0; columnIndex < matrixColumns; ++columnIndex) {
-			dataMatrix[rowIndex][columnIndex] = distribution(*initial_population_generator);
+			/*If the expected value is 0, then the generated value is 0*/
+			if(locale_expected_value==0.0f){
+				dataMatrix[rowIndex][columnIndex] = 0.0f;
+			} else{
+				/* Else, generate the data using a truncated normal distribution with 0 as lowerbound*/
+				dataMatrix[rowIndex][columnIndex] = distribution(*initial_population_generator);
+			}
 		}
 	}
 }
@@ -194,7 +201,11 @@ void FoodWebModel::ReadProcessedData::generateDataUsingTruncatedNormalDistributi
 		double locale_standard_deviation = coefficient_variation*localeMean;
 		for (int columnIndex = 0; columnIndex < matrixColumns; ++columnIndex) {
 
-			double returnedValue = truncated_normal_a_sample( localeMean, locale_standard_deviation, 0.0f, locale_seed);
+			double returnedValue=0.0f;
+			if(localeMean>0.0f){
+				/* If the locale mean is greater than 0, generate the data using a truncated normal distribution with 0 as lowerbound*/
+				returnedValue = truncated_normal_a_sample( localeMean, locale_standard_deviation, 0.0f, locale_seed);
+			}
 			dataMatrix[rowIndex][columnIndex]=returnedValue;
 		}
 	}

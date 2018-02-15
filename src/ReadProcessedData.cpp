@@ -125,6 +125,7 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readTemperatureAtDay(simArguments.temperatureAtTimeRoute);
 	readInitialAlgaeBiomass(simArguments.initialAlgaeBiomassRoute);
 	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
+	readInitialPlanktivoreCount(simArguments.initialPlanktivoreCountRoute);
 	readInitialZooplanktonDistribution(simArguments.initialZooplanktonDistributionRoute);
 	readInitialZooplanktonWeight(simArguments.initialZooplanktonWeightRoute);
 	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferentialRoute);
@@ -216,25 +217,38 @@ void FoodWebModel::ReadProcessedData::generateDataUsingTruncatedNormalDistributi
 FoodWebModel::ReadProcessedData::ReadProcessedData(){
 	initial_algae_biomass =new biomassType*[MAX_DEPTH_INDEX];
 	initial_grazer_count = new animalCountType*[MAX_DEPTH_INDEX];
+	initial_planktivore_count = new animalCountType*[MAX_DEPTH_INDEX];
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
 		initial_algae_biomass[i] = new biomassType[MAX_COLUMN_INDEX];
 		initial_grazer_count[i]= new animalCountType[MAX_COLUMN_INDEX];
+		initial_planktivore_count[i]= new animalCountType[MAX_COLUMN_INDEX];
 	}
 }
 FoodWebModel::ReadProcessedData::~ReadProcessedData(){
+	delete initial_population_generator;
 	for(int i=0;i<MAX_DEPTH_INDEX; i++){
 		delete initial_algae_biomass[i];
 		delete initial_grazer_count[i];
+		delete initial_planktivore_count[i];
 	}
 	delete initial_algae_biomass;
 	delete initial_grazer_count;
+	delete initial_planktivore_count;
 }
-
 
 void FoodWebModel::ReadProcessedData::readInitialZooplanktonCount(const string& grazerCountRoute){
 	cout<<"Reading initial grazer count from file: "<<grazerCountRoute<<endl;
 	readValues<animalCountType>(grazerCountRoute, per_depth_grazer_count, MAX_DEPTH_INDEX);
 	generateDataUsingPoissonDistribution<animalCountType>(per_depth_grazer_count, initial_grazer_count, MAX_DEPTH_INDEX, MAX_COLUMN_INDEX);
+//	readDataMatrix<animalCountType>(grazerCountRoute, initial_grazer_count);
+	cout<<"Initial grazer count read."<<endl;
+}
+
+
+void FoodWebModel::ReadProcessedData::readInitialPlanktivoreCount(const string& planktivoreCountRoute){
+	cout<<"Reading initial planktivore count from file: "<<planktivoreCountRoute<<endl;
+	readValues<animalCountType>(planktivoreCountRoute, per_depth_planktivore_count, MAX_DEPTH_INDEX);
+	generateDataUsingPoissonDistribution<animalCountType>(per_depth_planktivore_count, initial_planktivore_count, MAX_DEPTH_INDEX, MAX_COLUMN_INDEX);
 //	readDataMatrix<animalCountType>(grazerCountRoute, initial_grazer_count);
 	cout<<"Initial grazer count read."<<endl;
 }

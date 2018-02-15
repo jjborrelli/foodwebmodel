@@ -121,9 +121,9 @@ void AnimalBiomassDynamics::initializeSimulationStructures(){
 	/* Calculate the total number of cells in the system*/
 	cell_counter=0;
 	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-				for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
-				cell_counter++;
-			}
+		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
+			cell_counter++;
+		}
 	}
 }
 

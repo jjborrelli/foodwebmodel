@@ -95,8 +95,7 @@ namespace FoodWebModel {
 		map<pair<int,int>,AnimalCohort> zooplankton, bottomGrazers;
 		map<pair<int,int>,AnimalCohort> floatingPredator, bottomPredator;
 #else
-		vector<AnimalCohort> zooplankton, bottomGrazers;
-		vector<AnimalCohort> floatingPredator, bottomPredator;
+		vector<AnimalCohort> zooplankton, bottomGrazers, planktivores;
 #endif
 #else
 		biomassType zooplanktonBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], bottomFeederBiomass[MAX_COLUMN_INDEX];
@@ -216,6 +215,7 @@ namespace FoodWebModel {
 		void initializeAnimalAttributes(const SimulationArguments& simArguments);
 		void initializeGrazerAttributes(const SimulationArguments& simArguments, GrazerBiomassDynamics& grazerDynamics);
 		void initializeAnimalAttributes(const SimulationArguments& simArguments, AnimalBiomassDynamics& speciesDynamics);
+		void initializePlanktivoreAttributes(const SimulationArguments& simArguments, FishBiomassDynamics& planktivoreDynamics);
 		void openSimulationFiles(const SimulationArguments& simArguments);
 		void closeSimulationFiles();
 

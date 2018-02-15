@@ -117,6 +117,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.initialZooplanktonCountRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("InitialPlanktovireCountRoute")){
+		simArguments.initialPlanktivoreCountRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("InitialZooplanktonDistributionRoute")){
 		simArguments.initialZooplanktonDistributionRoute= parameterValue;
 		return;
@@ -600,6 +604,11 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.predator_random_seed= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PlanktivoreMaximumDepth")){
+		simArguments.maximum_planktivore_depth= atoi(parameterValue.c_str());
+		return;
+	}
+
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter."<<endl;
 }
 

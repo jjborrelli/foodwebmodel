@@ -40,6 +40,7 @@ typedef struct {
 	outputAssertionViolationRoute,
 	initialAlgaeBiomassRoute,
 	initialZooplanktonCountRoute,
+	initialPlanktivoreCountRoute,
 	initialZooplanktonDistributionRoute,
 	initialZooplanktonWeightRoute,
 	lightAtSurfaceRoute,
@@ -145,6 +146,8 @@ typedef struct {
 	physicalType temperature_optimal, temperature_steepness, temperature_suppression_steepness, temperature_max;
 
 	unsigned int predator_random_seed, population_seed;
+
+	unsigned int maximum_planktivore_depth;
 
 } SimulationArguments;
 

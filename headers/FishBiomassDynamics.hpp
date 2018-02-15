@@ -14,6 +14,7 @@ namespace FoodWebModel {
 
 
 class FishBiomassDynamics: public AnimalBiomassDynamics{
+	friend class FoodWebModel;
 public:
 	FishBiomassDynamics();
 	virtual ~FishBiomassDynamics();
@@ -21,6 +22,7 @@ public:
 protected:
 	biomassType predationFactor;
 	vector<AnimalCohort> *juvenileGrazers, *adultGrazers;
+	unsigned int maximum_planktivore_depth;
 	void calculateBiomass();
 	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight, double consumedProportion);

@@ -27,6 +27,7 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	grazerDynamics.floatingAnimals=&this->zooplankton;
 	grazerDynamics.bottomAnimals=&this->bottomGrazers;
+	planktivoreDynamics.floatingAnimals =&this->planktivores;
 
 #else
 	grazerDynamics.bottomAnimalBiomass = bottomFeederBiomass;
@@ -44,7 +45,6 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	planktivoreDynamics.maxDepthIndex = grazerDynamics.maxDepthIndex = maxDepthIndex;
 	for(int i=0; i<HOURS_PER_DAY; i++){
 		planktivoreDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=grazerDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=zooplanktonBiomassCenterDifferencePerDepth[i];
-
 	}
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	grazerDynamics.deadBottomBiomass=deadBottomBiomass;
@@ -123,6 +123,7 @@ int FoodWebModel::FoodWebModel::simulate(const SimulationArguments& simArguments
 	}
 	copyPointersToAnimalDynamics();
 	grazerDynamics.initializeSimulationStructures();
+	planktivoreDynamics.initializeSimulationStructures();
 	for(current_hour=0; current_hour<simulation_cycles; current_hour++){
 		/* Register standard biomass and slough to file at the given hour frequency*/
 		if(current_hour%TIME_MESSAGE_RESOLUTION==0)
@@ -249,6 +250,7 @@ void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArgu
 	initializeAnimalAttributes(simArguments, grazerDynamics);
 	initializeGrazerAttributes(simArguments, grazerDynamics);
 	initializeAnimalAttributes(simArguments, planktivoreDynamics);
+	initializePlanktivoreAttributes(simArguments, planktivoreDynamics);
 }
 
 void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArguments& simArguments, GrazerBiomassDynamics& grazerDynamics){
@@ -326,6 +328,10 @@ void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArgu
 
 	speciesDynamics.cohortID=&(this->cohortID);
 
+}
+
+void FoodWebModel::FoodWebModel::initializePlanktivoreAttributes(const SimulationArguments& simArguments, FishBiomassDynamics& planktivoreDynamics){
+	planktivoreDynamics.maximum_planktivore_depth=simArguments.maximum_planktivore_depth;
 }
 
 /* A method to print the simulation mode in function of the defined flags*/
@@ -650,6 +656,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer light safety threshold "<<grazerDynamics.light_safety_threshold<<"."<<endl;
 	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
+	cout<<"Using maximum depth for planktivores "<<planktivoreDynamics.maximum_planktivore_depth<<"."<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
@@ -766,7 +773,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerLightSafetyWeight;"<<grazerDynamics.light_safety_weight<<endl;
 		parameterFileStream<<"GrazerLightSafetyThreshold;"<<grazerDynamics.light_safety_threshold<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
-
+		parameterFileStream<<"MaximumPredatorDepth;"<<this->planktivoreDynamics.maximum_planktivore_depth<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;
@@ -1441,8 +1448,12 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 		/* Copy bottom grazer biomass per cell*/
 #ifdef  INDIVIDUAL_BASED_ANIMALS
 		/*Initialize cohort IDs*/
+		animalCountType bottomGrazerLocaleCount = readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
+		if(bottomGrazerLocaleCount>0){
+			addAnimalCohorts(maxDepthIndex[i],i,bottomGrazerLocaleCount, bottomGrazers, true);
+		}
 
-		addAnimalCohorts(maxDepthIndex[i],i,readProcessedData.initial_grazer_count[maxDepthIndex[i]][i], bottomGrazers, true);
+
 #else
 		this->bottomFeederCount[i]=readProcessedData.initial_grazer_count[maxDepthIndex[i]][i];
 #endif
@@ -1465,8 +1476,13 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 #endif
 					/* Copy floating grazer biomass per cell*/
 	#ifdef INDIVIDUAL_BASED_ANIMALS
-					if(readProcessedData.initial_grazer_count[j][i]>0.0f){
-						addAnimalCohorts(j,i,readProcessedData.initial_grazer_count[j][i], zooplankton, false);
+					animalCountType floatingGrazerLocaleCount = readProcessedData.initial_grazer_count[j][i];
+					if(floatingGrazerLocaleCount>0.0f){
+						addAnimalCohorts(j,i,floatingGrazerLocaleCount, zooplankton, false);
+					}
+					animalCountType planktivoreLocaleCount = readProcessedData.initial_planktivore_count[j][i];
+					if(planktivoreLocaleCount>0.0f){
+						addAnimalCohorts(j,i,planktivoreLocaleCount, planktivores, false);
 					}
 	#else
 					this->zooplanktonCount[j][i]=readProcessedData.initial_grazer_count[j][i];

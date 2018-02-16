@@ -43,6 +43,7 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	grazerDynamics.bottomFoodBiomass = periBiomass;
 	grazerDynamics.bottomFoodBiomassDifferential = periBiomassDifferential;
 	planktivoreDynamics.maxDepthIndex = grazerDynamics.maxDepthIndex = maxDepthIndex;
+	planktivoreDynamics.cell_counter = grazerDynamics.cell_counter = this->cell_counter;
 	for(int i=0; i<HOURS_PER_DAY; i++){
 		planktivoreDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=grazerDynamics.zooplanktonBiomassCenterDifferencePerDepth[i]=zooplanktonBiomassCenterDifferencePerDepth[i];
 	}
@@ -56,7 +57,8 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 		grazerDynamics.floatingFoodBiomass[depthIndex] =
 				phytoBiomass[depthIndex];
 		grazerDynamics.floatingFoodBiomassDifferential[depthIndex] = phytoBiomassDifferential[depthIndex];
-
+		planktivoreDynamics.floatingFoodBiomass[depthIndex] = new biomassType[MAX_COLUMN_INDEX];
+		planktivoreDynamics.floatingFoodBiomassDifferential[depthIndex] = new biomassType[MAX_COLUMN_INDEX];
 		planktivoreDynamics.salinity_effect_matrix[depthIndex] = grazerDynamics.salinity_effect_matrix[depthIndex] =
 				salinity_effect_matrix[depthIndex];
 		planktivoreDynamics.lakeLightAtDepth[depthIndex]=grazerDynamics.lakeLightAtDepth[depthIndex]=lakeLightAtDepth[depthIndex];
@@ -905,6 +907,7 @@ void FoodWebModel::FoodWebModel::step(){
 	updateAlgaeBiomass();
 	updateAlgaeVerticalMigration();
 	grazerDynamics.takeAnimalDynamicsStep();
+	planktivoreDynamics.takeAnimalDynamicsStep();
 //	predatorDynamics.updateAnimalBiomass();
 }
 
@@ -1433,6 +1436,13 @@ void FoodWebModel::FoodWebModel::initializeParameters(){
 
 		}
 	}
+	/* Calculate the total number of cells in the system*/
+		cell_counter=0;
+		for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
+			for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
+				cell_counter++;
+			}
+		}
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	/* IMPORTANT: clear the cohort ID at the creation of juveniles*/
 	this->cohortID=0;

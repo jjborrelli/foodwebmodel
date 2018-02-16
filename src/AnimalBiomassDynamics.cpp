@@ -98,6 +98,10 @@ AnimalBiomassDynamics::AnimalBiomassDynamics():animalRandomGenerator(NULL) {
 
 AnimalBiomassDynamics::~AnimalBiomassDynamics() {
 	delete animalRandomGenerator;
+	for (int depthIndex = 0; depthIndex < MAX_DEPTH_INDEX; ++depthIndex) {
+		delete floatingFoodBiomass[depthIndex];
+		delete floatingFoodBiomassDifferential[depthIndex];
+	}
 }
 
 void AnimalBiomassDynamics::initializeSimulationStructures(){
@@ -118,13 +122,7 @@ void AnimalBiomassDynamics::initializeSimulationStructures(){
 #endif
 		}
 	}
-	/* Calculate the total number of cells in the system*/
-	cell_counter=0;
-	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
-			cell_counter++;
-		}
-	}
+
 }
 
 
@@ -171,49 +169,51 @@ void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex
 void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::map<pair<int,int>,AnimalCohort> *animals) {//
 #else
 void AnimalBiomassDynamics::updateCohortBiomassForAnimals(std::vector<AnimalCohort> *animals) {//
+	if ( animals != NULL ){
 #ifndef CONGLOMERATE_ALL_COHORTS
-	floatingReallocatedCohorts.clear();
-	bottomReallocatedCohorts.clear();
+		floatingReallocatedCohorts.clear();
+//		bottomReallocatedCohorts.clear();
 #endif
 #endif
-	int iteratorCounter=0;
+		int iteratorCounter=0;
 #ifdef ANIMAL_COHORT_MAP
-	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
-			it != animals->end();++it) {
-		AnimalCohort* cohort=&(it->second);
-#else
-		for (std::vector<AnimalCohort>::iterator it = animals->begin();
+		for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
 				it != animals->end();++it) {
-			AnimalCohort* cohort=&*it;
+			AnimalCohort* cohort=&(it->second);
+#else
+			for (std::vector<AnimalCohort>::iterator it = animals->begin();
+					it != animals->end();++it) {
+				AnimalCohort* cohort=&*it;
 #endif
-		if(cohort->stage==AnimalStage::Egg){
-			cout<<"Error. Egg cohort updated."<<endl;
+				if(cohort->stage==AnimalStage::Egg){
+					cout<<"Error. Egg cohort updated."<<endl;
+				}
+				iteratorCounter++;
+				if(cohort->numberOfIndividuals>0&&cohort->bodyBiomass>0){
+					/* Update biomass of non-empty cohorts */
+					updateCohortBiomass(*cohort);
+				}
+
+			}
+
+
+			//	std::vector<pair<int,int>> emptyCohorts;
+			//	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
+			//				it != animals->end();++it) {
+			//		/* Remove cohort if the number of animals or its biomass is 0*/
+			//		if(it->second.numberOfIndividuals<=0||it->second.bodyBiomass<=0.0f){
+			//			/*We cannot remove elements while iterating map entries, so we store them for later deletion*/
+			//			emptyCohorts.push_back(it->first);
+			//		}
+			//	}
+			/*Remove empty cohorts*/
+			//	iteratorCounter=0;
+			//	for (std::vector<pair<int,int>>::iterator it = emptyCohorts.begin();
+			//					it != emptyCohorts.end();++it) {
+			//		iteratorCounter++;
+			////		animals->erase(*it);
+			//	}
 		}
-		iteratorCounter++;
-		if(cohort->numberOfIndividuals>0&&cohort->bodyBiomass>0){
-			/* Update biomass of non-empty cohorts */
-			updateCohortBiomass(*cohort);
-		}
-
-	}
-
-
-//	std::vector<pair<int,int>> emptyCohorts;
-//	for (std::map<pair<int,int>,AnimalCohort>::iterator it = animals->begin();
-//				it != animals->end();++it) {
-//		/* Remove cohort if the number of animals or its biomass is 0*/
-//		if(it->second.numberOfIndividuals<=0||it->second.bodyBiomass<=0.0f){
-//			/*We cannot remove elements while iterating map entries, so we store them for later deletion*/
-//			emptyCohorts.push_back(it->first);
-//		}
-//	}
-	/*Remove empty cohorts*/
-//	iteratorCounter=0;
-//	for (std::vector<pair<int,int>>::iterator it = emptyCohorts.begin();
-//					it != emptyCohorts.end();++it) {
-//		iteratorCounter++;
-////		animals->erase(*it);
-//	}
 }
 
 /* Calculation of grazer biomass (AquaTox Documentation, page 100, equation 90)*/
@@ -245,7 +245,7 @@ for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX; ++columnIndex) {
 		this->predatedIndividuals[depthIndex][columnIndex]=0;
 	}
 }
-	updateCohortBiomassForAnimals(bottomAnimals);
+//	updateCohortBiomassForAnimals(bottomAnimals);
 	updateCohortBiomassForAnimals(floatingAnimals);
 	if(tracedCohort.numberOfIndividuals!=0){
 		/*Update biomass for traced cohort*/
@@ -261,12 +261,12 @@ for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX; ++columnIndex) {
 
 #ifdef CREATE_NEW_COHORTS
 #ifdef MATURE_JUVENILES
-	matureEggs(bottomEggs, bottomJuveniles);
+//	matureEggs(bottomEggs, bottomJuveniles);
 	matureEggs(floatingEggs, floatingJuveniles);
-	matureJuveniles(bottomJuveniles, bottomAnimals);
+//	matureJuveniles(bottomJuveniles, bottomAnimals);
 	matureJuveniles(floatingJuveniles, floatingAnimals);
 #else
-	matureEggs(bottomEggs, bottomAnimals);
+//	matureEggs(bottomEggs, bottomAnimals);
 	matureEggs(floatingEggs, floatingAnimals);
 #endif
 #endif
@@ -537,13 +537,13 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //		If the number of individuals is lower than 3 and the cohort is mature, integrate into an existing cohort
 		pair<int,int> cohortCoordinates=pair<int,int>(cohort.x, cohort.y);
 		if(cohort.isBottomAnimal){
-			if(bottomReallocatedCohorts.find(cohortCoordinates)==bottomReallocatedCohorts.end()){
-				/*If the bottom cohort does not exist, create it*/
-				bottomReallocatedCohorts[cohortCoordinates]=cohort;
-			} else{
-				/*Otherwise, add to the existing cohort*/
-				bottomReallocatedCohorts[cohortCoordinates]+=cohort;
-			}
+//			if(bottomReallocatedCohorts.find(cohortCoordinates)==bottomReallocatedCohorts.end()){
+//				/*If the bottom cohort does not exist, create it*/
+//				bottomReallocatedCohorts[cohortCoordinates]=cohort;
+//			} else{
+//				/*Otherwise, add to the existing cohort*/
+//				bottomReallocatedCohorts[cohortCoordinates]+=cohort;
+//			}
 		} else{
 			if(floatingReallocatedCohorts.find(cohortCoordinates)==floatingReallocatedCohorts.end()){
 				floatingReallocatedCohorts[cohortCoordinates]=cohort;
@@ -969,7 +969,7 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 }
 #endif
 
-
+#endif
 
 #ifdef ANIMAL_AGING
 
@@ -1231,15 +1231,6 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 #endif
 
 #endif
-
-/* If the migration index is greater than 0, migrate adult and juvenile cohorts*/
-
-void AnimalBiomassDynamics::calculateMigrationValues(){
-	calculatePredatorBiomass();
-	generateMigrationIndexes();
-	findNormalizingFactors();
-	findOptimalDepthIndexes();
-}
 
 void AnimalBiomassDynamics::migrateAnimalCohorts(){
 	int migrationStep = zooplanktonBiomassCenterDifferencePerDepth[*current_hour%HOURS_PER_DAY];
@@ -1518,6 +1509,15 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 }
 
 /* Inherited functions*/
+
+biomassType AnimalBiomassDynamics::getFoodBiomass(bool bottom, int depthIndex,
+		int columnIndex){
+		return bottom ?
+				this->bottomFoodBiomass[columnIndex] :
+				this->floatingFoodBiomass[depthIndex][columnIndex];
+}
+
+
 biomassType AnimalBiomassDynamics::getFoodBiomassDifferential(bool bottom, int columnIndex,	int depthIndex){
 	return bottom?this->bottomFoodBiomassDifferential[columnIndex]:this->floatingFoodBiomassDifferential[columnIndex][depthIndex];
 }
@@ -1826,57 +1826,6 @@ void AnimalBiomassDynamics::migrateAdultCohort(AnimalCohort& cohort){
 
 
 
-void AnimalBiomassDynamics::findOptimalDepthIndexes(){
-	for (int columnIndex = 0; columnIndex <= MAX_COLUMN_INDEX; ++columnIndex) {
-		findOptimalDepthIndex(columnIndex);
-	}
-//	for (int columnIndex = 0; columnIndex <= MAX_COLUMN_INDEX; ++columnIndex) {
-//		if(maxDepthIndex[columnIndex]!=optimalDepthIndex[columnIndex]){
-//			cout<<"Difference found."<<endl;
-//		}
-//	}
-}
-void AnimalBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
-
-	int optimalDepthIndex=0;
-	/*Calculate the value to optimize as the weighted sum of the inverse of the distance to optimal light normalized and the amount of food normalized*/
-	physicalType predatorSafetyValueToOptimize=(light_migration_weight)*predatorSafety[0][columnIndex];
-	physicalType foodValueToOptimize =(1-light_migration_weight)*normalizedFloatingFoodBiomass[0][columnIndex];
-	physicalType valueToOptimize = predatorSafetyValueToOptimize+foodValueToOptimize;
-	for (int depthIndex = 1; depthIndex <= maxDepthIndex[columnIndex]; ++depthIndex) {
-		/*Inverse of the distance to optimal light normalized*/
-		physicalType localePredationSafety = light_migration_weight*predatorSafety[depthIndex][columnIndex];
-		/*Amount of food normalized*/
-		physicalType localeFood=(1-light_migration_weight)*normalizedFloatingFoodBiomass[depthIndex][columnIndex];
-#ifdef MINIMUM_PREDATION_SAFETY
-		/* If we are assuming that the predation safety must be above a minimum, compare it with */
-		physicalType localeComposedValue = localePredationSafety;
-		if(localePredationSafety>this->minimum_predation_safety){
-			localeComposedValue=localeFood;
-		}
-#else
-		physicalType localeComposedValue = localePredationSafety+localeFood;
-#endif
-		/* Register the locale fitness value*/
-		localeFitnessValue[depthIndex][columnIndex] = localeComposedValue;
-		if(localeComposedValue>valueToOptimize){
-			/* Update of the new value is greater than the previous*/
-			valueToOptimize = localeComposedValue;
-			optimalDepthIndex=depthIndex;
-//			if(tracedCohort.numberOfIndividuals!=0){
-//				cout<<"Better food detected."<<endl;
-//			}
-		}
-	}
-	optimalDepthIndexes[columnIndex] = optimalDepthIndex;
-//	if(tracedCohort.numberOfIndividuals>0&&columnIndex==tracedCohort.y&&optimalDepthIndex>2){
-//		cout<<"Index for traced cohort is "<<optimalDepthIndex<<"."<<endl;
-//	}
-
-}
-
-#endif
-
 
 /* Set the maximum allocation biomass to 0.5 and set that the grazers left behind do not eat nor reproduce*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -1921,68 +1870,10 @@ void AnimalBiomassDynamics::registerMigration(){
 /*Calculate the summing of all light and food values*/
 
 
-void AnimalBiomassDynamics::findNormalizingFactors(){
-	averagePredatorSafety=averageFood=0.0f;
-#ifndef THRESHOLD_LIGHT_SAFETY
-	averageLightSafety=0.0f;
-#endif
-
-	/* A counter for the number of cells in the system*/
-	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
-			/*Calculate predator and light safety*/
-			this->predatorSafety[depthIndex][columnIndex]=calculatePredatorSafety(depthIndex, columnIndex);
-#ifndef THRESHOLD_LIGHT_SAFETY
-			this->lightSafety[depthIndex][columnIndex]=this->light_safety_weight*(1-1/(1+exp(-this->lakeLightAtDepth[depthIndex][columnIndex] + this->maximum_light_tolerated)));
-			averageLightSafety+=this->lightSafety[depthIndex][columnIndex];
-#endif
-			/*Light safety is 1 for safe light and 0 for burning light*/
-//			this->lightSafety[depthIndex][columnIndex]=this->lakeLightAtDepth[depthIndex][columnIndex]>this->maximum_light_tolerated?0.0f:1.0f;
-			/*Average predator, light and food safety across al cells */
-			averagePredatorSafety+=predatorSafety[depthIndex][columnIndex];
-			averageFood+=getFoodBiomass(false, depthIndex, columnIndex);
-
-		}
-	}
-	/* Calculate the average of fitness for each metrics*/
-	averagePredatorSafety/=cell_counter;
-	averageFood/=cell_counter;
-#ifndef THRESHOLD_LIGHT_SAFETY
-	averageLightSafety/=cell_counter;
-#endif
-	/*Normalize fitness values using the summing at the current time*/
-	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
-			for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
-				/*Sum the inverse of the distance to optimal light*/
-				this->predatorSafety[depthIndex][columnIndex]/=this->averagePredatorSafety;
-				this->normalizedFloatingFoodBiomass[depthIndex][columnIndex]=this->floatingFoodBiomass[depthIndex][columnIndex]/this->averageFood;
-#ifndef THRESHOLD_LIGHT_SAFETY
-				this->lightSafety[depthIndex][columnIndex]/=this->averageLightSafety;
-#endif
-			}
-		}
-//#ifdef MINIMUM_PREDATION_SAFETY
-//	sumOptimalPredatorSafetyValues=1.0f;
-//#endif
-}
-
-physicalType AnimalBiomassDynamics::calculatePredatorSafety(int depthIndex, int columnIndex){
-	/* Distance to optimal light is used for fitness*/
-	physicalType localeLakeLightAtDepth = lakeLightAtDepth[depthIndex][columnIndex];
-//	return 1.0f/fabs((localeLakeLightAtDepth-light_optimal_value)+1);
-	/* To model risk of predation, light is multiplied by planktivore biomass*/
-	biomassType localePredatorBiomass = this->predatorBiomass[depthIndex][columnIndex];
-	biomassType calculatedLightPropensity = 1.0f/((localeLakeLightAtDepth*localePredatorBiomass)+1.0f);
-//	if(calculatedLightPropensity!=1.0f){
-//		cout<<"Light propensity greater than 0."<<endl;
-//	}
-	return calculatedLightPropensity;
-}
-
 void AnimalBiomassDynamics::removeEmptyCohorts(){
 	/* Remove mature individuals that have either starved or grown too old*/
 	floatingAnimals->erase(std::remove_if(floatingAnimals->begin(), floatingAnimals->end(), removeOldIndividuals()), floatingAnimals->end());
-	bottomAnimals->erase(std::remove_if(bottomAnimals->begin(), bottomAnimals->end(), removeOldIndividuals()), bottomAnimals->end());
+//	bottomAnimals->erase(std::remove_if(bottomAnimals->begin(), bottomAnimals->end(), removeOldIndividuals()), bottomAnimals->end());
 }
 
 
@@ -1991,10 +1882,10 @@ void AnimalBiomassDynamics::removeEmptyCohorts(){
 void AnimalBiomassDynamics::reallocateSmallCohorts(){
 #ifdef CONGLOMERATE_ALL_COHORTS
 	agglomerateCohorts(floatingAnimals);
-	agglomerateCohorts(bottomAnimals);
+//	agglomerateCohorts(bottomAnimals);
 #else
 	reallocateSmallCohorts(floatingAnimals, floatingReallocatedCohorts);
-	reallocateSmallCohorts(bottomAnimals, bottomReallocatedCohorts);
+//	reallocateSmallCohorts(bottomAnimals, bottomReallocatedCohorts);
 #endif
 }
 
@@ -2125,13 +2016,6 @@ void AnimalBiomassDynamics::generateMigrationIndexes(){
 	hourlyMigrationIndexPairs=&migrationIndexPairs;
 #endif
 	std::shuffle(hourlyMigrationIndexPairs->begin(), hourlyMigrationIndexPairs->end(), *animalRandomGenerator);
-}
-
-biomassType AnimalBiomassDynamics::getFoodBiomass(bool bottom, int depthIndex,
-		int columnIndex){
-		return bottom ?
-				this->bottomFoodBiomass[columnIndex] :
-				this->floatingFoodBiomass[depthIndex][columnIndex];
 }
 
 /* Get food biomass depending of the animal cohort*/

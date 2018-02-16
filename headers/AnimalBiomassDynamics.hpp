@@ -240,6 +240,10 @@ protected:
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;
 #endif
+		/* virtual methods*/
+	virtual biomassType getFoodBiomass(bool bottom, int depthIndex, int columnIndex);
+	virtual biomassType getFoodBiomass(const AnimalCohort& cohort);
+	virtual void calculateMigrationValues()=0;
 private:
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -272,11 +276,11 @@ private:
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
 	biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
 	virtual void predateCohort(AnimalCohort& cohort)=0;
-	virtual biomassType getFoodBiomass(bool bottom, int depthIndex, int columnIndex);
+
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 	/* Migration methods */
-	void calculateMigrationValues();
+
 	void migrateAnimalCohorts();
 	void migrateAdultCohorts(std::map<pair<int,int>,AnimalCohort> *animals, int migrateStep);
 	void updateMigratedCohorts(std::map<pair<int,int>,AnimalCohort> *animals);
@@ -306,14 +310,8 @@ private:
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);
 	void consumeDuringMigration(int initialDepth, int finalDepth, std::vector<AnimalCohort>::iterator it);
 
-	/* Calculating the optimal migration index for animals*/
-	void findOptimalDepthIndexes();
-	void findOptimalDepthIndex(unsigned int column);
-	void findNormalizingFactors();
 
-	physicalType calculatePredatorSafety(int initialDepth, int finalDepth);
 
-	virtual void calculatePredatorBiomass()=0;
 
 
 
@@ -347,7 +345,6 @@ private:
 	void matureEggs(set<EggCohort>& eggs, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #endif
 #endif
-	virtual biomassType getFoodBiomass(const AnimalCohort& cohort);
 #endif
 
 	/* External factors affecting animal metabolism*/

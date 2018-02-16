@@ -105,6 +105,51 @@ void GrazerBiomassDynamics::calculatePredatorBiomass(){
 
 }
 
+void GrazerBiomassDynamics::findNormalizingFactors(){
+	averagePredatorSafety=averageFood=0.0f;
+#ifndef THRESHOLD_LIGHT_SAFETY
+	averageLightSafety=0.0f;
+#endif
+
+	/* A counter for the number of cells in the system*/
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
+		for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
+			/*Calculate predator and light safety*/
+			this->predatorSafety[depthIndex][columnIndex]=calculatePredatorSafety(depthIndex, columnIndex);
+#ifndef THRESHOLD_LIGHT_SAFETY
+			this->lightSafety[depthIndex][columnIndex]=this->light_safety_weight*(1-1/(1+exp(-this->lakeLightAtDepth[depthIndex][columnIndex] + this->maximum_light_tolerated)));
+			averageLightSafety+=this->lightSafety[depthIndex][columnIndex];
+#endif
+			/*Light safety is 1 for safe light and 0 for burning light*/
+//			this->lightSafety[depthIndex][columnIndex]=this->lakeLightAtDepth[depthIndex][columnIndex]>this->maximum_light_tolerated?0.0f:1.0f;
+			/*Average predator, light and food safety across al cells */
+			averagePredatorSafety+=predatorSafety[depthIndex][columnIndex];
+			averageFood+=getFoodBiomass(false, depthIndex, columnIndex);
+
+		}
+	}
+	/* Calculate the average of fitness for each metrics*/
+	averagePredatorSafety/=cell_counter;
+	averageFood/=cell_counter;
+#ifndef THRESHOLD_LIGHT_SAFETY
+	averageLightSafety/=cell_counter;
+#endif
+	/*Normalize fitness values using the summing at the current time*/
+	for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; ++columnIndex){
+			for(int depthIndex=0; depthIndex<=maxDepthIndex[columnIndex]; ++depthIndex){
+				/*Sum the inverse of the distance to optimal light*/
+				this->predatorSafety[depthIndex][columnIndex]/=this->averagePredatorSafety;
+				this->normalizedFloatingFoodBiomass[depthIndex][columnIndex]=this->floatingFoodBiomass[depthIndex][columnIndex]/this->averageFood;
+#ifndef THRESHOLD_LIGHT_SAFETY
+				this->lightSafety[depthIndex][columnIndex]/=this->averageLightSafety;
+#endif
+			}
+		}
+//#ifdef MINIMUM_PREDATION_SAFETY
+//	sumOptimalPredatorSafetyValues=1.0f;
+//#endif
+}
+
 
 void GrazerBiomassDynamics::migrateJuvenileCohortDepthDependent(AnimalCohort& cohort){
 	if(cohort.numberOfIndividuals>0&&cohort.bodyBiomass>0.0f){
@@ -466,5 +511,81 @@ void GrazerBiomassDynamics::predateCohort(AnimalCohort& cohort){
 				cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-grazerPredatedBiomass);
 			}
 }
+
+
+physicalType GrazerBiomassDynamics::calculatePredatorSafety(int depthIndex, int columnIndex){
+	/* Distance to optimal light is used for fitness*/
+	physicalType localeLakeLightAtDepth = lakeLightAtDepth[depthIndex][columnIndex];
+//	return 1.0f/fabs((localeLakeLightAtDepth-light_optimal_value)+1);
+	/* To model risk of predation, light is multiplied by planktivore biomass*/
+	biomassType localePredatorBiomass = this->predatorBiomass[depthIndex][columnIndex];
+	biomassType calculatedLightPropensity = 1.0f/((localeLakeLightAtDepth*localePredatorBiomass)+1.0f);
+//	if(calculatedLightPropensity!=1.0f){
+//		cout<<"Light propensity greater than 0."<<endl;
+//	}
+	return calculatedLightPropensity;
+}
+
+
+/* If the migration index is greater than 0, migrate adult and juvenile cohorts*/
+
+void GrazerBiomassDynamics::calculateMigrationValues(){
+	calculatePredatorBiomass();
+	generateMigrationIndexes();
+	findNormalizingFactors();
+	findOptimalDepthIndexes();
+}
+
+
+void GrazerBiomassDynamics::findOptimalDepthIndexes(){
+	for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX; ++columnIndex) {
+		findOptimalDepthIndex(columnIndex);
+	}
+//	for (int columnIndex = 0; columnIndex <= MAX_COLUMN_INDEX; ++columnIndex) {
+//		if(maxDepthIndex[columnIndex]!=optimalDepthIndex[columnIndex]){
+//			cout<<"Difference found."<<endl;
+//		}
+//	}
+}
+void GrazerBiomassDynamics::findOptimalDepthIndex(unsigned int columnIndex){
+
+	int optimalDepthIndex=0;
+	/*Calculate the value to optimize as the weighted sum of the inverse of the distance to optimal light normalized and the amount of food normalized*/
+	physicalType predatorSafetyValueToOptimize=(light_migration_weight)*predatorSafety[0][columnIndex];
+	physicalType foodValueToOptimize =(1-light_migration_weight)*normalizedFloatingFoodBiomass[0][columnIndex];
+	physicalType valueToOptimize = predatorSafetyValueToOptimize+foodValueToOptimize;
+	for (int depthIndex = 1; depthIndex <= maxDepthIndex[columnIndex]; ++depthIndex) {
+		/*Inverse of the distance to optimal light normalized*/
+		physicalType localePredationSafety = light_migration_weight*predatorSafety[depthIndex][columnIndex];
+		/*Amount of food normalized*/
+		physicalType localeFood=(1-light_migration_weight)*normalizedFloatingFoodBiomass[depthIndex][columnIndex];
+#ifdef MINIMUM_PREDATION_SAFETY
+		/* If we are assuming that the predation safety must be above a minimum, compare it with */
+		physicalType localeComposedValue = localePredationSafety;
+		if(localePredationSafety>this->minimum_predation_safety){
+			localeComposedValue=localeFood;
+		}
+#else
+		physicalType localeComposedValue = localePredationSafety+localeFood;
+#endif
+		/* Register the locale fitness value*/
+		localeFitnessValue[depthIndex][columnIndex] = localeComposedValue;
+		if(localeComposedValue>valueToOptimize){
+			/* Update of the new value is greater than the previous*/
+			valueToOptimize = localeComposedValue;
+			optimalDepthIndex=depthIndex;
+//			if(tracedCohort.numberOfIndividuals!=0){
+//				cout<<"Better food detected."<<endl;
+//			}
+		}
+	}
+	optimalDepthIndexes[columnIndex] = optimalDepthIndex;
+//	if(tracedCohort.numberOfIndividuals>0&&columnIndex==tracedCohort.y&&optimalDepthIndex>2){
+//		cout<<"Index for traced cohort is "<<optimalDepthIndex<<"."<<endl;
+//	}
+
+}
+
+
 
 } /* namespace FoodWebModel */

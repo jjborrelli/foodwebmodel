@@ -31,9 +31,7 @@ protected:
 		return bottom?this->bottomFoodBiomassDifferential[columnIndex]:this->floatingFoodBiomassDifferential[columnIndex][depthIndex];
 	}
 	virtual void predateCohort(AnimalCohort& cohort);
-	virtual void calculatePredatorBiomass();
-
-
+	virtual void calculateMigrationValues();
 };
 }
 

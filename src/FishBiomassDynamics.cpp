@@ -43,8 +43,13 @@ void FishBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 
 void FishBiomassDynamics::predateCohort(AnimalCohort& cohort){}
 
-void FishBiomassDynamics::calculatePredatorBiomass(){}
 
 
+/* If the migration index is greater than 0, migrate adult and juvenile cohorts*/
 
+void FishBiomassDynamics::calculateMigrationValues(){
+	generateMigrationIndexes();
 }
+}
+
+

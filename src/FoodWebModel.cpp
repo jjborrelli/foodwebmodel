@@ -335,7 +335,8 @@ void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArgu
 
 void FoodWebModel::FoodWebModel::initializePlanktivoreAttributes(const SimulationArguments& simArguments, FishBiomassDynamics& planktivoreDynamics){
 	planktivoreDynamics.maximum_planktivore_depth=simArguments.maximum_planktivore_depth;
-	planktivoreDynamics.planktivore_consumed_per_individual=simArguments.planktivore_consumed_per_individual;
+	planktivoreDynamics.planktivore_saturation_constant=simArguments.planktivore_consumed_per_individual;
+	planktivoreDynamics.planktivore_consumption_weight=simArguments.planktivore_consumption_weight;
 }
 
 /* A method to print the simulation mode in function of the defined flags*/
@@ -661,9 +662,8 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
 	cout<<"Using maximum depth for planktivores "<<planktivoreDynamics.maximum_planktivore_depth<<"."<<endl;
-	cout<<"Using daphnia consumed per planktivore individual "<<planktivoreDynamics.planktivore_consumed_per_individual<<"."<<endl;
-
-
+	cout<<"Using planktivore saturation constant "<<planktivoreDynamics.planktivore_saturation_constant<<"."<<endl;
+	cout<<"Using planktivore consumption weight "<<planktivoreDynamics.planktivore_consumption_weight<<"."<<endl;
 	#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
@@ -781,7 +781,8 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerLightSafetyThreshold;"<<grazerDynamics.light_safety_threshold<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
 		parameterFileStream<<"MaximumPredatorDepth;"<<this->planktivoreDynamics.maximum_planktivore_depth<<endl;
-		parameterFileStream<<"PlanktivoreConsumedPerIndividual;"<<planktivoreDynamics.planktivore_consumed_per_individual<<endl;
+		parameterFileStream<<"PlanktivoreSaturationConstant;"<<planktivoreDynamics.planktivore_saturation_constant<<endl;
+		parameterFileStream<<"PlanktivoreConsumptionWeight;"<<planktivoreDynamics.planktivore_consumption_weight<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;

@@ -612,6 +612,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.planktivore_consumed_per_individual= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PlanktivoreConsumptionWeight")){
+			simArguments.planktivore_consumption_weight= atof(parameterValue.c_str());
+			return;
+		}
 
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter."<<endl;
 }

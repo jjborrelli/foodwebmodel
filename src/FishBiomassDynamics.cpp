@@ -65,7 +65,7 @@ void FishBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, b
 		consumption_per_individual=0.0f;
 	} else{
 		/*The number of individuals consumed per planktivore is modulated by the temperature and maximized by the number of individuals in the cohort*/
-		consumption_per_individual = min<biomassType>(this->planktivore_consumed_per_individual*stroganov_adjustment,(biomassType)consumedCohortPointer->numberOfIndividuals/animalCount);
+		consumption_per_individual = min<biomassType>(this->planktivore_consumption_weight*consumedCohortPointer->numberOfIndividuals/(consumedCohortPointer->numberOfIndividuals+this->planktivore_saturation_constant)*stroganov_adjustment,(biomassType)consumedCohortPointer->numberOfIndividuals/animalCount);
 	}
 
 #ifdef SATURATION_GRAZING

@@ -148,7 +148,7 @@ typedef struct {
 	unsigned int predator_random_seed, population_seed;
 
 	unsigned int maximum_planktivore_depth;
-	biomassType planktivore_consumed_per_individual;
+	biomassType planktivore_consumed_per_individual, planktivore_consumption_weight;
 
 } SimulationArguments;
 

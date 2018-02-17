@@ -21,8 +21,11 @@ public:
 
 protected:
 	biomassType predationFactor;
-	vector<AnimalCohort> *juvenileGrazers, *adultGrazers;
+	AnimalCohort *floatingPreyPointers[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	biomassType gonadBiomassProportion[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	vector<AnimalCohort> *floatingPreys;
 	unsigned int maximum_planktivore_depth;
+	biomassType planktivore_consumed_per_individual;
 	void calculateBiomass();
 	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight, double consumedProportion);

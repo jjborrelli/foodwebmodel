@@ -608,6 +608,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.maximum_planktivore_depth= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PlanktivoreConsumedPerIndividual")){
+		simArguments.planktivore_consumed_per_individual= atof(parameterValue.c_str());
+		return;
+	}
 
 	cout<<"Parameter: "<<parameterName<<" with value: "<<parameterValue<<" does not correspond to any set parameter."<<endl;
 }

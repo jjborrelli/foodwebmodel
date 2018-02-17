@@ -26,8 +26,9 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	/* Set grazer count and biomass pointers to the grazer dynamics objects*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	grazerDynamics.floatingAnimals=&this->zooplankton;
-	grazerDynamics.bottomAnimals=&this->bottomGrazers;
+//	grazerDynamics.bottomAnimals=&this->bottomGrazers;
 	planktivoreDynamics.floatingAnimals =&this->planktivores;
+	planktivoreDynamics.floatingPreys=grazerDynamics.floatingAnimals;
 
 #else
 	grazerDynamics.bottomAnimalBiomass = bottomFeederBiomass;
@@ -334,6 +335,7 @@ void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArgu
 
 void FoodWebModel::FoodWebModel::initializePlanktivoreAttributes(const SimulationArguments& simArguments, FishBiomassDynamics& planktivoreDynamics){
 	planktivoreDynamics.maximum_planktivore_depth=simArguments.maximum_planktivore_depth;
+	planktivoreDynamics.planktivore_consumed_per_individual=simArguments.planktivore_consumed_per_individual;
 }
 
 /* A method to print the simulation mode in function of the defined flags*/
@@ -659,7 +661,10 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
 	cout<<"Using maximum depth for planktivores "<<planktivoreDynamics.maximum_planktivore_depth<<"."<<endl;
-#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
+	cout<<"Using daphnia consumed per planktivore individual "<<planktivoreDynamics.planktivore_consumed_per_individual<<"."<<endl;
+
+
+	#ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 	cout<<"Using grazer reabsorbed nutrients proportion "<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<"."<<endl;
 #endif
 	cout<<"Using random seed "<<this->random_seed<<"."<<endl;
@@ -776,6 +781,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerLightSafetyThreshold;"<<grazerDynamics.light_safety_threshold<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
 		parameterFileStream<<"MaximumPredatorDepth;"<<this->planktivoreDynamics.maximum_planktivore_depth<<endl;
+		parameterFileStream<<"PlanktivoreConsumedPerIndividual;"<<planktivoreDynamics.planktivore_consumed_per_individual<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;
 #ifdef ADD_DEAD_BIOMASS_NUTRIENTS
 		parameterFileStream<<"GrazerReabsorbedDeadNutrientsProportion;"<<grazerDynamics.reabsorbed_animal_nutrients_proportion<<endl;

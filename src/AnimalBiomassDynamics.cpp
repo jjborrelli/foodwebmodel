@@ -135,6 +135,7 @@ void AnimalBiomassDynamics::takeAnimalDynamicsStep(){
 	removeEmptyCohorts();
 	reallocateSmallCohorts();
 #endif
+
 }
 
 void AnimalBiomassDynamics::reportAssertionError(int depthIndex, int columnIndex, biomassType biomass, biomassType previousBiomass, biomassType differential, bool isBottom) {
@@ -388,14 +389,14 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #ifdef CREATE_NEW_COHORTS
 	/* If biomass differential is negative, do not invest in eggs*/
 	if(cohort.stage==AnimalStage::Egg){
-		cout<<"Error. Egg biomass uodated."<<endl;
+		cout<<"Error. Egg biomass updated."<<endl;
 	}
 
 	//if(cohort.stage!=AnimalStage::Juvenile&&biomassDifferential>0.0f){
 		if(biomassDifferential>0.0f){
 
-		biomassType biomassDifferential=getFoodBiomassDifferential(cohort.isBottomAnimal, cohort.x, cohort.y);
-		calculateReproductionProportionInvestment(initialFoodBiomass, biomassDifferential);
+		biomassType foodBiomassDifferential=getFoodBiomassDifferential(cohort.isBottomAnimal, cohort.x, cohort.y);
+		calculateReproductionProportionInvestment(initialFoodBiomass, foodBiomassDifferential);
 	} else{
 		reproduction_proportion_investment=0.0f;
 	}
@@ -425,7 +426,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(cohort.cohortID)<<", biomass: "<<cohort.gonadBiomass<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
 	#endif
-				biomassType newCohortBiomass = createNewCohort(cohort, cohort.gonadBiomass, cohort.isBottomAnimal?&(this->bottomJuveniles):&(this->floatingJuveniles));
+//				biomassType newCohortBiomass = createNewCohort(cohort, cohort.gonadBiomass, cohort.isBottomAnimal?&(this->bottomJuveniles):&(this->floatingJuveniles));
+				biomassType newCohortBiomass = createNewCohort(cohort, cohort.gonadBiomass, &(this->floatingJuveniles));
+
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Cohort created."<<endl;
 	#endif
@@ -558,6 +561,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #endif
 
 #endif
+	cohort.previousConsumption=used_consumption;
 }
 #endif
 //void AnimalBiomassDynamics::verticalMigrateAnimalsNoPreference(){
@@ -1046,11 +1050,11 @@ biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, b
 	eggCohort.cohortID=parentCohort.cohortID;
 	eggCohort.hasHatched=false;
 	/*Add to the correct map of eggs*/
-	if(eggCohort.isBottomAnimal){
-		bottomEggs.push_back(eggCohort);
-	} else {
+//	if(eggCohort.isBottomAnimal){
+//		bottomEggs.push_back(eggCohort);
+//	} else {
 		floatingEggs.push_back(eggCohort);
-	}
+//	}
 //	AnimalCohort juvenileCohort=parentCohort;
 //	pair<int,int> cohortCoordinates(parentCohort.x, parentCohort.y);
 //	juvenileCohort.bodyBiomass=initialBiomass;
@@ -1127,7 +1131,7 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 	    		animalCohort.cohortID=eggCohort.cohortID;
 	    		animalCohort.justMatured=true;
 	    		animalCohort.isBottomAnimal=eggCohort.isBottomAnimal;
-	    		animalCohort.gonadBiomass=animalCohort.starvationBiomass=0.0f;
+	    		animalCohort.gonadBiomass=animalCohort.starvationBiomass=animalCohort.previousConsumption=0.0f;
 	    		animalCohort.latestMigrationIndex=0;
 	    		/* The migration constant is not used in the juvenile stage*/
 	    		animalCohort.migrationConstant = eggCohort.migrationConstant;
@@ -1202,6 +1206,7 @@ void AnimalBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vec
 			cohortCopy.currentFoodBiomass=it->currentFoodBiomass;
 			cohortCopy.currentPredatorSafety=it->currentPredatorSafety;
 			cohortCopy.predatorFitness=it->predatorFitness;
+			cohortCopy.previousConsumption=it->previousConsumption;
 			pair<int,int> cohortCoordinates(cohortCopy.x, cohortCopy.y);
 //			if(indexToDepth[maxDepthIndex[cohortCopy.y]]>=TRACED_COHORT_DEPTH&&tracedCohort.numberOfIndividuals==0){
 //				/*Create traced cohort*/
@@ -1301,7 +1306,7 @@ void AnimalBiomassDynamics::clearMigrationParameters(){
 			for(int depthIndex=0; depthIndex<MAX_DEPTH_INDEX; depthIndex++){
 					for(int columnIndex=0; columnIndex<MAX_COLUMN_INDEX; columnIndex++){
 						this->migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex]=this->migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex] = this->migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex] =0.0f;
-						this->migratedFloatingAnimalCount[depthIndex][columnIndex]=0;
+						this->migratedFloatingAnimalCount[depthIndex][columnIndex]=this->migratedFloatingAnimalPreviousConsumption[depthIndex][columnIndex]=0.0f;
 					}
 				}
 }
@@ -1341,6 +1346,7 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 						createdCohort.migrationConstant=migratedFloatingMigrationConstant[depthIndex][columnIndex];
 						createdCohort.stage=AnimalStage::Mature;
 						createdCohort.starvationBiomass=migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex];
+						createdCohort.previousConsumption=migratedFloatingAnimalPreviousConsumption[depthIndex][columnIndex];
 						createdCohort.isBottomAnimal=false;
 						createdCohort.ageInHours=0;
 						createdCohort.latestMigrationIndex= createdCohort.hoursInStarvation = 0;
@@ -1369,11 +1375,13 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 
 void AnimalBiomassDynamics::migrateExistingAdultCohort(AnimalCohort& cohort, int depthIndex, int columnIndex){
 	/* If the coordinate is occupied, update the values*/
+	cohort.previousConsumption=(cohort.previousConsumption*cohort.numberOfIndividuals+migratedFloatingAnimalPreviousConsumption[depthIndex][columnIndex]*migratedFloatingAnimalCount[depthIndex][columnIndex])/(migratedFloatingAnimalCount[depthIndex][columnIndex]+cohort.numberOfIndividuals);
 	cohort.numberOfIndividuals+=migratedFloatingAnimalCount[depthIndex][columnIndex];
 	cohort.bodyBiomass+=migratedFloatingAnimalBodyBiomass[depthIndex][columnIndex];
 	cohort.gonadBiomass+=migratedFloatingAnimalGonadBiomass[depthIndex][columnIndex];
 	cohort.migrationConstant=migratedFloatingMigrationConstant[depthIndex][columnIndex];
 	cohort.starvationBiomass+=migratedFloatingAnimalStarvationBiomass[depthIndex][columnIndex];
+
 	cohort.cohortID=migratedFloatingAnimalCohortID[depthIndex][columnIndex];
 	if(cohort.numberOfIndividuals<0||cohort.bodyBiomass<0.0f||cohort.gonadBiomass<0.0f||cohort.starvationBiomass<0.0f){
 		cout<<"Error. Negative biomass."<<endl;
@@ -1439,12 +1447,15 @@ bool AnimalBiomassDynamics::updateMigrationTable(AnimalCohort& cohort, int migra
 //			cout<<"Lake light "<<lakeLightAtDepth[destinationX][destinationY]<<" at coordinates: ("<<destinationX<<", "<<destinationY<<")."<<endl;
 //		}
 		/*Increment the biological values of the destination cohort with the migrated cohort*/
+		this->migratedFloatingAnimalPreviousConsumption[destinationX][destinationY]=(this->migratedFloatingAnimalCount[destinationX][destinationY]*this->migratedFloatingAnimalPreviousConsumption[destinationX][destinationY]+
+				cohort.previousConsumption*cohort.numberOfIndividuals)/(this->migratedFloatingAnimalCount[destinationX][destinationY]+cohort.numberOfIndividuals);
 		this->migratedFloatingAnimalBodyBiomass[destinationX][destinationY]+=cohort.bodyBiomass;
 		this->migratedFloatingAnimalGonadBiomass[destinationX][destinationY]+=cohort.gonadBiomass;
 		this->migratedFloatingAnimalCount[destinationX][destinationY]+=cohort.numberOfIndividuals;
 		this->migratedFloatingAnimalStarvationBiomass[destinationX][destinationY]+=cohort.starvationBiomass;
 		this->migratedFloatingMigrationConstant[destinationX][destinationY]=cohort.migrationConstant;
 		this->migratedFloatingAnimalCohortID[destinationX][destinationY]=cohort.cohortID;
+
 		/*Decrement the biological values of the origin cohort with the migrated cohort*/
 
 		this->migratedFloatingAnimalBodyBiomass[originalX][originalY]-=cohort.bodyBiomass;

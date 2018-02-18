@@ -28,7 +28,7 @@ void FoodWebModel::FoodWebModel::copyPointersToAnimalDynamics() {
 	grazerDynamics.floatingAnimals=&this->zooplankton;
 //	grazerDynamics.bottomAnimals=&this->bottomGrazers;
 	planktivoreDynamics.floatingAnimals =&this->planktivores;
-	planktivoreDynamics.floatingPreys=grazerDynamics.floatingAnimals;
+	planktivoreDynamics.preys=grazerDynamics.floatingAnimals;
 
 #else
 	grazerDynamics.bottomAnimalBiomass = bottomFeederBiomass;
@@ -335,7 +335,7 @@ void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArgu
 
 void FoodWebModel::FoodWebModel::initializePlanktivoreAttributes(const SimulationArguments& simArguments, FishBiomassDynamics& planktivoreDynamics){
 	planktivoreDynamics.maximum_planktivore_depth=simArguments.maximum_planktivore_depth;
-	planktivoreDynamics.planktivore_saturation_constant=simArguments.planktivore_consumed_per_individual;
+	planktivoreDynamics.planktivore_saturation_constant=simArguments.planktivore_saturation_constant;
 	planktivoreDynamics.planktivore_consumption_weight=simArguments.planktivore_consumption_weight;
 }
 
@@ -1552,7 +1552,7 @@ void FoodWebModel::FoodWebModel::addAnimalCohort(unsigned int depthIndex, unsign
 //				}
 		newCohort.numberOfIndividuals=count*readProcessedData.initial_grazer_distribution[developmentStage];
 		newCohort.bodyBiomass=newCohort.numberOfIndividuals*readProcessedData.initial_grazer_weight[developmentStage];
-		newCohort.gonadBiomass=newCohort.starvationBiomass=0.0f;
+		newCohort.gonadBiomass=newCohort.starvationBiomass=newCohort.previousConsumption=0.0f;
 		newCohort.previousFitnessValue=newCohort.currentFitnessValue=0.0f;
 		newCohort.upDirection=false;
 		if(indexToDepth[maxDepthIndex[newCohort.y]]>=TRACED_COHORT_DEPTH&&newCohort.migrationConstant==0){

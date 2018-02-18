@@ -608,8 +608,8 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.maximum_planktivore_depth= atoi(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("PlanktivoreConsumedPerIndividual")){
-		simArguments.planktivore_consumed_per_individual= atof(parameterValue.c_str());
+	if(!parameterName.compare("PlanktivoreSaturationConstant")){
+		simArguments.planktivore_saturation_constant= atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("PlanktivoreConsumptionWeight")){

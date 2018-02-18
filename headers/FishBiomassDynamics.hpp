@@ -21,20 +21,21 @@ public:
 
 protected:
 	biomassType predationFactor;
-	AnimalCohort *floatingPreyPointers[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	AnimalCohort *preyPointers[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], *preyPointer, *currentCohort;
 	biomassType gonadBiomassProportion[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
-	vector<AnimalCohort> *floatingPreys;
+	vector<AnimalCohort> *preys;
 	unsigned int maximum_planktivore_depth;
 	biomassType planktivore_saturation_constant, planktivore_consumption_weight;
-	void calculateBiomass();
+	void calculatePreyBiomass();
 	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight, double consumedProportion);
 	/* Inherited functions*/
-	virtual biomassType getFoodBiomassDifferential(bool bottom, int columnIndex,	int depthIndex){
-		return bottom?this->bottomFoodBiomassDifferential[columnIndex]:this->floatingFoodBiomassDifferential[columnIndex][depthIndex];
-	}
 	virtual void predateCohort(AnimalCohort& cohort);
 	virtual void calculateMigrationValues();
+	virtual void updateCohortBiomass(AnimalCohort& cohort);
+	virtual biomassType getFoodBiomass(bool bottom, int depthIndex,
+			int columnIndex);
+	virtual biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
 };
 }
 

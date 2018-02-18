@@ -84,13 +84,14 @@ protected:
 	biomassType migratedFloatingAnimalBodyBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX], migratedFloatingAnimalGonadBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	animalCountType migratedFloatingAnimalCount[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	biomassType migratedFloatingAnimalStarvationBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+	biomassType migratedFloatingAnimalPreviousConsumption[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	int migratedFloatingMigrationConstant[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	int migratedFloatingAnimalCohortID[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 #ifdef CREATE_NEW_COHORTS
-	vector<EggCohort> floatingEggs, bottomEggs;
+	vector<EggCohort> floatingEggs;//, bottomEggs;
 #ifdef MATURE_JUVENILES
-	vector<AnimalCohort> floatingJuveniles, bottomJuveniles;
+	vector<AnimalCohort> floatingJuveniles;//, bottomJuveniles;
 #endif
 #endif
 #else
@@ -247,7 +248,7 @@ protected:
 private:
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	void updateCohortBiomass(AnimalCohort& cohort);
+	virtual void updateCohortBiomass(AnimalCohort& cohort);
 //	void removeDeadCohorts(vector<AnimalCohort> *animalCohorts);
 //	void removeDeadAnimals();
 #ifdef ANIMAL_COHORT_MAP
@@ -265,6 +266,7 @@ private:
 
 	/* Methods for updating the biomass in animals*/
 	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottomFeeder, animalCountType animalCount, biomassType algaeBiomassInMicrograms, biomassType individualWeight, double consumedProportion=1.0f)=0;
+	virtual biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
 	void defecation();
 	void animalRespiration(biomassType zooBiomass, physicalType localeTemperature, physicalType localeSalinityEffect);
 	biomassType basalRespiration(biomassType zooBiomass);
@@ -274,7 +276,7 @@ private:
 	void animalMortality(biomassType localeRespiration, physicalType localeTemperature, physicalType localeSalinityConcentration);
 	void animalBaseMortality(physicalType localeTemperature, biomassType localeBiomass);
 	void animalTemperatureMortality(physicalType localeTemperature, biomassType localeBiomass);
-	biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
+
 	virtual void predateCohort(AnimalCohort& cohort)=0;
 
 #ifdef INDIVIDUAL_BASED_ANIMALS

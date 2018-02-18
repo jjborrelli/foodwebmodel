@@ -148,7 +148,7 @@ typedef struct {
 	unsigned int predator_random_seed, population_seed;
 
 	unsigned int maximum_planktivore_depth;
-	biomassType planktivore_consumed_per_individual, planktivore_consumption_weight;
+	biomassType planktivore_saturation_constant, planktivore_consumption_weight;
 
 } SimulationArguments;
 
@@ -172,6 +172,7 @@ typedef struct {
 	/* Fitness metrics*/
 	mutable biomassType previousFitnessValue, currentFitnessValue;
 	mutable biomassType currentPredatorSafety, currentFoodBiomass;
+	mutable biomassType previousConsumption;
 	/* Predator if the fitness is predator fitness (current cell too predated), food otherwise*/
 	predatorFitnessType predatorFitness;
 	int hoursInStarvation;

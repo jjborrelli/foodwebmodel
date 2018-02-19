@@ -1593,6 +1593,14 @@ FoodWebModel::FoodWebModel::FoodWebModel(const SimulationArguments& simArguments
 
 }
 
+FoodWebModel::FoodWebModel::~FoodWebModel(){
+/* Read the geophysical parameters from the lake, including depth and temperature at water surface
+ *
+ * */
+	delete this->randomNumberGenerator;
+
+}
+
 /*
  * Calculate system-specific bathymetric parameters
  */

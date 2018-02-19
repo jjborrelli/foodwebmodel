@@ -27,7 +27,6 @@ protected:
 	unsigned int maximum_planktivore_depth;
 	biomassType planktivore_saturation_constant, planktivore_consumption_weight;
 	void calculatePreyBiomass();
-	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight, double consumedProportion);
 	/* Inherited functions*/
 	virtual void predateCohort(AnimalCohort& cohort);
@@ -36,6 +35,7 @@ protected:
 	virtual biomassType getFoodBiomass(bool bottom, int depthIndex,
 			int columnIndex);
 	virtual biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
+	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 };
 }
 

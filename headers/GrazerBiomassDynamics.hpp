@@ -57,11 +57,10 @@ protected:
 	virtual void predateCohort(AnimalCohort& cohort);
 	virtual void foodConsumptionRate(int depthIndex, int columnIndex, bool bottom, animalCountType animalCount, biomassType foodBiomassInMicrograms, biomassType individualWeight, double consumedProportion);
 	virtual void calculatePredatorBiomass();
-
+	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 private:
 	physicalType calculatePredatorSafety(int initialDepth, int finalDepth);
 	void findNormalizingFactors();
-	void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 	void calculateMigrationValues();
 
 	/* Calculating the optimal migration index for animals*/

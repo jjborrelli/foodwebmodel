@@ -184,6 +184,7 @@ namespace FoodWebModel {
 
 	public:
 		FoodWebModel(const SimulationArguments& simArguments);
+		~FoodWebModel();
 		int simulate(const SimulationArguments& simArguments);
 		void initializeParameters();
 

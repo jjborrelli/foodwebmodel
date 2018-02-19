@@ -41,9 +41,6 @@ void FishBiomassDynamics::calculatePreyBiomass(){
 //	}
 }
 
-void FishBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
-
-}
 
 void FishBiomassDynamics::predateCohort(AnimalCohort& cohort){}
 
@@ -113,6 +110,47 @@ void FishBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 			}
 		AnimalBiomassDynamics::updateCohortBiomass(cohort);
 
+}
+
+
+/* Migrate juvenile cohorts assuming a stochastic approach. Cohorts might move to a suboptimal cell to escape from local maxima*/
+void FishBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
+	generateMigrationIndexes();
+	double searchStepCounter=1;
+	int localeVerticalCoordinate=cohort.x, localeHorizontalCoordinate=cohort.y;
+	cohort.previousFitnessValue =cohort.currentFitnessValue= 0.0f;
+	for (std::vector<pair<int,int>>::iterator migrationIndexPair = hourlyMigrationIndexPairs->begin();
+			migrationIndexPair != hourlyMigrationIndexPairs->end()&&searchStepCounter<=this->max_search_steps; ++migrationIndexPair) {
+		/* Retrieve migration indexes*/
+		int verticalIndex=migrationIndexPair->first, horizontalIndex=migrationIndexPair->second;
+		/* Calculate the destination coordinates as the current coordinates plus the migration indexes*/
+		int destinationVertical = localeVerticalCoordinate+verticalIndex, destinationHorizontal = localeHorizontalCoordinate+horizontalIndex;
+		if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
+			if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX&&destinationVertical<=this->maximum_planktivore_depth){
+				if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
+					/*If the cell exists, attempt movement*/
+					/*Otherwise, move it with a certain probability proportional to the fitness difference*/
+					double randomNumber = ((double) rand() / (RAND_MAX));
+					if(randomNumber<=0.5f){
+						cohort.x=destinationVertical;
+						cohort.y=destinationHorizontal;
+						cohort.currentPredatorSafety=0.0f;
+						AnimalCohort* destinationCohort = this->preyPointers[destinationVertical][destinationHorizontal];
+						biomassType destinationFoodBodyBiomass=destinationCohort->bodyBiomass,
+								destinationFoodGonadBiomass=destinationCohort->gonadBiomass;
+						biomassType destinationFoodTotalBiomass=destinationFoodBodyBiomass+destinationFoodGonadBiomass;
+						cohort.currentFoodBiomass=destinationFoodTotalBiomass;
+						cohort.currentFitnessValue=0.0f;
+					}
+				}
+
+				/* Update the number of search steps per group*/
+				searchStepCounter++;
+			}
+		}
+	}
+	//(*it)*=0.9f;
+	/*Migrate traced cohort as a special case*/
 }
 }
 

@@ -245,6 +245,7 @@ protected:
 	virtual biomassType getFoodBiomass(bool bottom, int depthIndex, int columnIndex);
 	virtual biomassType getFoodBiomass(const AnimalCohort& cohort);
 	virtual void calculateMigrationValues()=0;
+	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort)=0;
 private:
 	void updateAnimalBiomass();
 #ifdef INDIVIDUAL_BASED_ANIMALS
@@ -306,7 +307,7 @@ private:
 	void migrateJuvenileCohortsDepthDependent(vector<AnimalCohort>& animals);
 	void migrateJuvenileCohortDepthDependent(AnimalCohort& cohort);
 	void migrateJuvenileCohortDepthDependent(std::vector<AnimalCohort>::iterator it);
-	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
+
 
 	/*If animals consume during migration, use these methods*/
 	void consumeDuringMigration(int initialDepth, int finalDepth, AnimalCohort& it);

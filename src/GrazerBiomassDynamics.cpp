@@ -90,17 +90,17 @@ void GrazerBiomassDynamics::calculatePredatorBiomass(){
 		/* Planktivores are present in a depth-limited band*/
 		int initialPlanktivoreBiomassDepth = max<int>(0, localePlanktivoreBiomassCenter-this->planktivore_biomass_width),
 				finalPlanktivoreBiomassDepth = min<int>(localeDepth, localePlanktivoreBiomassCenter+this->planktivore_biomass_width);
-		for(int depthIndex=0; depthIndex<=localeDepth; ++depthIndex){
-			if(depthIndex>=initialPlanktivoreBiomassDepth&&depthIndex<=finalPlanktivoreBiomassDepth){
-				/* If the depth is within this band, use lighttime dependent biomass*/
-				this->predatorBiomass[depthIndex][columnIndex]=planktivoreBiomassFactor;
-			}
-			else{
-				/*Otherwise, clear fish biomass*/
-				this->predatorBiomass[depthIndex][columnIndex]=0.0f;
-			}
-
-		}
+//		for(int depthIndex=0; depthIndex<=localeDepth; ++depthIndex){
+//			if(depthIndex>=initialPlanktivoreBiomassDepth&&depthIndex<=finalPlanktivoreBiomassDepth){
+//				/* If the depth is within this band, use lighttime dependent biomass*/
+//				this->predatorBiomass[depthIndex][columnIndex]=planktivoreBiomassFactor;
+//			}
+//			else{
+//				/*Otherwise, clear fish biomass*/
+//				this->predatorBiomass[depthIndex][columnIndex]=0.0f;
+//			}
+//
+//		}
 	}
 
 }
@@ -499,17 +499,18 @@ int GrazerBiomassDynamics::migrateCohortsDepthDependent(AnimalCohort& cohort){
 
 /* Predation of cohorts based on predator biomass*/
 void GrazerBiomassDynamics::predateCohort(AnimalCohort& cohort){
-	if(predatorBiomass[cohort.x][cohort.y]>0.0f){
-				/* If there are plantivores in the region, consume grazer biomass*/
-				/* Calculate predated biomass*/
-				biomassType predationFactor=predatorBiomass[cohort.x][cohort.y]*this->predation_index;
-				biomassType grazerPredatedBiomass=predationFactor*cohort.bodyBiomass;
-				animalCountType localePredatedIndividuals = grazerPredatedBiomass/this->initial_grazer_weight[cohort.stage];
-				this->predatedIndividuals[cohort.x][cohort.y]+= localePredatedIndividuals;
-				/* Remove predated individuals*/
-				cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-localePredatedIndividuals);
-				cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-grazerPredatedBiomass);
-			}
+//	if(predatorBiomass[cohort.x][cohort.y]>0.0f){
+	if(cohort.x<=maximum_predator_depth){
+		/* If there are plantivores in the region, consume grazer biomass*/
+		/* Calculate predated biomass*/
+		biomassType predationFactor=this->predation_index;
+		biomassType grazerPredatedBiomass=predationFactor*cohort.bodyBiomass;
+		animalCountType localePredatedIndividuals = grazerPredatedBiomass/this->initial_grazer_weight[cohort.stage];
+		this->predatedIndividuals[cohort.x][cohort.y]+= localePredatedIndividuals;
+		/* Remove predated individuals*/
+		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-localePredatedIndividuals);
+		cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-grazerPredatedBiomass);
+	}
 }
 
 
@@ -518,7 +519,7 @@ physicalType GrazerBiomassDynamics::calculatePredatorSafety(int depthIndex, int 
 	physicalType localeLakeLightAtDepth = lakeLightAtDepth[depthIndex][columnIndex];
 //	return 1.0f/fabs((localeLakeLightAtDepth-light_optimal_value)+1);
 	/* To model risk of predation, light is multiplied by planktivore biomass*/
-	biomassType localePredatorBiomass = this->predatorBiomass[depthIndex][columnIndex];
+	biomassType localePredatorBiomass = depthIndex<=maximum_predator_depth?0.9f:0.0f;
 	biomassType calculatedLightPropensity = 1.0f/((localeLakeLightAtDepth*localePredatorBiomass)+1.0f);
 //	if(calculatedLightPropensity!=1.0f){
 //		cout<<"Light propensity greater than 0."<<endl;

@@ -236,7 +236,7 @@ protected:
 
 
 	/*Planktivore biomass at each depth and column */
-	biomassType predatorBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
+//	biomassType predatorBiomass[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 
 #ifdef CHECK_ASSERTIONS
 		std::ostringstream *assertionViolationBuffer;

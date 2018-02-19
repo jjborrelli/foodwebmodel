@@ -267,6 +267,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.critical_light_intensity=simArguments.grazer_critical_light_intensity;
 	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
 	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
+	grazerDynamics.maximum_predator_depth=simArguments.maximum_planktivore_depth;
 }
 
 void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArguments& simArguments, AnimalBiomassDynamics& speciesDynamics){

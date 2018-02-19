@@ -41,7 +41,7 @@ protected:
 	/* Distribution of planktivore biomass across depths*/
 	biomassType planktivore_biomass_center_day, planktivore_biomass_center_night, planktivore_biomass_width;
 
-
+	unsigned int maximum_predator_depth;
 
 	/*Functions related to migration (depredated)*/
 	int migrateCohortsDepthDependent(AnimalCohort& cohort);

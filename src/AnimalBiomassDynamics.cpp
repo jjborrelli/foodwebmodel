@@ -471,9 +471,9 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 		}
 //	}
 	/* Calculate predation mortality */
-	if(cohort.numberOfIndividuals>0){
-		predateCohort(cohort);
-	}
+//	if(cohort.numberOfIndividuals>0){
+//		predateCohort(cohort);
+//	}
 
 	/*Remove starved animals in the cohort*/
 	/*if(consumed_biomass>0){
@@ -520,7 +520,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 //			cout<<"Natural dead individuals greater than 0."<<endl;
 //		}
 		biomassType fitnessDifference = cohort.currentFitnessValue-cohort.previousFitnessValue;
-		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<indexToDepth[cohort.x]<<commaString<<this->lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<this->lakeLightAtDepth[0][cohort.y]<<commaString<<cohort.currentFoodBiomass<<commaString<<this->floatingFoodBiomass[0][cohort.y]<<commaString<<this->predatorBiomass[0][cohort.y]<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.hoursInStarvation<<commaString<<this->predatedIndividuals[cohort.x][cohort.y]<<commaString<<this->predatorSafety[cohort.x][cohort.y]<<commaString<<this->predatorSafety[0][cohort.y]<<commaString<<cohort.predatorFitness<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
+		animalBiomassBuffer<<lineBuffer.str()<<commaString<<cohort.numberOfIndividuals<<commaString<<animals_dead_by_starvation<<commaString<<natural_dead_individuals<<commaString<<cohort.bodyBiomass<<commaString<<cohort.gonadBiomass<<commaString<<locale_algae_biomass_before_eating<<commaString<<locale_algae_biomass_after_eating<<commaString<<used_consumption<<commaString<<animal_carrying_capacity<<commaString<<reproduction_proportion_investment<<commaString<<this->stroganov_adjustment<<commaString<<indexToDepth[cohort.x]<<commaString<<this->lakeLightAtDepth[cohort.x][cohort.y]<<commaString<<this->lakeLightAtDepth[0][cohort.y]<<commaString<<cohort.currentFoodBiomass<<commaString<<this->floatingFoodBiomass[0][cohort.y]<<commaString<<0.9f<<commaString<<cohort.previousFitnessValue<<commaString<<cohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<cohort.hoursInStarvation<<commaString<<this->predatedIndividuals[cohort.x][cohort.y]<<commaString<<this->predatorSafety[cohort.x][cohort.y]<<commaString<<this->predatorSafety[0][cohort.y]<<commaString<<cohort.predatorFitness<<commaString<<cohort.stage<<commaString<<cohort.cohortID<<endl;
 //#ifdef LIGHT_BASED_MIGRATION_FIXED_FREQUENCY
 //		if(lakeLightAtDepth[cohort.x][cohort.y]<this->critical_light_intensity){
 					//cout<<"Juvenile lake light at coordinates: "<<cohort.x<<", "<<cohort.y<<" is "<<critical_light_intensity<<"."<<endl;
@@ -1719,7 +1719,7 @@ void AnimalBiomassDynamics::registerMigration(){
 //	}
 	if(tracedCohort.numberOfIndividuals!=0){
 		biomassType fitnessDifference = tracedCohort.currentFitnessValue-tracedCohort.previousFitnessValue;
-		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<this->indexToDepth[tracedCohort.x]<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<lakeLightAtDepth[0][tracedCohort.y]<<commaString<<tracedCohort.currentFoodBiomass<<commaString<<this->floatingFoodBiomass[0][tracedCohort.y]<<commaString<<predatorBiomass[0][tracedCohort.y]<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.previousFitnessValue<<commaString<<tracedCohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<tracedCohort.hoursInStarvation<<commaString<<this->predatedIndividuals[tracedCohort.x][tracedCohort.y]<<commaString<<this->predatorSafety[tracedCohort.x][tracedCohort.y]<<commaString<<this->predatorSafety[0][tracedCohort.y]<<commaString<<tracedCohort.predatorFitness<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
+		animalTraceBuffer<<tracedCohort.x<<commaString<<tracedCohort.y<<commaString<<(*current_hour)<<commaString<<(tracedCohort.isBottomAnimal?1:0)<<commaString<<tracedCohort.stage<<commaString<<this->indexToDepth[tracedCohort.x]<<commaString<<lakeLightAtDepth[tracedCohort.x][tracedCohort.y]<<commaString<<lakeLightAtDepth[0][tracedCohort.y]<<commaString<<tracedCohort.currentFoodBiomass<<commaString<<this->floatingFoodBiomass[0][tracedCohort.y]<<0.9f<<commaString<<tracedCohort.latestMigrationIndex<<commaString<<tracedCohort.numberOfIndividuals<<commaString<<tracedCohort.bodyBiomass<<commaString<<tracedCohort.previousFitnessValue<<commaString<<tracedCohort.currentFitnessValue<<commaString<<fitnessDifference<<commaString<<tracedCohort.hoursInStarvation<<commaString<<this->predatedIndividuals[tracedCohort.x][tracedCohort.y]<<commaString<<this->predatorSafety[tracedCohort.x][tracedCohort.y]<<commaString<<this->predatorSafety[0][tracedCohort.y]<<commaString<<tracedCohort.predatorFitness<<commaString<<tracedCohort.migrationConstant<<commaString<<tracedCohort.cohortID<<endl;
 //		if(tracedCohort.x!=0){
 //			cout<<"Non-zero depth detected."<<endl;
 //		}

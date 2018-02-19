@@ -268,6 +268,7 @@ void FoodWebModel::FoodWebModel::initializeGrazerAttributes(const SimulationArgu
 	grazerDynamics.light_optimal_value=simArguments.grazer_light_optimal_value;
 	grazerDynamics.velocity_downward_pull=simArguments.grazer_velocity_downward_pull;
 	grazerDynamics.maximum_predator_depth=simArguments.maximum_planktivore_depth;
+	grazerDynamics.predation_perceived_biomass=simArguments.grazer_predation_perceived_biomass;
 }
 
 void FoodWebModel::FoodWebModel::initializeAnimalAttributes(const SimulationArguments& simArguments, AnimalBiomassDynamics& speciesDynamics){
@@ -662,6 +663,7 @@ void FoodWebModel::FoodWebModel::printSimulationMode(){
 	cout<<"Using grazer light safety threshold "<<grazerDynamics.light_safety_threshold<<"."<<endl;
 	cout<<"Using cohort splitting limit "<<grazerDynamics.cohort_splitting_limit<<"."<<endl;
 	cout<<"Using minimum tolerable light for daphnia "<<grazerDynamics.minimum_tolerable_light<<"."<<endl;
+	cout<<"Using predation perceived biomass for grazers "<<grazerDynamics.predation_perceived_biomass<<"."<<endl;
 	cout<<"Using maximum depth for planktivores "<<planktivoreDynamics.maximum_planktivore_depth<<"."<<endl;
 	cout<<"Using planktivore saturation constant "<<planktivoreDynamics.planktivore_saturation_constant<<"."<<endl;
 	cout<<"Using planktivore consumption weight "<<planktivoreDynamics.planktivore_consumption_weight<<"."<<endl;
@@ -782,6 +784,7 @@ void FoodWebModel::FoodWebModel::writeSimulatedParameters(const string& paramete
 		parameterFileStream<<"GrazerLightSafetyThreshold;"<<grazerDynamics.light_safety_threshold<<endl;
 		parameterFileStream<<"GrazerCohortSplittingLimit;"<<grazerDynamics.cohort_splitting_limit<<endl;
 		parameterFileStream<<"MaximumPredatorDepth;"<<this->planktivoreDynamics.maximum_planktivore_depth<<endl;
+		parameterFileStream<<"GrazerPredationPerceivedBiomass;"<<this->grazerDynamics.predation_perceived_biomass<<endl;
 		parameterFileStream<<"PlanktivoreSaturationConstant;"<<planktivoreDynamics.planktivore_saturation_constant<<endl;
 		parameterFileStream<<"PlanktivoreConsumptionWeight;"<<planktivoreDynamics.planktivore_consumption_weight<<endl;
 		parameterFileStream<<"GrazerMinimumTolerableLight;"<<grazerDynamics.minimum_tolerable_light<<endl;

@@ -519,7 +519,7 @@ physicalType GrazerBiomassDynamics::calculatePredatorSafety(int depthIndex, int 
 	physicalType localeLakeLightAtDepth = lakeLightAtDepth[depthIndex][columnIndex];
 //	return 1.0f/fabs((localeLakeLightAtDepth-light_optimal_value)+1);
 	/* To model risk of predation, light is multiplied by planktivore biomass*/
-	biomassType localePredatorBiomass = depthIndex<=maximum_predator_depth?0.9f:0.0f;
+	biomassType localePredatorBiomass = depthIndex<=maximum_predator_depth?this->predation_perceived_biomass:0.0f;
 	biomassType calculatedLightPropensity = 1.0f/((localeLakeLightAtDepth*localePredatorBiomass)+1.0f);
 //	if(calculatedLightPropensity!=1.0f){
 //		cout<<"Light propensity greater than 0."<<endl;

@@ -116,7 +116,7 @@ typedef struct {
 	predator_carrying_capacity_intercept,
 	predator_maximum_found_biomass;
 
-	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline;
+	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline, grazer_predation_perceived_biomass;
 	int max_vertical_migration, max_horizontal_migration;
 	int grazer_max_search_steps;
 	double grazer_random_walk_probability_weight;

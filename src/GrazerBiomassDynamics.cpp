@@ -285,12 +285,17 @@ void GrazerBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 
 #ifdef THRESHOLD_LIGHT_SAFETY
 					physicalType destinationLight = this->lakeLightAtDepth[destinationVertical][destinationHorizontal];
-					bool destinationLightSafe=(destinationLight<=this->maximum_light_tolerated),
+					bool destinationLightSafe=,
 							destinationLightLower=(destinationLight<originLight);
 #else
 					physicalType destinationLightSafety= this->lightSafety[localeVerticalCoordinate][localeHorizontalCoordinate];
-					bool destinationLightSafe=(destinationLightSafety*averageLightSafety>this->light_safety_threshold),
+
+//					bool destinationLightSafe=(destinationLightSafety*averageLightSafety>this->light_safety_threshold),
+					/*Comment the following 2 lines and uncomment the previous line for previous grazer light control*/
+					physicalType destinationLight = this->lakeLightAtDepth[destinationVertical][destinationHorizontal];
+					bool destinationLightSafe=(destinationLight<=this->maximum_light_tolerated),
 							destinationLightLower=(destinationLightSafety>originLightSafety);
+
 #endif
 					if(((!destinationLightSafe)&&lakeLightAtDepth[destinationVertical][destinationHorizontal]<(this->maximum_light_tolerated))||
 							(destinationLightSafe&&lakeLightAtDepth[destinationVertical][destinationHorizontal]>(this->maximum_light_tolerated))){

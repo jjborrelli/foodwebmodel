@@ -262,7 +262,7 @@ for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX; ++columnIndex) {
 #ifdef CREATE_NEW_COHORTS
 #ifdef MATURE_JUVENILES
 //	matureEggs(bottomEggs, bottomJuveniles);
-	matureEggs(floatingEggs, floatingJuveniles);
+	matureFloatingEggs();
 //	matureJuveniles(bottomJuveniles, bottomAnimals);
 	matureJuveniles(floatingJuveniles, floatingAnimals);
 #else
@@ -349,6 +349,10 @@ for (int columnIndex = 0; columnIndex < MAX_COLUMN_INDEX; ++columnIndex) {
 #endif
 }
 
+
+void AnimalBiomassDynamics::matureFloatingEggs(){
+	matureEggs(floatingEggs, floatingJuveniles);
+}
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
 /* Function for updating biomass in grazer cohorts*/

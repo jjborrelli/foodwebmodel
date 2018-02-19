@@ -36,6 +36,8 @@ protected:
 			int columnIndex);
 	virtual biomassType getFoodBiomassDifferential(bool bottom, int depthIndex, int columnIndex);
 	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
+	virtual void matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals);
+	virtual void matureFloatingEggs();
 };
 }
 

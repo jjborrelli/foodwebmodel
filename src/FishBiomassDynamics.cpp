@@ -128,18 +128,23 @@ void FishBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 		if(destinationHorizontal>=0&&destinationHorizontal<=MAX_COLUMN_INDEX){
 			if(destinationVertical>=0&&destinationVertical<=MAX_DEPTH_INDEX&&destinationVertical<=this->maximum_planktivore_depth){
 				if(maxDepthIndex[destinationHorizontal]>=destinationVertical){
-					/*If the cell exists, attempt movement*/
-					/*Otherwise, move it with a certain probability proportional to the fitness difference*/
+					/*If the cell exists, the cohort migrates with probability 0.5*/
 					double randomNumber = ((double) rand() / (RAND_MAX));
 					if(randomNumber<=0.5f){
+						/*If the cohort migrates, migrate cohort*/
 						cohort.x=destinationVertical;
 						cohort.y=destinationHorizontal;
 						cohort.currentPredatorSafety=0.0f;
 						AnimalCohort* destinationCohort = this->preyPointers[destinationVertical][destinationHorizontal];
-						biomassType destinationFoodBodyBiomass=destinationCohort->bodyBiomass,
-								destinationFoodGonadBiomass=destinationCohort->gonadBiomass;
-						biomassType destinationFoodTotalBiomass=destinationFoodBodyBiomass+destinationFoodGonadBiomass;
-						cohort.currentFoodBiomass=destinationFoodTotalBiomass;
+						if(destinationCohort==NULL){
+							cohort.currentFoodBiomass=0.0f;
+						} else {
+							biomassType destinationFoodBodyBiomass=destinationCohort->bodyBiomass,
+									destinationFoodGonadBiomass=destinationCohort->gonadBiomass;
+							biomassType destinationFoodTotalBiomass=destinationFoodBodyBiomass+destinationFoodGonadBiomass;
+							cohort.currentFoodBiomass=destinationFoodTotalBiomass;
+						}
+
 						cohort.currentFitnessValue=0.0f;
 					}
 				}
@@ -152,6 +157,15 @@ void FishBiomassDynamics::migrateCohortUsingRandomWalk(AnimalCohort& cohort){
 	//(*it)*=0.9f;
 	/*Migrate traced cohort as a special case*/
 }
+
+/* Planktivore juveniles hatch directly as adults*/
+void FishBiomassDynamics::matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals){}
+
+void FishBiomassDynamics::matureFloatingEggs(){
+	if(this->floatingJuveniles.size()>0){
+		cout<<"Error. Existing planktivore juveniles."<<endl;
+	}
+	matureEggs(this->floatingEggs, *(this->floatingAnimals));
 }
 
-
+}

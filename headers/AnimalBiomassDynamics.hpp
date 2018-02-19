@@ -333,9 +333,10 @@ private:
 #ifdef MATURE_JUVENILES
 	void matureEggs(vector<EggCohort>& eggs, vector<AnimalCohort>& adultAnimals);
 #ifdef ANIMAL_COHORT_MAP
-	void matureJuveniles(vector<AnimalCohort>& juveniles, map<pair<int,int>,AnimalCohort> *adultAnimals);
+	virtual void matureJuveniles(vector<AnimalCohort>& juveniles, map<pair<int,int>,AnimalCohort> *adultAnimals);
 #else
-	void matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals);
+	virtual void matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals);
+	virtual void matureFloatingEggs();
 	void reallocateSmallCohorts();
 #ifdef CONGLOMERATE_ALL_COHORTS
 	void agglomerateCohorts(vector<AnimalCohort> *animals);

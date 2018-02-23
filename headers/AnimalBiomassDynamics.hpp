@@ -33,6 +33,7 @@ protected:
 	std::ostringstream lineBuffer, animalBiomassBuffer;
 #ifdef INDIVIDUAL_BASED_ANIMALS
 	std::ostringstream animalTraceBuffer;
+	AnimalType animalType;
 #endif
 	/* Animal count summing. The simulation halts below a given number*/
 	animalCountType floating_animal_count_summing, animals_dead_by_starvation, natural_dead_individuals;
@@ -101,8 +102,8 @@ protected:
 	animalCountType *floatingAnimalCount[MAX_DEPTH_INDEX], *bottomAnimalCount;
 #endif
 
-	biomassType initial_grazer_weight[MAX_CLASS_INDEX];
-
+	biomassType initial_animal_weight[MAX_CLASS_INDEX];
+	animalCountType initial_animal_count[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
 	/* Safety of cells according to predation risk*/
 	biomassType predation_index;
 	biomassType predatorSafety[MAX_DEPTH_INDEX][MAX_COLUMN_INDEX];
@@ -356,7 +357,7 @@ private:
 	void calculateLowOxigenMortality(biomassType inputBiomass);
 	void stroganovApproximation(physicalType localeTemperature);
 	void calculatePredationPressure(animalCountType zooplanktonLocaleCount);
-	void calculateGrazerCarryingCapacityMortality(biomassType inputBiomass);
+virtual	void calculateGrazerCarryingCapacityMortality(const animalCountType animalCount, const biomassType animalWeight, const biomassType animalBiomass);
 
 	/*Vertical animal migration*/
 //	void verticalMigrateAnimalsNoPreference();
@@ -366,6 +367,7 @@ private:
 protected:
 	bool updateMigrationTable(AnimalCohort& cohort, int migrateStep);
 	void generateMigrationIndexes();
+	virtual void updateStarvation(biomassType biomassAfterEating, AnimalCohort& cohort);
 };
 
 } /* namespace FoodWebModel */

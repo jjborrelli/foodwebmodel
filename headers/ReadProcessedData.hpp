@@ -25,8 +25,8 @@ namespace FoodWebModel{
 		animalCountType **initial_planktivore_count, per_depth_planktivore_count[MAX_DEPTH_INDEX];
 
 		/* Grazer weight and distribution taken from [1] M. F. Baudouin and O. Ravera, “Weight, size and chemical composition of some freshwater zooplankters: Daphnia Hyalina (Leydig),” Limnol. Oceanogr., vol. 17, pp. 645–649, 1972.*/
-		double initial_grazer_distribution[MAX_CLASS_INDEX];
-		biomassType initial_grazer_weight[MAX_CLASS_INDEX];
+		double initial_animal_distribution[MAX_CLASS_INDEX];
+		biomassType initial_grazer_weight[MAX_CLASS_INDEX], initial_planktivore_weight[MAX_CLASS_INDEX];
 		/* Algae and animal biomass differential*/
 		biomassType baseBiomassDifferential[MAX_DEPTH_INDEX], zooplanktonBiomassCenterDifferencePerDepth[HOURS_PER_DAY];
 
@@ -57,8 +57,9 @@ namespace FoodWebModel{
 		void readBaseAlgaeBiomassDifferential(const string& biomassDifferentialRoute);
 		void readInitialZooplanktonCount(const string& biomassRoute);
 		void readInitialPlanktivoreCount(const string& planktivoreCountRoute);
-		void readInitialZooplanktonDistribution(const string& grazerDistributionRoute);
+		void readInitialAnimalDistribution(const string& animalDistributionRoute);
 		void readInitialZooplanktonWeight(const string& grazerWeightRoute);
+		void readInitialPlanktivoreWeight(const string& planktivoreWeightRoute);
 		void readPhosphorusConcentrationAtBottom(const string& phosphorusConcentrationAtBottomRoute);
 		void readNitrogenConcentrationAtBottom(const string& nitrogenConcentrationAtBottomRoute);
 		void readZooplanktonBiomassCenterDifferencePerDepth(const string& zooplanktonBiomassCenterDifferencePerDepthRoute);

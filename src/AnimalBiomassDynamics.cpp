@@ -355,6 +355,31 @@ void AnimalBiomassDynamics::matureFloatingEggs(){
 }
 #ifdef INDIVIDUAL_BASED_ANIMALS
 
+void AnimalBiomassDynamics::updateStarvation(biomassType biomassAfterEating,
+		AnimalCohort& cohort) {
+	if (biomassAfterEating == 0.0f) {
+		/* If there is no food, all individuals die*/
+		natural_dead_individuals = cohort.numberOfIndividuals;
+		if (animalType == AnimalType::Planktivore) {
+			cout << "All individuals (" << natural_dead_individuals
+					<< ") have starved." << endl;
+		}
+	} else {
+		/* Otherwise, only a number die*/
+		animalCountType starvationProportion = (cohort.numberOfIndividuals
+				/ biomassAfterEating) * this->starvation_factor;
+		//			starvationProportion*=this->starvation_factor;
+		//natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+		natural_dead_individuals = this->animal_base_mortality_proportion
+				* cohort.numberOfIndividuals + starvationProportion;
+		if (animalType == AnimalType::Planktivore) {
+			cout << "Some individuals (" << natural_dead_individuals
+					<< ") have starved with starvation proportion: "
+					<< starvationProportion << "." << endl;
+		}
+	}
+}
+
 /* Function for updating biomass in grazer cohorts*/
 void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	int depthIndex=cohort.x, columnIndex=cohort.y;
@@ -380,13 +405,14 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #else
 	biomassType biomassDifferential = animalBiomassDifferential(depthIndex, columnIndex, cohort.isBottomAnimal, animalCount, initialAnimalBiomass);
 #endif
+
 	if(biomassDifferential>0.0f){
 #if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
-		biomassType mortalityBiomass=min<biomassType>(animalCount*this->initial_grazer_weight[cohort.stage], initialAnimalBiomass);
+		biomassType mortalityBiomass=min<biomassType>(animalCount*this->initial_animal_weight[cohort.stage], initialAnimalBiomass);
 #else
 		biomassType mortalityBiomass=previousBottomAnimalBiomass;
 #endif
-		calculateGrazerCarryingCapacityMortality(mortalityBiomass);
+		calculateGrazerCarryingCapacityMortality(animalCount, this->initial_animal_weight[cohort.stage], initialAnimalBiomass);
 		biomassDifferential-=animal_carrying_capacity*biomassDifferential;
 	}
 #ifdef CREATE_NEW_COHORTS
@@ -425,7 +451,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	if(((*(this->current_hour)%this->ovipositing_period)==0)||(cohort.ageInHours==this->maximum_age_in_hours)){
 		if(cohort.gonadBiomass>0.0f){
 			/* If the biomass is enough to generate at least one egg, create it.*/
-			if(cohort.gonadBiomass>=(biomassType)initial_grazer_weight[AnimalStage::Egg]){
+			if(cohort.gonadBiomass>=(biomassType)initial_animal_weight[AnimalStage::Egg]){
 	#ifdef REPORT_COHORT_INFO
 				cout<<"Hour: "<<(*(this->current_hour))<<". Creating new cohort with ID: "<<(cohort.cohortID)<<", biomass: "<<cohort.gonadBiomass<<", x: "<<cohort.x<<", y: "<<cohort.y<<"."<<endl;
 	#endif
@@ -449,24 +475,10 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 	/*Remove dead animals in the cohort*/
 //	if(animal_mortality>0){
 		biomassType biomassAfterEating = getFoodBiomass(cohort);
-		if(biomassAfterEating==0.0f){
-			/* If there is no food, all individuals die*/
-			natural_dead_individuals=cohort.numberOfIndividuals;
-//			cout<<"Zero individuals."<<endl;
-//			deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
-		} else{
-			/* Otherwise, only a number die*/
-			animalCountType starvationProportion = (cohort.numberOfIndividuals/biomassAfterEating)*this->starvation_factor;
-//			starvationProportion*=this->starvation_factor;
-			//natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
-			natural_dead_individuals=this->animal_base_mortality_proportion*cohort.numberOfIndividuals+starvationProportion;
-//			if(cohort.numberOfIndividuals<=natural_dead_individuals){
-//				cout<<"Zero individuals."<<endl;
-//			}
-		}
+	updateStarvation(biomassAfterEating, cohort);
 //		deadIndividuals=animal_mortality/this->initial_grazer_weight[cohort.stage];
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-natural_dead_individuals);
-		cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-natural_dead_individuals*this->initial_grazer_weight[cohort.stage]);
+		cohort.bodyBiomass=max<animalCountType>(0.0f,cohort.bodyBiomass-natural_dead_individuals*this->initial_animal_weight[cohort.stage]);
 //		if(natural_dead_individuals>0){
 //			cout<<"Naturally dead individuals greater than 0."<<endl;
 //		}
@@ -492,7 +504,7 @@ void AnimalBiomassDynamics::updateCohortBiomass(AnimalCohort& cohort){
 #endif
 	/* Update number of individuals based on cohort biomass*/
 #ifndef CREATE_NEW_COHORTS
-	cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_grazer_weight[cohort.stage]);
+	cohort.numberOfIndividuals=ceil(cohort.bodyBiomass/initial_animal_weight[cohort.stage]);
 	cohort.numberOfIndividuals=max<animalCountType>(0, cohort.numberOfIndividuals);
 	if(cohort->numberOfIndividuals==0){
 				cout<<"Zero individuals."<<endl;
@@ -707,7 +719,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	biomassType localeFoodBiomassInMicrograms = locale_algae_biomass_before_eating*this->food_conversion_factor;
 	stroganovApproximation(localeTemperature);
 #ifdef INDIVIDUAL_BASED_ANIMALS
-	biomassType usedWeight= this->initial_grazer_weight[stage];
+	biomassType usedWeight= this->initial_animal_weight[stage];
 #else
 	biomassType usedWeight= 15;
 #endif
@@ -719,7 +731,7 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	/* Calculate mortality based on animal biomass or animal count*/
 #if defined(INDIVIDUAL_BASED_ANIMALS)&&defined(CREATE_NEW_COHORTS)
 
-	biomassType mortalityBiomass=min<biomassType>(animalCount*this->initial_grazer_weight[stage], animalBiomass);
+	biomassType mortalityBiomass=min<biomassType>(animalCount*this->initial_animal_weight[stage], animalBiomass);
 #else
 	biomassType mortalityBiomass=animalBiomass;
 #endif
@@ -751,6 +763,11 @@ biomassType AnimalBiomassDynamics::animalBiomassDifferential(int depthIndex, int
 	consumed_biomass=locale_defecation+salinity_corrected_animal_respiration+animal_excretion_loss;
 	consumed_biomass=0.0f;
 	biomassType localeBiomassDifferential=used_consumption-consumed_biomass-animal_mortality-animal_predatory_pressure;
+#ifdef DEBUG_PLANKTIVORES
+	if(animalType==AnimalType::Planktivore&&localeBiomassDifferential<0.0f){
+			cout<<"Negative differential: "<<localeBiomassDifferential<<", consumed biomass: "<<used_consumption<<", animal mortality: "<<animal_mortality<<", Dead animals: "<<animal_mortality/this->initial_animal_weight[stage]<<"."<<endl;
+		}
+#endif
 	calculatePredationPressure(animalCount);
 		if(*current_hour>=20*24&&bottom){
 //			cout<<"Condition found."<<endl;
@@ -851,7 +868,11 @@ void AnimalBiomassDynamics::animalMortality(biomassType localeBiomass, physicalT
 	salinityMortality(localeBiomass);
 	calculateLowOxigenMortality(localeBiomass);
 	animal_mortality = animal_base_mortality+salinity_mortality+low_oxigen_animal_mortality;
-
+#ifdef DEBUG_PLANKTIVORES
+	if(animal_mortality>0.0f&&this->animalType==AnimalType::Planktivore){
+		cout<<"Negative mortality: "<<animal_mortality<<"."<<endl;
+	}
+#endif
 
 }
 
@@ -879,10 +900,11 @@ void AnimalBiomassDynamics::animalTemperatureMortality(physicalType localeTemper
 
 }
 
-void AnimalBiomassDynamics::calculateGrazerCarryingCapacityMortality(biomassType inputBiomass){
+void AnimalBiomassDynamics::calculateGrazerCarryingCapacityMortality(const animalCountType animalCount, const biomassType animalWeight, const biomassType animalBiomass){
 //	biomassType animalBiomassProduct = (this->maximum_found_animal_biomass*this->animal_carrying_capacity_coefficient);
 //	biomassType carryingCapacityExponent = -inputBiomass/animalBiomassProduct+this->animal_carrying_capacity_intercept;
-	biomassType animalBiomassProduct = inputBiomass*this->animal_carrying_capacity_coefficient;
+	biomassType carryingCapacityBiomass=min<biomassType>(animalCount*animalWeight, animalBiomass);
+	biomassType animalBiomassProduct = carryingCapacityBiomass*this->animal_carrying_capacity_coefficient;
 	biomassType carryingCapacityExponent = -animalBiomassProduct+this->animal_carrying_capacity_intercept;
 	biomassType carryingCapacityExponentiation = (1/(1+exp(carryingCapacityExponent)));
 	animal_carrying_capacity =  max<biomassType>(0.0f,min<biomassType>(1.0f,this->animal_carrying_capacity_amplitude*(carryingCapacityExponentiation+this->animal_carrying_capacity_constant)));
@@ -944,7 +966,7 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 #ifdef ACCUMULATIVE_HOUR_STARVATION
 	biomassType biomassPerIndividual = cohort.bodyBiomass/cohort.numberOfIndividuals;
 	cohort.starvationBiomass +=consumed_biomass/biomassPerIndividual*this->dead_animals_per_lost_biomass_and_concentration;
-	animals_dead_by_starvation= cohort.starvationBiomass/this->initial_grazer_weight[cohort.stage];
+	animals_dead_by_starvation= cohort.starvationBiomass/this->initial_animal_weight[cohort.stage];
 
 	if(animals_dead_by_starvation>0){
 		cohort.hoursInStarvation++;
@@ -954,7 +976,11 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 //			if(animalsDeadByStarvation>0){
 //				cout<<"The actual number of animals dead by starvation is "<<animalsDeadByStarvation<<" for "<<cohort<<endl;
 //			}
-
+#ifdef DEBUG_PLANKTIVORES
+		if(animalType==AnimalType::Planktivore){
+					cout<<"Starved animals: "<<animals_dead_by_starvation<<", starved biomass: "<<cohort.starvationBiomass<<"."<<endl;
+				}
+#endif
 	} else{
 		cohort.hoursInStarvation=0;
 	}
@@ -962,7 +988,7 @@ void AnimalBiomassDynamics::animalStarvationMortality(AnimalCohort& cohort){
 //		cout<<"Starvation."<<endl;
 //	}
 #else
-	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_grazer_weight[cohort.stage];
+	animalCountType maxAnimalsDeadByStarvation = consumed_biomass/this->initial_animal_weight[cohort.stage];
 	biomassType biomassPerIndividual = cohort.bodyBiomass/cohort.numberOfIndividuals;
 	animals_dead_by_starvation=0;
 	if(maxAnimalsDeadByStarvation>0){
@@ -1030,6 +1056,11 @@ void AnimalBiomassDynamics::calculateReproductionProportionInvestment(biomassTyp
 	reproduction_investment_exponent=reproduction_proportion_investment_coefficient*(foodBiomass*MILLILITER_TO_LITER);
 	reproduction_investment_power=reproduction_investment_exponent+this->reproduction_proportion_investment_amplitude;
 	reproduction_proportion_investment=max<biomassType>(0.0f,min<biomassType>(this->maximum_gonad_weight_allocation,reproduction_investment_power));
+#ifdef DEBUG_PLANKTIVORES
+	if(reproduction_proportion_investment>0.0f&&animalType==AnimalType::Planktivore){
+		cout<<"Reproduction investment: "<<reproduction_proportion_investment<<"."<<endl;
+	}
+#endif
 #endif
 
 }
@@ -1047,8 +1078,8 @@ biomassType AnimalBiomassDynamics::createNewCohort(AnimalCohort& parentCohort, b
 	eggCohort.migrationConstant = parentCohort.migrationConstant;
 	/*The others are attributes for newborn cohorts*/
 	eggCohort.ageInHours=0;
-	eggCohort.numberOfEggs=(animalCountType)(initialBiomass/initial_grazer_weight[AnimalStage::Egg]);
-	eggCohort.biomass=(biomassType)eggCohort.numberOfEggs*initial_grazer_weight[AnimalStage::Egg];
+	eggCohort.numberOfEggs=(animalCountType)(initialBiomass/initial_animal_weight[AnimalStage::Egg]);
+	eggCohort.biomass=(biomassType)eggCohort.numberOfEggs*initial_animal_weight[AnimalStage::Egg];
 	//eggCohort.cohortID=(*this->cohortID)++;
 	eggCohort.cohortID=parentCohort.cohortID;
 	eggCohort.hasHatched=false;
@@ -1125,6 +1156,11 @@ void AnimalBiomassDynamics::matureEggs(vector<EggCohort>& eggs, map<pair<int,int
 #ifndef MATURE_JUVENILES
 	    	pair<int,int> cohortCoordinates(eggCohort.x, eggCohort.y);
 	    	if ( juveniles->find(cohortCoordinates) == juveniles->end() ) {
+#endif
+#ifdef DEBUG_PLANKTIVORES
+	    		if(animalType==AnimalType::Planktivore){
+	    			cout<<"Planktivore spawned";
+	    		}
 #endif
 	    		AnimalCohort animalCohort;
 	    		animalCohort.x=eggCohort.x;
@@ -1516,7 +1552,7 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 			biomassType availableFood=getFoodBiomass(it.isBottomAnimal, depthIndex, it.y);
 			foodConsumptionRate(depthIndex, it.y, it.isBottomAnimal,
 					it.numberOfIndividuals, availableFood,
-					this->initial_grazer_weight[it.stage], consumedProportion);
+					this->initial_animal_weight[it.stage], consumedProportion);
 		}
 	}
 
@@ -1554,7 +1590,7 @@ void AnimalBiomassDynamics::consumeDuringMigration(int initialDepth, int finalDe
 			biomassType availableFood=getFoodBiomass(it->isBottomAnimal,depthIndex, it->y);
 			foodConsumptionRate(depthIndex, it->y, it->isBottomAnimal,
 					it->numberOfIndividuals, availableFood,
-					this->initial_grazer_weight[it->stage], consumedProportion);
+					this->initial_animal_weight[it->stage], consumedProportion);
 		}
 	}
 

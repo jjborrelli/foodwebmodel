@@ -126,8 +126,9 @@ void FoodWebModel::ReadProcessedData::readModelData(const SimulationArguments& s
 	readInitialAlgaeBiomass(simArguments.initialAlgaeBiomassRoute);
 	readInitialZooplanktonCount(simArguments.initialZooplanktonCountRoute);
 	readInitialPlanktivoreCount(simArguments.initialPlanktivoreCountRoute);
-	readInitialZooplanktonDistribution(simArguments.initialZooplanktonDistributionRoute);
+	readInitialAnimalDistribution(simArguments.initialZooplanktonDistributionRoute);
 	readInitialZooplanktonWeight(simArguments.initialZooplanktonWeightRoute);
+	readInitialPlanktivoreWeight(simArguments.initialPlanktivoreWeightRoute);
 	readBaseAlgaeBiomassDifferential(simArguments.biomassBaseDifferentialRoute);
 	readLightAtSurface(simArguments.lightAtSurfaceRoute);
 	readYearLightIntensity(simArguments.lightAtSurfaceYearRoute);
@@ -253,9 +254,9 @@ void FoodWebModel::ReadProcessedData::readInitialPlanktivoreCount(const string& 
 	cout<<"Initial grazer count read."<<endl;
 }
 
-void FoodWebModel::ReadProcessedData::readInitialZooplanktonDistribution(const string& grazerDistributionRoute){
-	cout<<"Reading initial grazer distribution from file: "<<grazerDistributionRoute<<endl;
-	readValues<double>(grazerDistributionRoute, initial_grazer_distribution, MAX_CLASS_INDEX);
+void FoodWebModel::ReadProcessedData::readInitialAnimalDistribution(const string& animalDistributionRoute){
+	cout<<"Reading initial grazer distribution from file: "<<animalDistributionRoute<<endl;
+	readValues<double>(animalDistributionRoute, initial_animal_distribution, MAX_CLASS_INDEX);
 	cout<<"Initial grazer distribution read."<<endl;
 }
 
@@ -263,6 +264,12 @@ void FoodWebModel::ReadProcessedData::readInitialZooplanktonWeight(const string&
 	cout<<"Reading initial grazer weight from file: "<<grazerWeightRoute<<endl;
 	readValues<double>(grazerWeightRoute, initial_grazer_weight, MAX_CLASS_INDEX);
 	cout<<"Initial grazer weight read."<<endl;
+}
+
+void FoodWebModel::ReadProcessedData::readInitialPlanktivoreWeight(const string& planktivoreWeightRoute){
+	cout<<"Reading initial planktivore weight from file: "<<planktivoreWeightRoute<<endl;
+	readValues<double>(planktivoreWeightRoute, initial_planktivore_weight, MAX_CLASS_INDEX);
+	cout<<"Initial planktivore weight read."<<endl;
 }
 
 void FoodWebModel::ReadProcessedData::readBaseAlgaeBiomassDifferential(const string& biomassDifferentialRoute){

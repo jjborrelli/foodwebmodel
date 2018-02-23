@@ -199,8 +199,8 @@ namespace FoodWebModel {
 		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, bool isBottomAnimal);
 		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, map<pair<int,int>,AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal);
 #else
-		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal);
-		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal);
+		void addAnimalCohorts(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, bool isBottomAnimal, const AnimalBiomassDynamics& animalDescription);
+		void addAnimalCohort(unsigned int depthIndex, unsigned int columnIndex, animalCountType count, vector<AnimalCohort>& animals, AnimalStage developmentStage, bool isBottomAnimal, const AnimalBiomassDynamics& animalDescription);
 #endif
 
 #endif

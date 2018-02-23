@@ -43,6 +43,7 @@ typedef struct {
 	initialPlanktivoreCountRoute,
 	initialZooplanktonDistributionRoute,
 	initialZooplanktonWeightRoute,
+	initialPlanktivoreWeightRoute,
 	lightAtSurfaceRoute,
 	lightAtSurfaceYearRoute,
 	biomassBaseDifferentialRoute,
@@ -86,6 +87,7 @@ typedef struct {
 	grazer_maximum_gonad_weight_allocation,
 	grazer_egg_allocation_threshold,
 	grazer_starvation_factor,
+	planktivore_starvation_factor,
 	grazer_dead_animal_proportion,
 	grazer_reabsorbed_animal_nutrients_proportion,
 	grazer_consumption_temperature_factor,
@@ -105,15 +107,15 @@ typedef struct {
 	grazer_reproduction_proportion_investment_multiplier;
 
 	unsigned int grazer_max_hours_without_food, grazer_maximum_age_in_hours,
-	random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours, grazer_agglomeration_cohort_threshold;
+	random_seed, grazer_incubation_hours, grazer_ovipositing_period, grazer_maturation_hours, grazer_agglomeration_cohort_threshold, planktivore_max_hours_without_food;
 
 	int grazer_layer_center_index;
 
 	biomassType	predator_base_mortality_proportion, predator_filtering_rate_per_individual,
 	predator_basal_respiration_weight,
 	predator_k_value_respiration,
-	predator_carrying_capacity_coefficient,
-	predator_carrying_capacity_intercept,
+	planktivore_carrying_capacity_coefficient,
+	planktivore_carrying_capacity_intercept,
 	predator_maximum_found_biomass;
 
 	biomassType kairomones_level_day, kairomones_level_night, kairomones_thermocline, grazer_predation_perceived_biomass;
@@ -147,7 +149,7 @@ typedef struct {
 
 	unsigned int predator_random_seed, population_seed;
 
-	unsigned int maximum_planktivore_depth;
+	unsigned int maximum_planktivore_depth, planktivore_incubation_hours;
 	biomassType planktivore_saturation_constant, planktivore_consumption_weight;
 
 } SimulationArguments;
@@ -155,6 +157,7 @@ typedef struct {
 /* Types for individual-based dynamics of animals*/
 #ifdef INDIVIDUAL_BASED_ANIMALS
 typedef enum {Egg=0, Juvenile=1, Mature=2} AnimalStage;
+typedef enum {Grazer=0, Planktivore=1} AnimalType;
 typedef enum {None=0, Starvation=1, Senescence=2, Other=3} causeOfDeath;
 typedef enum {Predator=0, Food=1, Unassigned=2} predatorFitnessType;
 

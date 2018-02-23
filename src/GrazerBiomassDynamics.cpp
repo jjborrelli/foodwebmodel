@@ -510,7 +510,7 @@ void GrazerBiomassDynamics::predateCohort(AnimalCohort& cohort){
 		/* Calculate predated biomass*/
 		biomassType predationFactor=this->predation_index;
 		biomassType grazerPredatedBiomass=predationFactor*cohort.bodyBiomass;
-		animalCountType localePredatedIndividuals = grazerPredatedBiomass/this->initial_grazer_weight[cohort.stage];
+		animalCountType localePredatedIndividuals = grazerPredatedBiomass/this->initial_animal_weight[cohort.stage];
 		this->predatedIndividuals[cohort.x][cohort.y]+= localePredatedIndividuals;
 		/* Remove predated individuals*/
 		cohort.numberOfIndividuals=max<animalCountType>(0,cohort.numberOfIndividuals-localePredatedIndividuals);

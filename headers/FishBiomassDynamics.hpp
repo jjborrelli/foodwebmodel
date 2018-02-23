@@ -38,6 +38,10 @@ protected:
 	virtual void migrateCohortUsingRandomWalk(AnimalCohort& cohort);
 	virtual void matureJuveniles(vector<AnimalCohort>& juveniles, vector<AnimalCohort> *adultAnimals);
 	virtual void matureFloatingEggs();
+	virtual void updateStarvation(biomassType biomassAfterEating, AnimalCohort& cohort);
+private:
+	virtual	void calculateGrazerCarryingCapacityMortality(const animalCountType animalCount, const biomassType animalWeight, const biomassType animalBiomass);
+
 };
 }
 

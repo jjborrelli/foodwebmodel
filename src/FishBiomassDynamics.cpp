@@ -61,9 +61,12 @@ void FishBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, b
 	if(preyPointer==NULL){
 		used_consumption=consumption_per_individual=0.0f;
 	} else{
+#ifdef PLANKTIVORE_SATURATION_CONSUMPTION
 		/*The number of individuals consumed per planktivore is modulated by the temperature and maximized by the number of individuals in the cohort*/
 		consumption_per_individual = min<biomassType>(this->planktivore_consumption_weight*preyPointer->numberOfIndividuals/(preyPointer->numberOfIndividuals+this->planktivore_saturation_constant)*stroganov_adjustment,(biomassType)preyPointer->numberOfIndividuals/animalCount);
-
+#else
+		consumption_per_individual = min<biomassType>(this->planktivore_consumption_weight, (biomassType)preyPointer->numberOfIndividuals/animalCount);
+#endif
 
 #ifdef SATURATION_GRAZING
 	consumption_per_individual = min<biomassType>(FEEDING_SATURATION,MAXIMUM_GRAZING_ABSORBED);
@@ -78,7 +81,7 @@ void FishBiomassDynamics::foodConsumptionRate(int depthIndex, int columnIndex, b
 	used_consumption=locale_consumption;
 #endif
 	/*Get the biomass of consumed cohort*/
-	biomassType consumed_biomass=used_consumption*this->initial_grazer_weight[AnimalStage::Mature];
+	biomassType consumed_biomass=used_consumption*this->initial_animal_weight[AnimalStage::Mature];
 	biomassType localeGonadBiomassProportion=preyPointer->gonadBiomass/(preyPointer->gonadBiomass+preyPointer->bodyBiomass);
 
 	/*Update biomass of consumed cohort*/
@@ -166,6 +169,36 @@ void FishBiomassDynamics::matureFloatingEggs(){
 		cout<<"Error. Existing planktivore juveniles."<<endl;
 	}
 	matureEggs(this->floatingEggs, *(this->floatingAnimals));
+}
+
+void FishBiomassDynamics::calculateGrazerCarryingCapacityMortality(const animalCountType animalCount, const biomassType animalWeight, const biomassType animalBiomass){
+	biomassType carryingCapacityBiomass=(biomassType)animalCount;
+	biomassType animalBiomassProduct = carryingCapacityBiomass*this->animal_carrying_capacity_coefficient;
+	biomassType carryingCapacityExponent = -animalBiomassProduct+this->animal_carrying_capacity_intercept;
+	biomassType carryingCapacityExponentiation = (1/(1+exp(carryingCapacityExponent)));
+	animal_carrying_capacity =  max<biomassType>(0.0f,min<biomassType>(1.0f,this->animal_carrying_capacity_amplitude*(carryingCapacityExponentiation+this->animal_carrying_capacity_constant)));
+}
+
+void FishBiomassDynamics::updateStarvation(biomassType biomassAfterEating, AnimalCohort& cohort){
+	if(biomassAfterEating<=0.0f){
+		cohort.hoursInStarvation++;
+		if(cohort.hoursInStarvation>=this->max_hours_without_food){
+			animalCountType starvationProportion = (cohort.numberOfIndividuals) * this->starvation_factor;
+			//			starvationProportion*=this->starvation_factor;
+			//natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+			natural_dead_individuals = this->animal_base_mortality_proportion
+					* cohort.numberOfIndividuals + starvationProportion;
+#ifdef DEBUG_PLANKTIVORES
+			if (animalType == AnimalType::Planktivore) {
+				cout << "Some individuals (" << natural_dead_individuals
+						<< ") have starved with starvation proportion: "
+						<< starvationProportion << "." << endl;
+			}
+#endif
+		}
+	} else{
+		cohort.hoursInStarvation=0;
+	}
 }
 
 }

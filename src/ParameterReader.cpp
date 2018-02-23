@@ -129,6 +129,10 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.initialZooplanktonWeightRoute= parameterValue;
 		return;
 	}
+	if(!parameterName.compare("InitialPlanktivoreWeightRoute")){
+		simArguments.initialPlanktivoreWeightRoute= parameterValue;
+		return;
+	}
 	if(!parameterName.compare("LightAtSurfaceRoute")){
 		simArguments.lightAtSurfaceRoute= parameterValue;
 		return;
@@ -391,6 +395,14 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.grazer_max_hours_without_food= atoi(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PlanktivoreMaxHoursWithoutFood")){
+			simArguments.planktivore_max_hours_without_food= atoi(parameterValue.c_str());
+			return;
+		}
+	if(!parameterName.compare("PlanktivoreStarvationFactor")){
+			simArguments.planktivore_starvation_factor= atof(parameterValue.c_str());
+			return;
+		}
 	if(!parameterName.compare("GrazerDeadAnimalsPerLostBiomassAndConcentration")){
 		simArguments.grazer_dead_animals_per_lost_biomass_and_concentration= atof(parameterValue.c_str());
 		return;
@@ -588,12 +600,12 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.predator_k_value_respiration= atof(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("PredatorCarryingCapacityCoefficient")){
-		simArguments.predator_carrying_capacity_coefficient= atof(parameterValue.c_str());
+	if(!parameterName.compare("PlanktivoreCarryingCapacityCoefficient")){
+		simArguments.planktivore_carrying_capacity_coefficient= atof(parameterValue.c_str());
 		return;
 	}
-	if(!parameterName.compare("PredatorCarryingCapacityIntercept")){
-		simArguments.predator_carrying_capacity_intercept = atof(parameterValue.c_str());
+	if(!parameterName.compare("PlanktivoreCarryingCapacityIntercept")){
+		simArguments.planktivore_carrying_capacity_intercept = atof(parameterValue.c_str());
 		return;
 	}
 	if(!parameterName.compare("PredatorMaximumFoundBiomass")){
@@ -616,6 +628,11 @@ void FoodWebModel::ParameterReader::setParameter(const std::string& parameterNam
 		simArguments.planktivore_consumption_weight= atof(parameterValue.c_str());
 		return;
 	}
+	if(!parameterName.compare("PlanktivoreIncubationHours")){
+		simArguments.planktivore_incubation_hours= atoi(parameterValue.c_str());
+		return;
+	}
+
 	if(!parameterName.compare("GrazerPredationPerceivedBiomass")){
 		simArguments.grazer_predation_perceived_biomass= atof(parameterValue.c_str());
 		return;

@@ -1388,7 +1388,7 @@ void AnimalBiomassDynamics::updateMigratedCohorts(std::map<pair<int,int>,AnimalC
 						createdCohort.previousConsumption=migratedFloatingAnimalPreviousConsumption[depthIndex][columnIndex];
 						createdCohort.isBottomAnimal=false;
 						createdCohort.ageInHours=0;
-						createdCohort.latestMigrationIndex= createdCohort.hoursInStarvation = 0;
+						createdCohort.latestMigrationIndex=createdCohort.hoursInStarvation =0;
 						createdCohort.cohortID=migratedFloatingAnimalCohortID[depthIndex][columnIndex];;
 						(*animals)[migratedCoordinates]=createdCohort;
 						if((*animals)[migratedCoordinates].stage!=AnimalStage::Mature){

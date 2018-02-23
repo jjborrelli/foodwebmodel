@@ -180,24 +180,25 @@ void FishBiomassDynamics::calculateGrazerCarryingCapacityMortality(const animalC
 }
 
 void FishBiomassDynamics::updateStarvation(biomassType biomassAfterEating, AnimalCohort& cohort){
+	natural_dead_individuals = this->animal_base_mortality_proportion
+					* cohort.numberOfIndividuals;
 	if(biomassAfterEating<=0.0f){
+		//		if(cohort.hoursInStarvation>0){
+		//			cout<<"Positive starvation."<<endl;
+		//		}
 		cohort.hoursInStarvation++;
-		if(cohort.hoursInStarvation>=this->max_hours_without_food){
-			animalCountType starvationProportion = (cohort.numberOfIndividuals) * this->starvation_factor;
-			//			starvationProportion*=this->starvation_factor;
-			//natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
-			natural_dead_individuals = this->animal_base_mortality_proportion
-					* cohort.numberOfIndividuals + starvationProportion;
+		//		if(cohort.hoursInStarvation>=this->max_hours_without_food){
+		animalCountType starvationProportion = (cohort.numberOfIndividuals) * this->starvation_factor;
+		//			starvationProportion*=this->starvation_factor;
+		//natural_dead_individuals=animal_mortality/this->initial_grazer_weight[cohort.stage]*starvationProportion;
+		natural_dead_individuals += starvationProportion;
 #ifdef DEBUG_PLANKTIVORES
-			if (animalType == AnimalType::Planktivore) {
-				cout << "Some individuals (" << natural_dead_individuals
-						<< ") have starved with starvation proportion: "
-						<< starvationProportion << "." << endl;
-			}
-#endif
+		if (animalType == AnimalType::Planktivore) {
+			cout << "Some individuals (" << natural_dead_individuals
+					<< ") have starved with starvation proportion: "
+					<< starvationProportion << "." << endl;
 		}
-	} else{
-		cohort.hoursInStarvation=0;
+#endif
 	}
 }
 
